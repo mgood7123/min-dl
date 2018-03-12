@@ -42,7 +42,10 @@ int bcmp_(void const *vp, size_t n, void const *vp2, size_t n2)
         if (string_match == 0) {
             printf("ERROR: strings do not match\n");
             return -1;
-        } else return 0;
+        } else {
+            printf("returning 0\n");
+            return 0;
+        }
     } else
     {
         printf("ERROR: different length string comparision, might want to use strcmp instead\n");
@@ -114,6 +117,7 @@ void
 init_env (void)
 {
     printf("----------------------------------------------------------------------->called %s() at line %d from %s\n", __func__, __LINE__, __FILE__);
+    extern char ** __environ;
     assert(__environ!=NULL);
     saved_environ = __environ;
     assert(saved_environ!=NULL);

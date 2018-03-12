@@ -1,21 +1,195 @@
 char ** argv;
-const char * global_quiet = "no";
-#ifndef __SHARED__
-#warning recompile this with the flag -D__SHARED__ to enable compiling this as a shared library
+#if __PIC__ == 0
+// compiled without -fpic or -fPIC
+#warning recompile this with the flag -fpic or -fPIC to enable compiling this as a shared library
 
 int
 readelf_(const char * filename);
 int main() {
     readelf_(argv[0]);
 }
-#endif
+#else
+// compiled with -fpic or -fPIC
+const char * global_quiet = "yes";
+const char * symbol_quiet = "yes";
+const char * relocation_quiet = "yes";
+#define quiet symbol_quiet
 
-#ifdef __SHARED__
+// define all headers first
 
-int init__ = 0;
+#include <elf.h>
+#include <libiberty/libiberty.h>
+#include <libiberty/demangle.h>
+#include <libiberty/safe-ctype.h>
+#include <stdlib.h>
+#include <stdio.h>
+#include <assert.h>
+#include <signal.h>
+#include <ucontext.h>
+#include <setjmp.h>
+#include <errno.h>
+#include <string.h>
+#include <unistd.h>
+#include <locale.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+#include <assert.h>
+#include <sys/mman.h>
+
+
+// need to add every needed declaration into this struct
+
+int library_index = 0; // must be global
+struct lib
+{
+    char * struct_init;
+    char * library_name;
+    char library_first_character;
+    char * library_len;
+    char * library_symbol;
+    uintptr_t mappingb;
+    Elf64_Ehdr * _elf_header;
+    Elf64_Phdr * _elf_program_header;
+    Elf64_Shdr * _elf_symbol_table;
+    char * program_hdr;
+    size_t len;
+    char * array;
+    char * current_lib;
+    char * last_lib;
+    int is_mapped;
+    size_t align;
+    Elf64_Addr base_address;
+    Elf64_Addr mappingb_end;
+    int init__;
+    int PT_DYNAMIC_;
+    char * tmp99D;
+    int First_Load_Header_index;
+    int Last_Load_Header_index;
+    size_t RELA_PLT_SIZE;
+    int _R_X86_64_NONE;
+    int _R_X86_64_64;
+    int _R_X86_64_PC32;
+    int _R_X86_64_GOT32;
+    int _R_X86_64_PLT32;
+    int _R_X86_64_COPY;
+    int _R_X86_64_GLOB_DAT;
+    int _R_X86_64_JUMP_SLOT;
+    int _R_X86_64_RELATIVE;
+    int _R_X86_64_GOTPCREL;
+    int _R_X86_64_32;
+    int _R_X86_64_32S;
+    int _R_X86_64_16;
+    int _R_X86_64_PC16;
+    int _R_X86_64_8;
+    int _R_X86_64_PC8;
+    int _R_X86_64_DTPMOD64;
+    int _R_X86_64_DTPOFF64;
+    int _R_X86_64_TPOFF64;
+    int _R_X86_64_TLSGD;
+    int _R_X86_64_TLSLD;
+    int _R_X86_64_DTPOFF32;
+    int _R_X86_64_GOTTPOFF;
+    int _R_X86_64_TPOFF32;
+    int _R_X86_64_PC64;
+    int _R_X86_64_GOTOFF64;
+    int _R_X86_64_GOTPC32;
+    int _R_X86_64_GOT64;
+    int _R_X86_64_GOTPCREL64;
+    int _R_X86_64_GOTPC64;
+    int _Deprecated1;
+    int _R_X86_64_PLTOFF64;
+    int _R_X86_64_SIZE32;
+    int _R_X86_64_SIZE64;
+    int _R_X86_64_GOTPC32_TLSDESC;
+    int _R_X86_64_TLSDESC_CALL;
+    int _R_X86_64_TLSDESC;
+    int _R_X86_64_IRELATIVE;
+    int _R_X86_64_RELATIVE64;
+    int _Deprecated2;
+    int _Deprecated3;
+    int _R_X86_64_GOTPLT64;
+    int _R_X86_64_GOTPCRELX;
+    int _R_X86_64_REX_GOTPCRELX;
+    int _R_X86_64_NUM;
+    int _R_X86_64_UNKNOWN;
+} library[5];
+
+init_struct() {
+    library[library_index].struct_init = "initialized";
+    library[library_index].library_name;
+    library[library_index].library_first_character;
+    library[library_index].library_len;
+    library[library_index].library_symbol;
+    library[library_index].mappingb;
+    library[library_index]._elf_header;
+    library[library_index]._elf_program_header;
+    library[library_index]._elf_symbol_table;
+    library[library_index].program_hdr;
+    library[library_index].len;
+    library[library_index].array;
+    library[library_index].current_lib = "NULL";
+    library[library_index].last_lib = "NULL";
+    library[library_index].is_mapped = 0;
+    library[library_index].align;
+    library[library_index].base_address = 0x00000000;
+    library[library_index].mappingb_end = 0x00000000;
+    library[library_index].init__ = 0;
+    library[library_index].PT_DYNAMIC_ = NULL;
+    library[library_index].tmp99D;
+    library[library_index].First_Load_Header_index = NULL;
+    library[library_index].Last_Load_Header_index = NULL;
+    library[library_index].RELA_PLT_SIZE = 0;
+    library[library_index]._R_X86_64_NONE = 0;
+    library[library_index]._R_X86_64_64 = 0;
+    library[library_index]._R_X86_64_PC32 = 0;
+    library[library_index]._R_X86_64_GOT32 = 0;
+    library[library_index]._R_X86_64_PLT32 = 0;
+    library[library_index]._R_X86_64_COPY = 0;
+    library[library_index]._R_X86_64_GLOB_DAT = 0;
+    library[library_index]._R_X86_64_JUMP_SLOT = 0;
+    library[library_index]._R_X86_64_RELATIVE = 0;
+    library[library_index]._R_X86_64_GOTPCREL = 0;
+    library[library_index]._R_X86_64_32 = 0;
+    library[library_index]._R_X86_64_32S = 0;
+    library[library_index]._R_X86_64_16 = 0;
+    library[library_index]._R_X86_64_PC16 = 0;
+    library[library_index]._R_X86_64_8 = 0;
+    library[library_index]._R_X86_64_PC8 = 0;
+    library[library_index]._R_X86_64_DTPMOD64 = 0;
+    library[library_index]._R_X86_64_DTPOFF64 = 0;
+    library[library_index]._R_X86_64_TPOFF64 = 0;
+    library[library_index]._R_X86_64_TLSGD = 0;
+    library[library_index]._R_X86_64_TLSLD = 0;
+    library[library_index]._R_X86_64_DTPOFF32 = 0;
+    library[library_index]._R_X86_64_GOTTPOFF = 0;
+    library[library_index]._R_X86_64_TPOFF32 = 0;
+    library[library_index]._R_X86_64_PC64 = 0;
+    library[library_index]._R_X86_64_GOTOFF64 = 0;
+    library[library_index]._R_X86_64_GOTPC32 = 0;
+    library[library_index]._R_X86_64_GOT64 = 0;
+    library[library_index]._R_X86_64_GOTPCREL64 = 0;
+    library[library_index]._R_X86_64_GOTPC64 = 0;
+    library[library_index]._Deprecated1 = 0;
+    library[library_index]._R_X86_64_PLTOFF64 = 0;
+    library[library_index]._R_X86_64_SIZE32 = 0;
+    library[library_index]._R_X86_64_SIZE64 = 0;
+    library[library_index]._R_X86_64_GOTPC32_TLSDESC = 0;
+    library[library_index]._R_X86_64_TLSDESC_CALL = 0;
+    library[library_index]._R_X86_64_TLSDESC = 0;
+    library[library_index]._R_X86_64_IRELATIVE = 0;
+    library[library_index]._R_X86_64_RELATIVE64 = 0;
+    library[library_index]._Deprecated2 = 0;
+    library[library_index]._Deprecated3 = 0;
+    library[library_index]._R_X86_64_GOTPLT64 = 0;
+    library[library_index]._R_X86_64_GOTPCRELX = 0;
+    library[library_index]._R_X86_64_REX_GOTPCRELX = 0;
+    library[library_index]._R_X86_64_NUM = 0;
+    library[library_index]._R_X86_64_UNKNOWN = 0;
+}
+
 int init_(const char * filename);
 int initv_(const char * filename);
-
 
 void * lookup_symbol_by_name_(const char * lib, const char * name);
 // for C++ symbol name demangling should libirty become incompatible
@@ -25,9 +199,6 @@ void * lookup_symbol_by_name_(const char * lib, const char * name);
 // gdb and c++filt use demangler provided by libiberty
 
 // allow for demangling of C++ symbols, link with -liberty
-#include <libiberty/libiberty.h>
-#include <libiberty/demangle.h>
-#include <libiberty/safe-ctype.h>
 int flags = DMGL_PARAMS | DMGL_ANSI | DMGL_VERBOSE;
 int strip_underscore = 0;
 char * demangle_it (char *mangled_name)
@@ -59,20 +230,8 @@ char * __print_quoted_string__(const char *str, unsigned int size, const unsigne
 // ELF Spec     FULL:  http://refspecs.linuxbase.org/elf/elf.pdf
 // ELF Spec ABI FULL:  https://github.com/hjl-tools/x86-psABI/wiki/x86-64-psABI-1.0.pdf
 
-#include <link.h>
-size_t align;
-ElfW(Addr) base_address = 0x00000000;
-ElfW(Addr) mappingb_end = 0x00000000;
-#include <stdlib.h>
-#include <stdio.h>
-#include <assert.h>
 
 //sig handling
-#include <signal.h>
-#include <ucontext.h>
-#include <setjmp.h>
-#include <errno.h>
-
 jmp_buf restore_point;
 jmp_buf restore_pointb;
 struct sigaction sa, sab;
@@ -91,10 +250,10 @@ void Handlerb(int sig, siginfo_t *si, ucontext_t *unused)
         if (bytecmpq(global_quiet, "no") == 0) printf("    code:   %d (If this is less than or equal to 0, then the signal was generated by a process)\n", si->si_code);
         if (bytecmpq(global_quiet, "no") == 0) printf("    pid:    %d\n", (pid_t) si->si_pid);
         if (bytecmpq(global_quiet, "no") == 0) printf("    uid:    %d\n", (uid_t) si->si_uid);
-        if (bytecmpq(global_quiet, "no") == 0) printf("    value:  %d\n", (sigval_t) si->si_value);
+//         if (bytecmpq(global_quiet, "no") == 0) printf("    value:  %d\n", (sigval_t) si->si_value); // not in musl
         if (bytecmpq(global_quiet, "no") == 0) printf("    status: %d\n", si->si_status);
         if (bytecmpq(global_quiet, "no") == 0) printf("    aquiring ucontext_t\n");
-        getcontext(unused);
+//         getcontext(unused); // not used and not in musl
         signal(SIGSEGV, h_);
         longjmp(restore_pointb, SIGSEGV);
     }
@@ -115,7 +274,7 @@ void Handler(int sig, siginfo_t *si, ucontext_t *context)
 {
 //     init_handlerb();
 
-// dont print anything, silently skip
+// dont print anything, silibrary[library_index].lently skip
 
 //     if (bytecmpq(global_quiet, "no") == 0) printf("                                                                                                                        received signal (%d)\n", sig);
     if (sig == SIGSEGV)
@@ -341,115 +500,6 @@ int testh(char * address)
     }
 }
 
-static int
-callback(struct dl_phdr_info *info, size_t size, void *data)
-{
-    int j;
-    Elf64_Phdr * tmp99;
-
-    if (bytecmpq(global_quiet, "no") == 0) printf("name=%s (%d segments)\n", info->dlpi_name,
-        info->dlpi_phnum);
-        if (bytecmp(info->dlpi_name, argv[1]) == 0) for (j = 0; j < info->dlpi_phnum; j++) {
-        if (bytecmpq(global_quiet, "no") == 0) printf("\t\t header %2d: address=%014p (%014p)\n", j, (void *) (info->dlpi_addr + info->dlpi_phdr[j].p_vaddr), (void *) (info->dlpi_addr + info->dlpi_phdr[j].p_vaddr));
-        if (bytecmpq(global_quiet, "no") == 0) printf("\t\t p_type:\t\t\t/* Segment type */\t\t= ");
-        switch(info->dlpi_phdr[j].p_type)
-        {
-            case PT_NULL:
-                if (bytecmpq(global_quiet, "no") == 0) printf("PT_NULL\t\t/* Program header table entry unused */\n");
-                break;
-            case PT_LOAD:
-                if (bytecmpq(global_quiet, "no") == 0) printf("PT_LOAD\t\t/* Loadable program segment */\n");
-                break;
-            case PT_DYNAMIC:
-                if (bytecmpq(global_quiet, "no") == 0) printf("PT_DYNAMIC\t\t/* Dynamic linking information */\n");
-                break;
-            case PT_INTERP:
-                if (bytecmpq(global_quiet, "no") == 0) printf("PT_INTERP\t\t/* Program interpreter */\n");
-                break;
-            case PT_NOTE:
-                if (bytecmpq(global_quiet, "no") == 0) printf("PT_NOTE\t\t/* Auxiliary information */\n");
-                break;
-            case PT_SHLIB:
-                if (bytecmpq(global_quiet, "no") == 0) printf("PT_SHLIB\t\t/* Reserved */\n");
-                break;
-            case PT_PHDR:
-                if (bytecmpq(global_quiet, "no") == 0) printf("PT_PHDR\t\t/* Entry for header table itself */\n");
-                break;
-            case PT_TLS:
-                if (bytecmpq(global_quiet, "no") == 0) printf("PT_TLS\t\t/* Thread-local storage segment */\n");
-                break;
-            case PT_NUM:
-                if (bytecmpq(global_quiet, "no") == 0) printf("PT_NUM\t\t/* Number of defined types */\n");
-                break;
-            case PT_LOOS:
-                if (bytecmpq(global_quiet, "no") == 0) printf("PT_LOOS\t\t/* Start of OS-specific */\n");
-                break;
-            case PT_GNU_EH_FRAME:
-                if (bytecmpq(global_quiet, "no") == 0) printf("PT_GNU_EH_FRAME\t/* GCC .eh_frame_hdr segment */\n");
-                break;
-            case PT_GNU_STACK:
-                if (bytecmpq(global_quiet, "no") == 0) printf("PT_GNU_STACK\t\t/* Indicates stack executability */\n");
-                break;
-            case PT_GNU_RELRO:
-                if (bytecmpq(global_quiet, "no") == 0) printf("PT_GNU_RELRO\t\t/* Read-only after relocation */\n");
-                break;
-            case PT_SUNWBSS:
-                if (bytecmpq(global_quiet, "no") == 0) printf("PT_SUNWBSS\t\t/* Sun Specific segment */\n");
-                break;
-            case PT_SUNWSTACK:
-                if (bytecmpq(global_quiet, "no") == 0) printf("PT_SUNWSTACK\t\t/* Stack segment */\n");
-                break;
-            case PT_HIOS:
-                if (bytecmpq(global_quiet, "no") == 0) printf("PT_HIOS\t\t/* End of OS-specific */\n");
-                break;
-            case PT_LOPROC:
-                if (bytecmpq(global_quiet, "no") == 0) printf("PT_LOPROC\t\t/* Start of processor-specific */\n");
-                break;
-            case PT_HIPROC:
-                if (bytecmpq(global_quiet, "no") == 0) printf("PT_HIPROC\t\t/* End of processor-specific */\n");
-                break;
-            default:
-                    if (bytecmpq(global_quiet, "no") == 0) printf("\t\t Unknown\n");
-            break;
-        }
-//         tmp99 = info->dlpi_phdr[j].p_offset;
-
-        if (bytecmpq(global_quiet, "no") == 0) printf("\t\t reading                 %014p\n", (info->dlpi_phdr[j].p_memsz + info->dlpi_phdr[j].p_offset));
-        char * tmp98[info->dlpi_phdr[j].p_memsz];
-        *tmp98 = info->dlpi_phdr[j].p_offset;
-//         if (bytecmpq(global_quiet, "no") == 0) printf("tmp98[0] = %c\n", tmp98[3]);
-//         read_fast_verify(array, len, &tmp99, (info->dlpi_phdr[j].p_memsz + info->dlpi_phdr[j].p_offset));
-
-        if (bytecmpq(global_quiet, "no") == 0) printf("\t\t correcting position by  %014p\n", info->dlpi_phdr[j].p_offset);
-//         __lseek_string__(&tmp99, info->dlpi_phdr[j].p_memsz, info->dlpi_phdr[j].p_offset);
-
-        if (bytecmpq(global_quiet, "no") == 0) printf("\t\t reading                 %d\n", info->dlpi_phdr[j].p_memsz);
-        __print_quoted_string__(tmp98, info->dlpi_phdr[j].p_memsz, 0, "print");
-
-        if (bytecmpq(global_quiet, "no") == 0) printf("\t\t p_flags:\t\t/* Segment flags */\t\t= %014p\n", info->dlpi_phdr[j].p_flags);
-        if (bytecmpq(global_quiet, "no") == 0) printf("\t\t p_offset:\t\t/* Segment file offset */\t= %014p\n", info->dlpi_phdr[j].p_offset);
-        if (bytecmpq(global_quiet, "no") == 0) printf("\t\t p_vaddr:\t\t/* Segment virtual address */\t= %014p\n", info->dlpi_phdr[j].p_vaddr);
-        if (bytecmpq(global_quiet, "no") == 0) printf("\t\t p_paddr:\t\t/* Segment physical address */\t= %014p\n", info->dlpi_phdr[j].p_paddr);
-        if (bytecmpq(global_quiet, "no") == 0) printf("\t\t p_filesz:\t\t/* Segment size in file */\t= %014p\n", info->dlpi_phdr[j].p_filesz);
-        if (bytecmpq(global_quiet, "no") == 0) printf("\t\t p_memsz:\t\t/* Segment size in memory */\t= %014p\n", info->dlpi_phdr[j].p_memsz);
-        if (bytecmpq(global_quiet, "no") == 0) printf("\t\t p_align:\t\t/* Segment alignment */\t\t= %014p\n", info->dlpi_phdr[j].p_align);
-
-//         test(tmp99);
-        if (bytecmpq(global_quiet, "no") == 0) printf("\n\n");
-    }
-    return 0;
-}
-
-#include <string.h>
-#include <unistd.h>
-#include <locale.h>
-#include <elf.h>
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <fcntl.h>
-#include <assert.h>
-#include <sys/mman.h>
-uintptr_t mappingb;
 #define QUOTE_0_TERMINATED			0x01
 #define QUOTE_OMIT_LEADING_TRAILING_QUOTES	0x02
 #define QUOTE_OMIT_TRAILING_0			0x08
@@ -457,42 +507,57 @@ uintptr_t mappingb;
 #define QUOTE_FORCE_HEXOLD				9998
 #define QUOTE_FORCE_LEN				9999
 #define error_msg if (bytecmpq(global_quiet, "no") == 0) printf
-Elf64_Ehdr *_elf_header;
-Elf64_Phdr *_elf_program_header;
-Elf64_Shdr *_elf_symbol_table;
-char * program_hdr;
-size_t len;
-char * array;
-char * current_lib = "";
-char * last_lib = "";
-int is_mapped = 0;
-char * init(char * lib) {
-    if (bytecmpq(lib, last_lib) != 0) { array = NULL; is_mapped = 0; init__ = 0; }
-    last_lib=lib;
-    if (array == NULL) {
+int search(const char * lib) {
+    // need to be smarter
+    int i = 0;
+    while(1)
+    {
+        if (library[i].struct_init == "initialized") {
+            printf("current index %d holds \"%s\"\n", i, library[i].last_lib);
+            if ( bytecmpq(lib, library[i].last_lib) == -1 && bytecmpq("NULL", library[i].last_lib) == -1 ) i++;
+            else if ( bytecmpq("NULL", library[i].last_lib) == -1 )
+                 {
+                     printf("index %d holds desired library \"%s\"\n", i, lib); // bugs
+                     break;
+                 }
+            else {
+                printf("attempting to save to index %d\n", i);
+                break;
+            }
+        } else {
+            printf("WARNING: index %d is %s\n", i, library[i].struct_init);
+            break;
+        }
+    }
+    return i;
+}
+int init(char * lib) {
+    if (library[library_index].struct_init != "initialized") init_struct();
+    printf("current index %d holds \"%s\"\nsearching indexes for \"%s\" incase it has already been loaded\n", library_index, library[library_index].last_lib, lib);
+    
+    library_index = search(lib);
+    library[library_index].last_lib = lib;
+    library[library_index].current_lib = lib;
+    if (library[library_index].array == NULL) {
         int fd = open(lib, O_RDONLY);
         if (fd < 0) {
             if (bytecmpq(global_quiet, "no") == 0) printf("cannot open \"%s\", returned %i\n", lib, fd);
             return -1;
         }
-        len = 0;
-        len = lseek(fd, 0, SEEK_END);
+        library[library_index].len = 0;
+        library[library_index].len = lseek(fd, 0, SEEK_END);
         lseek(fd, 0, 0);
-        array = mmap (NULL, len, PROT_READ, MAP_PRIVATE, fd, 0);
-        if (array == MAP_FAILED) {
+        library[library_index].array = mmap (NULL, library[library_index].len, PROT_READ, MAP_PRIVATE, fd, 0);
+        if (library[library_index].array == MAP_FAILED) {
             if (bytecmpq(global_quiet, "no") == 0) printf ("map failed\n");
             exit;
         } else {
-            if (bytecmpq(global_quiet, "no") == 0) printf ("map succeded with address: %014p\n", array);
+            if (bytecmpq(global_quiet, "no") == 0) printf ("map succeded with address: %014p\n", library[library_index].array);
             return 0;
         }
     } else return 0;
     return -1;
 }
-int PT_DYNAMIC_ = NULL;
-char * tmp99D;
-int First_Load_Header_index = NULL;
-int Last_Load_Header_index = NULL;
 
 int prot_from_phdr(const int p_flags)
 {
@@ -516,9 +581,9 @@ int prot_from_phdr(const int p_flags)
 }
 
 void map() {
-    if (is_mapped == 0) {
-        Elf64_Ehdr * _elf_header = (Elf64_Ehdr *) array;
-        _elf_program_header = (Elf64_Phdr *)((unsigned long)_elf_header + _elf_header->e_phoff);
+    if (library[library_index].is_mapped == 0) {
+        library[library_index]._elf_header = (Elf64_Ehdr *) library[library_index].array;
+        library[library_index]._elf_program_header = (Elf64_Phdr *)((unsigned long)library[library_index]._elf_header + library[library_index]._elf_header->e_phoff);
 
 // the very first thing we do is obtain the base address
 
@@ -547,71 +612,71 @@ void map() {
 // the difference between the truncated memory address and the truncated p_vaddr value.
 
         int PT_LOADS=0;
-        for (int i = 0; i < _elf_header->e_phnum; ++i) {
-            switch(_elf_program_header[i].p_type)
+        for (int i = 0; i < library[library_index]._elf_header->e_phnum; ++i) {
+            switch(library[library_index]._elf_program_header[i].p_type)
             {
                 case PT_LOAD:
 //                         if (bytecmpq(global_quiet, "no") == 0) printf("i = %d\n", i);
 //                         if (bytecmpq(global_quiet, "no") == 0) printf("PT_LOADS = %d\n", PT_LOADS);
                     if (!PT_LOADS)  {
 //                             if (bytecmpq(global_quiet, "no") == 0) printf("saving first load\n");
-                        First_Load_Header_index = i;
+                        library[library_index].First_Load_Header_index = i;
                     }
                     if (PT_LOADS) {
 //                             if (bytecmpq(global_quiet, "no") == 0) printf("saving last load\n");
-                        Last_Load_Header_index = i;
+                        library[library_index].Last_Load_Header_index = i;
                     }
                     PT_LOADS=PT_LOADS+1;
                     break;
             }
         }
-        size_t span = _elf_program_header[Last_Load_Header_index].p_vaddr + _elf_program_header[Last_Load_Header_index].p_memsz - _elf_program_header[First_Load_Header_index].p_vaddr;
+        size_t span = library[library_index]._elf_program_header[library[library_index].Last_Load_Header_index].p_vaddr + library[library_index]._elf_program_header[library[library_index].Last_Load_Header_index].p_memsz - library[library_index]._elf_program_header[library[library_index].First_Load_Header_index].p_vaddr;
 
         size_t pagesize = 0x1000;
 
-        read_fast_verifyb(array, len, &mappingb, span, _elf_program_header[First_Load_Header_index], _elf_program_header[Last_Load_Header_index]);
+        read_fast_verifyb(library[library_index].array, library[library_index].len, &library[library_index].mappingb, span, library[library_index]._elf_program_header[library[library_index].First_Load_Header_index], library[library_index]._elf_program_header[library[library_index].Last_Load_Header_index]);
 
-        align = round_down(_elf_program_header[Last_Load_Header_index].p_vaddr, pagesize);
-        base_address = mappingb - align;
-        mappingb_end = mappingb+span;
+        library[library_index].align = round_down(library[library_index]._elf_program_header[library[library_index].Last_Load_Header_index].p_vaddr, pagesize);
+        library[library_index].base_address = library[library_index].mappingb - library[library_index].align;
+        library[library_index].mappingb_end = library[library_index].mappingb+span;
 
-//             if (bytecmpq(global_quiet, "no") == 0) printf("base address range = %014p - %014p\nmapping = %014p\n", mappingb, mappingb_end, mapping);
+//             if (bytecmpq(global_quiet, "no") == 0) printf("base address range = %014p - %014p\nmapping = %014p\n", library[library_index].mappingb, library[library_index].mappingb_end, mapping);
 
 // base address aquired, map all PT_LOAD segments adjusting by base address then continue with the rest
-        if (bytecmpq(global_quiet, "no") == 0) printf("\n\n\nfind %014p, %014p, (int) 1239\n\n\n\n", mappingb, mappingb_end);
+        if (bytecmpq(global_quiet, "no") == 0) printf("\n\n\nfind %014p, %014p, (int) 1239\n\n\n\n", library[library_index].mappingb, library[library_index].mappingb_end);
 
-        if (mappingb == 0x00000000) abort_();
+        if (library[library_index].mappingb == 0x00000000) abort_();
         int PT_LOADS_CURRENT = 0;
-        for (int i = 0; i < _elf_header->e_phnum; ++i) {
-            switch(_elf_program_header[i].p_type)
+        for (int i = 0; i < library[library_index]._elf_header->e_phnum; ++i) {
+            switch(library[library_index]._elf_program_header[i].p_type)
             {
                 case PT_LOAD:
                     PT_LOADS_CURRENT = PT_LOADS_CURRENT + 1;
 //                         if (bytecmpq(global_quiet, "no") == 0) printf ("mapping PT_LOAD number %d\n", PT_LOADS_CURRENT);
-//                         if (bytecmpq(global_quiet, "no") == 0) printf("\t\tp_flags:  %014p\n", _elf_program_header[i].p_flags);
-//                         if (bytecmpq(global_quiet, "no") == 0) printf("\t\tp_offset: %014p\n", _elf_program_header[i].p_offset);
-//                         if (bytecmpq(global_quiet, "no") == 0) printf("\t\tp_vaddr:  %014p\n", _elf_program_header[i].p_vaddr+mappingb);
-//                         if (bytecmpq(global_quiet, "no") == 0) printf("\t\tp_paddr:  %014p\n", _elf_program_header[i].p_paddr);
-//                         if (bytecmpq(global_quiet, "no") == 0) printf("\t\tp_filesz: %014p\n", _elf_program_header[i].p_filesz);
-//                         if (bytecmpq(global_quiet, "no") == 0) printf("\t\tp_memsz:  %014p\n", _elf_program_header[i].p_memsz);
-//                         if (bytecmpq(global_quiet, "no") == 0) printf("\t\tp_align:  %014p\n\n", _elf_program_header[i].p_align);
+//                         if (bytecmpq(global_quiet, "no") == 0) printf("\t\tp_flags:  %014p\n", library[library_index]._elf_program_header[i].p_flags);
+//                         if (bytecmpq(global_quiet, "no") == 0) printf("\t\tp_offset: %014p\n", library[library_index]._elf_program_header[i].p_offset);
+//                         if (bytecmpq(global_quiet, "no") == 0) printf("\t\tp_vaddr:  %014p\n", library[library_index]._elf_program_header[i].p_vaddr+library[library_index].mappingb);
+//                         if (bytecmpq(global_quiet, "no") == 0) printf("\t\tp_paddr:  %014p\n", library[library_index]._elf_program_header[i].p_paddr);
+//                         if (bytecmpq(global_quiet, "no") == 0) printf("\t\tp_filesz: %014p\n", library[library_index]._elf_program_header[i].p_filesz);
+//                         if (bytecmpq(global_quiet, "no") == 0) printf("\t\tp_memsz:  %014p\n", library[library_index]._elf_program_header[i].p_memsz);
+//                         if (bytecmpq(global_quiet, "no") == 0) printf("\t\tp_align:  %014p\n\n", library[library_index]._elf_program_header[i].p_align);
 // 
-//                         if (bytecmpq(global_quiet, "no") == 0) printf("\tp_flags: %014p", _elf_program_header[i].p_flags);
-//                         if (bytecmpq(global_quiet, "no") == 0) printf(" p_offset: %014p", _elf_program_header[i].p_offset);
-//                         if (bytecmpq(global_quiet, "no") == 0) printf(" p_vaddr: %014p", _elf_program_header[i].p_vaddr+mappingb);
-//                         if (bytecmpq(global_quiet, "no") == 0) printf(" p_paddr: %014p", _elf_program_header[i].p_paddr);
-//                         if (bytecmpq(global_quiet, "no") == 0) printf(" p_filesz: %014p", _elf_program_header[i].p_filesz);
-//                         if (bytecmpq(global_quiet, "no") == 0) printf(" p_memsz: %014p", _elf_program_header[i].p_memsz);
-//                         if (bytecmpq(global_quiet, "no") == 0) printf(" p_align: %014p\n\n\n", _elf_program_header[i].p_align);
+//                         if (bytecmpq(global_quiet, "no") == 0) printf("\tp_flags: %014p", library[library_index]._elf_program_header[i].p_flags);
+//                         if (bytecmpq(global_quiet, "no") == 0) printf(" p_offset: %014p", library[library_index]._elf_program_header[i].p_offset);
+//                         if (bytecmpq(global_quiet, "no") == 0) printf(" p_vaddr: %014p", library[library_index]._elf_program_header[i].p_vaddr+library[library_index].mappingb);
+//                         if (bytecmpq(global_quiet, "no") == 0) printf(" p_paddr: %014p", library[library_index]._elf_program_header[i].p_paddr);
+//                         if (bytecmpq(global_quiet, "no") == 0) printf(" p_filesz: %014p", library[library_index]._elf_program_header[i].p_filesz);
+//                         if (bytecmpq(global_quiet, "no") == 0) printf(" p_memsz: %014p", library[library_index]._elf_program_header[i].p_memsz);
+//                         if (bytecmpq(global_quiet, "no") == 0) printf(" p_align: %014p\n\n\n", library[library_index]._elf_program_header[i].p_align);
 
-                    if (bytecmpq(global_quiet, "no") == 0) printf("mprotect(%014p+round_down(%014p, %014p), %014p, ", mappingb, _elf_program_header[i].p_vaddr, _elf_program_header[i].p_align, _elf_program_header[i].p_memsz);
-                    prot_from_phdr(_elf_program_header[i].p_flags);
+                    if (bytecmpq(global_quiet, "no") == 0) printf("mprotect(%014p+round_down(%014p, %014p), %014p, ", library[library_index].mappingb, library[library_index]._elf_program_header[i].p_vaddr, library[library_index]._elf_program_header[i].p_align, library[library_index]._elf_program_header[i].p_memsz);
+                    prot_from_phdr(library[library_index]._elf_program_header[i].p_flags);
                     if (bytecmpq(global_quiet, "no") == 0) printf(");\n");
                     
-                    int check_map_success = mprotect(mappingb+round_down(_elf_program_header[i].p_vaddr, _elf_program_header[i].p_align), round_up(_elf_program_header[i].p_memsz, _elf_program_header[i].p_align), _elf_program_header[i].p_flags);
+                    int check_map_success = mprotect(library[library_index].mappingb+round_down(library[library_index]._elf_program_header[i].p_vaddr, library[library_index]._elf_program_header[i].p_align), round_up(library[library_index]._elf_program_header[i].p_memsz, library[library_index]._elf_program_header[i].p_align), library[library_index]._elf_program_header[i].p_flags);
                     if (errno == 0)
                     {
-                        if (bytecmpq(global_quiet, "no") == 0) printf ("mprotect on %014p succeded with size: %014p\n", mappingb+round_down(_elf_program_header[i].p_vaddr, _elf_program_header[i].p_align), round_up(_elf_program_header[i].p_memsz, _elf_program_header[i].p_align));
+                        if (bytecmpq(global_quiet, "no") == 0) printf ("mprotect on %014p succeded with size: %014p\n", library[library_index].mappingb+round_down(library[library_index]._elf_program_header[i].p_vaddr, library[library_index]._elf_program_header[i].p_align), round_up(library[library_index]._elf_program_header[i].p_memsz, library[library_index]._elf_program_header[i].p_align));
                         print_maps();
                     }
                     else
@@ -623,7 +688,7 @@ void map() {
                     break;
             }
         }
-        is_mapped = 1;
+        library[library_index].is_mapped = 1;
     }
 }
 // not used but kept incase needed
@@ -854,16 +919,14 @@ char * read_section_(char * ar, Elf64_Shdr sh) {
     return buff ;
 }
 
-size_t RELA_PLT_SIZE = 0;
-
 char * obtain_rela_plt_size(char * sourcePtr, Elf64_Ehdr * eh, Elf64_Shdr sh_table[]) {
     char * sh_str = read_section_(sourcePtr, sh_table[eh->e_shstrndx]); // will fail untill section header table can be read
-    for(int i=0; i<eh->e_shnum; i++) if (bytecmpq((sh_str + sh_table[i].sh_name), ".rela.plt") == 0) RELA_PLT_SIZE=_elf_symbol_table[i].sh_size;
+    for(int i=0; i<eh->e_shnum; i++) if (bytecmpq((sh_str + sh_table[i].sh_name), ".rela.plt") == 0) library[library_index].RELA_PLT_SIZE=library[library_index]._elf_symbol_table[i].sh_size;
 }
 
 char * print_section_headers_(char * sourcePtr, Elf64_Ehdr * eh, Elf64_Shdr sh_table[]) {
     if (bytecmpq(global_quiet, "no") == 0) printf ("\n");
-    if (bytecmpq(global_quiet, "no") == 0) printf("eh->e_shstrndx = 0x%x (%d)\n", eh->e_shstrndx+mappingb, eh->e_shstrndx);
+    if (bytecmpq(global_quiet, "no") == 0) printf("eh->e_shstrndx = 0x%x (%d)\n", eh->e_shstrndx+library[library_index].mappingb, eh->e_shstrndx);
     char * sh_str;
     sh_str = read_section_(sourcePtr, sh_table[eh->e_shstrndx]); // will fail untill section header table can be read
     if (bytecmpq(global_quiet, "no") == 0) printf("\t========================================");
@@ -874,15 +937,15 @@ char * print_section_headers_(char * sourcePtr, Elf64_Ehdr * eh, Elf64_Shdr sh_t
 
     for(int i=0; i<eh->e_shnum; i++) { // will fail untill section header table can be read
         if (bytecmpq(global_quiet, "no") == 0) printf("\t%03d ", i);
-        if (bytecmpq(global_quiet, "no") == 0) printf("%014p ", _elf_symbol_table[i].sh_offset); // not sure if this should be adjusted to base address
-        if (bytecmpq(global_quiet, "no") == 0) printf("%014p ", _elf_symbol_table[i].sh_addr+mappingb);
-        if (bytecmpq(global_quiet, "no") == 0) printf("%014p ", _elf_symbol_table[i].sh_size);
-        if (bytecmpq(global_quiet, "no") == 0) printf("%4d ", _elf_symbol_table[i].sh_addralign);
-        if (bytecmpq(global_quiet, "no") == 0) printf("%014p ", _elf_symbol_table[i].sh_type);
-        if (bytecmpq(global_quiet, "no") == 0) printf("%014p ", _elf_symbol_table[i].sh_flags);
+        if (bytecmpq(global_quiet, "no") == 0) printf("%014p ", library[library_index]._elf_symbol_table[i].sh_offset); // not sure if this should be adjusted to base address
+        if (bytecmpq(global_quiet, "no") == 0) printf("%014p ", library[library_index]._elf_symbol_table[i].sh_addr+library[library_index].mappingb);
+        if (bytecmpq(global_quiet, "no") == 0) printf("%014p ", library[library_index]._elf_symbol_table[i].sh_size);
+        if (bytecmpq(global_quiet, "no") == 0) printf("%4d ", library[library_index]._elf_symbol_table[i].sh_addralign);
+        if (bytecmpq(global_quiet, "no") == 0) printf("%014p ", library[library_index]._elf_symbol_table[i].sh_type);
+        if (bytecmpq(global_quiet, "no") == 0) printf("%014p ", library[library_index]._elf_symbol_table[i].sh_flags);
         if (bytecmpq(global_quiet, "no") == 0) printf("%s\t", (sh_str + sh_table[i].sh_name));
         if (bytecmpq(global_quiet, "no") == 0) printf("\n");
-        if (bytecmpq((sh_str + sh_table[i].sh_name), ".rela.plt") == 0) RELA_PLT_SIZE=_elf_symbol_table[i].sh_size;
+        if (bytecmpq((sh_str + sh_table[i].sh_name), ".rela.plt") == 0) library[library_index].RELA_PLT_SIZE=library[library_index]._elf_symbol_table[i].sh_size;
     }
     if (bytecmpq(global_quiet, "no") == 0) printf("\t========================================");
     if (bytecmpq(global_quiet, "no") == 0) printf("========================================\n");
@@ -991,9 +1054,9 @@ int symbol1(char * arrayc, Elf64_Sym sym_tbl[], uint64_t symbol_table) {
                 break;
         }
         if ( ELF64_ST_TYPE(sym_tbl[i].st_info) == STT_FUNC)
-            if (bytecmpq(global_quiet, "no") == 0) printf("address: %014p\t", sym_tbl[i].st_value+mappingb+align);
+            if (bytecmpq(global_quiet, "no") == 0) printf("address: %014p\t", sym_tbl[i].st_value+library[library_index].mappingb+library[library_index].align);
         else
-            if (bytecmpq(global_quiet, "no") == 0) printf("address: %014p\t", sym_tbl[i].st_value+mappingb);
+            if (bytecmpq(global_quiet, "no") == 0) printf("address: %014p\t", sym_tbl[i].st_value+library[library_index].mappingb);
         if (bytecmpq(global_quiet, "no") == 0) printf("name: [Not obtained due to unavailability]\n");
     }
 }
@@ -1094,9 +1157,9 @@ int symbol(char * arrayc, Elf64_Shdr sh_table[], uint64_t symbol_table) {
                 if (bytecmpq(global_quiet, "no") == 0) printf("protected (Not preemptible, not exported)        ");
                 break;
         }
-        char * address = sym_tbl[i].st_value+mappingb;
+        char * address = sym_tbl[i].st_value+library[library_index].mappingb;
         if (bytecmpq(global_quiet, "no") == 0) printf("address: %014p\t", address);
-        if ( address > mappingb && address < mappingb_end ) test(address);
+        if ( address > library[library_index].mappingb && address < library[library_index].mappingb_end ) test(address);
         else if (bytecmpq(global_quiet, "no") == 0) printf("value: %015p\t", sym_tbl[i].st_value);
         if (bytecmpq(global_quiet, "no") == 0) printf("type: ");
         switch (ELF64_ST_TYPE(sym_tbl[i].st_info)) {
@@ -1133,12 +1196,12 @@ int symbol(char * arrayc, Elf64_Shdr sh_table[], uint64_t symbol_table) {
 //             if (bytecmpq(global_quiet, "no") == 0) printf("t found\n");
 //                         
 // // #define JMP_ADDR(x) asm("\tjmp  *%0\n" :: "r" (x))
-// //             if (bytecmpq(global_quiet, "no") == 0) printf("(%014p+%014p=%014p)\n", mappingb, sym_tbl[i].st_value, sym_tbl[i].st_value+mappingb);
+// //             if (bytecmpq(global_quiet, "no") == 0) printf("(%014p+%014p=%014p)\n", library[library_index].mappingb, sym_tbl[i].st_value, sym_tbl[i].st_value+library[library_index].mappingb);
 // //             if (bytecmpq(global_quiet, "no") == 0) printf("JMP_ADDR(%014p);\n", address);
 // //             JMP_ADDR(address);
 //                         if (bytecmpq(global_quiet, "no") == 0) printf("int (*testb)()                               =%014p\n", address);
 // // 
-//             if (bytecmpq(global_quiet, "no") == 0) printf("(%014p+%014p=%014p)\n", mappingb, sym_tbl[i].st_value, sym_tbl[i].st_value+mappingb);
+//             if (bytecmpq(global_quiet, "no") == 0) printf("(%014p+%014p=%014p)\n", library[library_index].mappingb, sym_tbl[i].st_value, sym_tbl[i].st_value+library[library_index].mappingb);
 // // 
 //             int (*testb)() = lookup_symbol_by_name_("/chakra/home/universalpackagemanager/chroot/arch-chroot/arch-pkg-build/packages/glibc/repos/core-x86_64/min-dl/loader/files/test_lib.so", "t");
 //             if (bytecmpq(global_quiet, "no") == 0) printf("testb = %014p\n", testb);
@@ -1147,15 +1210,15 @@ int symbol(char * arrayc, Elf64_Shdr sh_table[], uint64_t symbol_table) {
 //             );
 // 
 //             if (bytecmpq(global_quiet, "no") == 0) nl();
-// //             int (*testc)() = mappingb+sym_tbl[i].st_value;
-// //             if (bytecmpq(global_quiet, "no") == 0) printf("int (*testc)()                =%014p ; testc();\n", mappingb+sym_tbl[i].st_value);
+// //             int (*testc)() = library[library_index].mappingb+sym_tbl[i].st_value;
+// //             if (bytecmpq(global_quiet, "no") == 0) printf("int (*testc)()                =%014p ; testc();\n", library[library_index].mappingb+sym_tbl[i].st_value);
 // //             testc();
 // //             if (bytecmpq(global_quiet, "no") == 0) nl();
 // //             int foo(int i){ return i + 1;}
 // // 
 // //             typedef int (*g)(int);  // Declare typedef
 // // 
-// //             g func = mappingb+sym_tbl[i].st_value;          // Define function-pointer variable, and initialise
+// //             g func = library[library_index].mappingb+sym_tbl[i].st_value;          // Define function-pointer variable, and initialise
 // // 
 // //             int hvar = func(3);     // Call function through pointer
 //             if (bytecmpq(global_quiet, "no") == 0) nl();
@@ -1263,15 +1326,15 @@ int relocation(char * arrayc, Elf64_Shdr sh_table[], uint64_t symbol_table) {
         char * address;
         if ( ELF64_ST_TYPE(sym_tbl[i].st_info) == STT_FUNC)
         {
-            address = sym_tbl[i].st_value+mappingb+align;
+            address = sym_tbl[i].st_value+library[library_index].mappingb+library[library_index].align;
             if (bytecmpq(global_quiet, "no") == 0) printf("address: %014p\t", address);
         }
         else
         {
-            address = sym_tbl[i].st_value+mappingb;
+            address = sym_tbl[i].st_value+library[library_index].mappingb;
             if (bytecmpq(global_quiet, "no") == 0) printf("address: %014p\t", address);
         }
-        if ( address > mappingb && address < mappingb_end ) test(address);
+        if ( address > library[library_index].mappingb && address < library[library_index].mappingb_end ) test(address);
         else if (bytecmpq(global_quiet, "no") == 0) printf("value: %15s\t", "invalid range");
         if (bytecmpq(global_quiet, "no") == 0) printf("type: ");
         switch (ELF64_ST_TYPE(sym_tbl[i].st_info)) {
@@ -1566,13 +1629,13 @@ void print_symbols(char * arrayd, Elf64_Ehdr * eh, Elf64_Shdr sh_table[])
     }
 }
 
-char * symbol_lookup(char * arrayc, Elf64_Shdr sh_table[], uint64_t symbol_table, int index, int mode) {
-    if (bytecmpq(global_quiet, "no") == 0) printf("looking up index %d of table %d\n", index, symbol_table);
+char * symbol_lookup(char * arrayc, Elf64_Shdr sh_table[], uint64_t symbol_table, int index, int mode, const char * am_i_quiet) {
+    if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) printf("looking up index %d of table %d\n", index, symbol_table);
     Elf64_Sym* sym_tbl = (Elf64_Sym*)read_section_(arrayc, sh_table[symbol_table]);
     uint64_t str_tbl_ndx = sh_table[symbol_table].sh_link;
     char *str_tbl = read_section_(arrayc, sh_table[str_tbl_ndx]);
     uint64_t symbol_count = (sh_table[symbol_table].sh_size/sizeof(Elf64_Sym));
-    if (bytecmpq(global_quiet, "no") == 0) printf("requested symbol name for index %d is %s\n", index, demangle_it(str_tbl + sym_tbl[index].st_name));
+    if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) printf("requested symbol name for index %d is %s\n", index, demangle_it(str_tbl + sym_tbl[index].st_name));
     if ( mode == 1) return sym_tbl[index].st_value;
     else if (mode == 2) return sym_tbl[index].st_size;
 }
@@ -1591,7 +1654,7 @@ char * symbol_lookup_name(char * arrayc, Elf64_Shdr sh_table[], uint64_t symbol_
     for(int i=0; i< symbol_count; i++) {
         char * name = demangle_it(str_tbl + sym_tbl[i].st_name);
         if (bytecmpq(name,name_) == 0) {
-            char * address = sym_tbl[i].st_value+mappingb;
+            char * address = sym_tbl[i].st_value+library[library_index].mappingb;
             if (bytecmpq(global_quiet, "no") == 0) printf("requested symbol name \"%s\" found in table %d at address %014p is \"%s\"\n", name_, symbol_table, address, name);
             return address;
         }
@@ -1604,7 +1667,7 @@ char * print_elf_symbol_table_lookup(char * arrayc, Elf64_Ehdr * eh, Elf64_Shdr 
 {
         switch(sh_table[symbol_table].sh_type) {
             case SHT_DYNSYM:
-                return symbol_lookup(arrayc, sh_table, symbol_table, index, mode);
+                return symbol_lookup(arrayc, sh_table, symbol_table, index, mode, relocation_quiet);
                 break;
             default:
                 return (int) -1;
@@ -1760,15 +1823,15 @@ int relocation_got_and_plt(char * arrayc, Elf64_Shdr sh_table[], uint64_t symbol
         char * address;
         if ( ELF64_ST_TYPE(sym_tbl[i].st_info) == STT_FUNC)
         {
-            address = sym_tbl[i].st_value+mappingb+align;
+            address = sym_tbl[i].st_value+library[library_index].mappingb+library[library_index].align;
             if (bytecmpq(global_quiet, "no") == 0) printf("address: %014p\t", address);
         }
         else
         {
-            address = sym_tbl[i].st_value+mappingb;
+            address = sym_tbl[i].st_value+library[library_index].mappingb;
             if (bytecmpq(global_quiet, "no") == 0) printf("address: %014p\t", address);
         }
-        if ( address > mappingb && address < mappingb_end ) test(address);
+        if ( address > library[library_index].mappingb && address < library[library_index].mappingb_end ) test(address);
         else if (bytecmpq(global_quiet, "no") == 0) printf("value: %15s\t", "invalid range");
         if (bytecmpq(global_quiet, "no") == 0) printf("type: ");
         switch (ELF64_ST_TYPE(sym_tbl[i].st_info)) {
@@ -1923,14 +1986,14 @@ char * print_symbols_lookup_got_and_ptl(char * arrayd, Elf64_Ehdr * eh, Elf64_Sh
 
 void * lookup_symbol_by_name(const char * arrayb, Elf64_Ehdr * eh, char * name) {
 
-        read_section_header_table_(arrayb, eh, &_elf_symbol_table);
-        char * symbol = print_symbols_lookup_name(arrayb, eh, _elf_symbol_table, name);
+        read_section_header_table_(arrayb, eh, &library[library_index]._elf_symbol_table);
+        char * symbol = print_symbols_lookup_name(arrayb, eh, library[library_index]._elf_symbol_table, name);
         return symbol;
 }
 
 void * lookup_symbol_by_name_(const char * lib, const char * name) {
         init_(lib);
-        const char * arrayb = array;
+        const char * arrayb = library[library_index].array;
         Elf64_Ehdr * eh = (Elf64_Ehdr *) arrayb;
         Elf64_Shdr *_elf_symbol_tableb;
         if(!strncmp((char*)eh->e_ident, "\177ELF", 4)) {
@@ -1942,31 +2005,31 @@ void * lookup_symbol_by_name_(const char * lib, const char * name) {
         else abort_();
 }
 
-void * lookup_symbol_by_index(const char * arrayb, Elf64_Ehdr * eh, int symbol_index, int mode) {
-        if (bytecmpq(global_quiet, "no") == 0) printf("attempting to look up symbol, index = %d\n", symbol_index);
+void * lookup_symbol_by_index(const char * arrayb, Elf64_Ehdr * eh, int symbol_index, int mode, const char * am_i_quiet) {
+        if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) printf("attempting to look up symbol, index = %d\n", symbol_index);
 
-        read_section_header_table_(arrayb, eh, &_elf_symbol_table);
+        read_section_header_table_(arrayb, eh, &library[library_index]._elf_symbol_table);
 //         if (bytecmpq(global_quiet, "no") == 0) nl();
 //         if (bytecmpq(global_quiet, "no") == 0) nl();
-//         print_symbols_lookup_got_and_ptl(arrayb, eh, _elf_symbol_table, symbol_index);
+//         print_symbols_lookup_got_and_ptl(arrayb, eh, library[library_index]._elf_symbol_table, symbol_index);
 //         if (bytecmpq(global_quiet, "no") == 0) nl();
 //         if (bytecmpq(global_quiet, "no") == 0) nl();
-//         Elf64_Addr * GOT = lookup_symbol_by_name(array, _elf_header, "_GLOBAL_OFFSET_TABLE_");
-//         if (bytecmpq(global_quiet, "no") == 0) printf("\n\naddress of GOT = %014p\n", lookup_symbol_by_name(array, _elf_header, "_GLOBAL_OFFSET_TABLE_"));
-//         if (bytecmpq(global_quiet, "no") == 0) printf("address of GOT[1] = %014p\n", GOT[1]);
-//         if (bytecmpq(global_quiet, "no") == 0) printf("address of GOT[2] = %014p\n", GOT[2]);
-//         if (bytecmpq(global_quiet, "no") == 0) printf("address of GOT[3] = %014p\n", GOT[3]);
-//         if (bytecmpq(global_quiet, "no") == 0) printf("address of GOT[4] = %014p\n", GOT[4]);
-//         if (bytecmpq(global_quiet, "no") == 0) printf("address of GOT[5] = %014p\n", GOT[5]);
-//         if (bytecmpq(global_quiet, "no") == 0) printf("address of GOT[6] = %014p\n", GOT[6]);
-//         if (bytecmpq(global_quiet, "no") == 0) printf("address of GOT[7] = %014p\n", GOT[7]);
-        char * symbol = print_symbols_lookup(arrayb, eh, _elf_symbol_table, symbol_index, mode);
-        if (bytecmpq(global_quiet, "no") == 0) printf("symbol = %d (%014p)\n", symbol, symbol);
+//         Elf64_Addr * GOT = lookup_symbol_by_name(library[library_index].array, library[library_index]._elf_header, "_GLOBAL_OFFSET_TABLE_");
+//         if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) printf("\n\naddress of GOT = %014p\n", lookup_symbol_by_name(library[library_index].array, library[library_index]._elf_header, "_GLOBAL_OFFSET_TABLE_"));
+//         if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) printf("address of GOT[1] = %014p\n", GOT[1]);
+//         if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) printf("address of GOT[2] = %014p\n", GOT[2]);
+//         if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) printf("address of GOT[3] = %014p\n", GOT[3]);
+//         if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) printf("address of GOT[4] = %014p\n", GOT[4]);
+//         if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) printf("address of GOT[5] = %014p\n", GOT[5]);
+//         if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) printf("address of GOT[6] = %014p\n", GOT[6]);
+//         if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) printf("address of GOT[7] = %014p\n", GOT[7]);
+        char * symbol = print_symbols_lookup(arrayb, eh, library[library_index]._elf_symbol_table, symbol_index, mode);
+        if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) printf("symbol = %d (%014p)\n", symbol, symbol);
         return symbol;
 }
 
-ElfW(Word)
-get_dynamic_entry(ElfW(Dyn) *dynamic, int field)
+Elf64_Word
+get_dynamic_entry(Elf64_Dyn *dynamic, int field)
 {
     if (bytecmpq(global_quiet, "no") == 0) printf("called get_dynamic_entry\n");
 
@@ -1999,11 +2062,11 @@ get_dynamic_entry(ElfW(Dyn) *dynamic, int field)
 // DT_LOPROC   0x70000000  unspecified unspecified     unspecified
 // DT_HIPROC   0x7fffffff  unspecified unspecified     unspecified
 // 
-// DT_NULL         An entry with a DT_NULL tag marks the end of the _DYNAMIC array.
+// DT_NULL         An entry with a DT_NULL tag marks the end of the _DYNAMIC library[library_index].array.
 // DT_NEEDED       This element holds the string table offset of a null-terminated string, giving
 //                 the name of a needed library. The offset is an index into the table recorded
 //                 in the DT_STRTAB entry. See "Shared Object Dependencies'' for more
-//                 information about these names. The dynamic array may contain multiple
+//                 information about these names. The dynamic library[library_index].array may contain multiple
 //                 entries with this type. These entries' relative order is significant, though
 //                 their relation to entries of other types is not.
 // 
@@ -2105,7 +2168,7 @@ get_dynamic_entry(ElfW(Dyn) *dynamic, int field)
 //                 Values in this inclusive range are reserved for processor-specific semantics.
 //                 If meanings are specified, the processor supplement explains them.
 // 
-// Except for the DT_NULL element at the end of the array, and the relative order of DT_NEEDED
+// Except for the DT_NULL element at the end of the library[library_index].array, and the relative order of DT_NEEDED
 // elements, entries may appear in any order. Tag values not appearing in the table are reserved.
 
 
@@ -2461,106 +2524,58 @@ get_dynamic_entry(ElfW(Dyn) *dynamic, int field)
     if (bytecmpq(global_quiet, "no") == 0) printf("returning 0\n");
     return 0;
 }
-Elf64_Ehdr * _elf_header;
 
 #define symbol_mode_S 1
 #define symbol_mode_Z 2
 
-int _R_X86_64_NONE = 0;
-int _R_X86_64_64 = 0;
-int _R_X86_64_PC32 = 0;
-int _R_X86_64_GOT32 = 0;
-int _R_X86_64_PLT32 = 0;
-int _R_X86_64_COPY = 0;
-int _R_X86_64_GLOB_DAT = 0;
-int _R_X86_64_JUMP_SLOT = 0;
-int _R_X86_64_RELATIVE = 0;
-int _R_X86_64_GOTPCREL = 0;
-int _R_X86_64_32 = 0;
-int _R_X86_64_32S = 0;
-int _R_X86_64_16 = 0;
-int _R_X86_64_PC16 = 0;
-int _R_X86_64_8 = 0;
-int _R_X86_64_PC8 = 0;
-int _R_X86_64_DTPMOD64 = 0;
-int _R_X86_64_DTPOFF64 = 0;
-int _R_X86_64_TPOFF64 = 0;
-int _R_X86_64_TLSGD = 0;
-int _R_X86_64_TLSLD = 0;
-int _R_X86_64_DTPOFF32 = 0;
-int _R_X86_64_GOTTPOFF = 0;
-int _R_X86_64_TPOFF32 = 0;
-int _R_X86_64_PC64 = 0;
-int _R_X86_64_GOTOFF64 = 0;
-int _R_X86_64_GOTPC32 = 0;
-int _R_X86_64_GOT64 = 0;
-int _R_X86_64_GOTPCREL64 = 0;
-int _R_X86_64_GOTPC64 = 0;
-int _Deprecated1 = 0;
-int _R_X86_64_PLTOFF64 = 0;
-int _R_X86_64_SIZE32 = 0;
-int _R_X86_64_SIZE64 = 0;
-int _R_X86_64_GOTPC32_TLSDESC = 0;
-int _R_X86_64_TLSDESC_CALL = 0;
-int _R_X86_64_TLSDESC = 0;
-int _R_X86_64_IRELATIVE = 0;
-int _R_X86_64_RELATIVE64 = 0;
-int _Deprecated2 = 0;
-int _Deprecated3 = 0;
-int _R_X86_64_GOTPLT64 = 0;
-int _R_X86_64_GOTPCRELX = 0;
-int _R_X86_64_REX_GOTPCRELX = 0;
-int _R_X86_64_NUM = 0;
-int _R_X86_64_UNKNOWN = 0;
-
 void
 r_init() {
-    _R_X86_64_NONE = 0;
-    _R_X86_64_64 = 0;
-    _R_X86_64_PC32 = 0;
-    _R_X86_64_GOT32 = 0;
-    _R_X86_64_PLT32 = 0;
-    _R_X86_64_COPY = 0;
-    _R_X86_64_GLOB_DAT = 0;
-    _R_X86_64_JUMP_SLOT = 0;
-    _R_X86_64_RELATIVE = 0;
-    _R_X86_64_GOTPCREL = 0;
-    _R_X86_64_32 = 0;
-    _R_X86_64_32S = 0;
-    _R_X86_64_16 = 0;
-    _R_X86_64_PC16 = 0;
-    _R_X86_64_8 = 0;
-    _R_X86_64_PC8 = 0;
-    _R_X86_64_DTPMOD64 = 0;
-    _R_X86_64_DTPOFF64 = 0;
-    _R_X86_64_TPOFF64 = 0;
-    _R_X86_64_TLSGD = 0;
-    _R_X86_64_TLSLD = 0;
-    _R_X86_64_DTPOFF32 = 0;
-    _R_X86_64_GOTTPOFF = 0;
-    _R_X86_64_TPOFF32 = 0;
-    _R_X86_64_PC64 = 0;
-    _R_X86_64_GOTOFF64 = 0;
-    _R_X86_64_GOTPC32 = 0;
-    _R_X86_64_GOT64 = 0;
-    _R_X86_64_GOTPCREL64 = 0;
-    _R_X86_64_GOTPC64 = 0;
-    _Deprecated1 = 0;
-    _R_X86_64_PLTOFF64 = 0;
-    _R_X86_64_SIZE32 = 0;
-    _R_X86_64_SIZE64 = 0;
-    _R_X86_64_GOTPC32_TLSDESC = 0;
-    _R_X86_64_TLSDESC_CALL = 0;
-    _R_X86_64_TLSDESC = 0;
-    _R_X86_64_IRELATIVE = 0;
-    _R_X86_64_RELATIVE64 = 0;
-    _Deprecated2 = 0;
-    _Deprecated3 = 0;
-    _R_X86_64_GOTPLT64 = 0;
-    _R_X86_64_GOTPCRELX = 0;
-    _R_X86_64_REX_GOTPCRELX = 0;
-    _R_X86_64_NUM = 0;
-    _R_X86_64_UNKNOWN = 0;
+    library[library_index]._R_X86_64_NONE = 0;
+    library[library_index]._R_X86_64_64 = 0;
+    library[library_index]._R_X86_64_PC32 = 0;
+    library[library_index]._R_X86_64_GOT32 = 0;
+    library[library_index]._R_X86_64_PLT32 = 0;
+    library[library_index]._R_X86_64_COPY = 0;
+    library[library_index]._R_X86_64_GLOB_DAT = 0;
+    library[library_index]._R_X86_64_JUMP_SLOT = 0;
+    library[library_index]._R_X86_64_RELATIVE = 0;
+    library[library_index]._R_X86_64_GOTPCREL = 0;
+    library[library_index]._R_X86_64_32 = 0;
+    library[library_index]._R_X86_64_32S = 0;
+    library[library_index]._R_X86_64_16 = 0;
+    library[library_index]._R_X86_64_PC16 = 0;
+    library[library_index]._R_X86_64_8 = 0;
+    library[library_index]._R_X86_64_PC8 = 0;
+    library[library_index]._R_X86_64_DTPMOD64 = 0;
+    library[library_index]._R_X86_64_DTPOFF64 = 0;
+    library[library_index]._R_X86_64_TPOFF64 = 0;
+    library[library_index]._R_X86_64_TLSGD = 0;
+    library[library_index]._R_X86_64_TLSLD = 0;
+    library[library_index]._R_X86_64_DTPOFF32 = 0;
+    library[library_index]._R_X86_64_GOTTPOFF = 0;
+    library[library_index]._R_X86_64_TPOFF32 = 0;
+    library[library_index]._R_X86_64_PC64 = 0;
+    library[library_index]._R_X86_64_GOTOFF64 = 0;
+    library[library_index]._R_X86_64_GOTPC32 = 0;
+    library[library_index]._R_X86_64_GOT64 = 0;
+    library[library_index]._R_X86_64_GOTPCREL64 = 0;
+    library[library_index]._R_X86_64_GOTPC64 = 0;
+    library[library_index]._Deprecated1 = 0;
+    library[library_index]._R_X86_64_PLTOFF64 = 0;
+    library[library_index]._R_X86_64_SIZE32 = 0;
+    library[library_index]._R_X86_64_SIZE64 = 0;
+    library[library_index]._R_X86_64_GOTPC32_TLSDESC = 0;
+    library[library_index]._R_X86_64_TLSDESC_CALL = 0;
+    library[library_index]._R_X86_64_TLSDESC = 0;
+    library[library_index]._R_X86_64_IRELATIVE = 0;
+    library[library_index]._R_X86_64_RELATIVE64 = 0;
+    library[library_index]._Deprecated2 = 0;
+    library[library_index]._Deprecated3 = 0;
+    library[library_index]._R_X86_64_GOTPLT64 = 0;
+    library[library_index]._R_X86_64_GOTPCRELX = 0;
+    library[library_index]._R_X86_64_REX_GOTPCRELX = 0;
+    library[library_index]._R_X86_64_NUM = 0;
+    library[library_index]._R_X86_64_UNKNOWN = 0;
 }
 
 int
@@ -2576,7 +2591,7 @@ appear in the lower box corners).
         word32
 31                  0
 
-word32      This specifies a 32-bit field occupying 4 bytes with arbitrary byte alignment. These
+word32      This specifies a 32-bit field occupying 4 bytes with arbitrary byte library[library_index].alignment. These
             values use the same byte order as other word values in the Intel architecture.
 
                          3    2    1    0
@@ -2684,15 +2699,15 @@ appear in the lower box corners).
 word8       This specifies a 8-bit field occupying 1 byte.
 
 word16      This specifies a 16-bit field occupying 2 bytes with arbitrary
-            byte alignment. These values use the same byte order as
+            byte library[library_index].alignment. These values use the same byte order as
             other word values in the AMD64 architecture.
 
 word32      This specifies a 32-bit field occupying 4 bytes with arbitrary
-            byte alignment. These values use the same byte order as
+            byte library[library_index].alignment. These values use the same byte order as
             other word values in the AMD64 architecture.
 
 word64      This specifies a 64-bit field occupying 8 bytes with arbitrary
-            byte alignment. These values use the same byte order as
+            byte library[library_index].alignment. These values use the same byte order as
             other word values in the AMD64 architecture.
 
 wordclass   This specifies word64 for LP64 and specifies word32 for
@@ -2814,7 +2829,7 @@ R_386_GOTPC         This relocation type resembles R_386_PC32, except it uses th
                     instructs the link editor to build the global offset table.
 
 */
-    if (relocs != mappingb && relocs_size != 0) {
+    if (relocs != library[library_index].mappingb && relocs_size != 0) {
         for (int i = 0; i < relocs_size  / sizeof(Elf64_Rela); i++) {
             Elf64_Rela *reloc = &relocs[i];
             int reloc_type = ELF64_R_TYPE(reloc->r_info);
@@ -2824,347 +2839,347 @@ R_386_GOTPC         This relocation type resembles R_386_PC32, except it uses th
                 case R_X86_64_NONE:
                 {
                     if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) printf("\n\n\nR_X86_64_NONE                calculation: none\n");
-                    _R_X86_64_NONE++;
+                    library[library_index]._R_X86_64_NONE++;
                     break;
                 }
                 case R_X86_64_64:
                 {
                     if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) printf("\n\n\nR_X86_64_64                  calculation: S + A (symbol value + r_addend)\n");
                     if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) printf("reloc->r_offset = %014p\n", reloc->r_offset);
-                    *((char**)((char*)mappingb + reloc->r_offset)) = lookup_symbol_by_index(array, _elf_header, ELF64_R_SYM(reloc->r_info), symbol_mode_S) + reloc->r_addend+mappingb;
-                    if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) printf("((char*)mappingb + reloc->r_offset)            = %014p\n", ((char*)mappingb + reloc->r_offset));
-                    _R_X86_64_64++;
+                    *((char**)((char*)library[library_index].mappingb + reloc->r_offset)) = lookup_symbol_by_index(library[library_index].array, library[library_index]._elf_header, ELF64_R_SYM(reloc->r_info), symbol_mode_S, quiet) + reloc->r_addend+library[library_index].mappingb;
+                    if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) printf("((char*)library[library_index].mappingb + reloc->r_offset)            = %014p\n", ((char*)library[library_index].mappingb + reloc->r_offset));
+                    library[library_index]._R_X86_64_64++;
                     break;
                 }
                 case R_X86_64_PC32:
                 {
                     if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) printf("\n\n\nR_X86_64_PC32                calculation: S + A - P (symbol value + r_addend - (P: This means the place (section offset or address) of the storage unit being relocated (computed using r_offset ).)\n");
                     if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) printf("reloc->r_offset = %014p\n", reloc->r_offset);
-                    *((char**)((char*)mappingb + reloc->r_offset)) = lookup_symbol_by_index(array, _elf_header, ELF64_R_SYM(reloc->r_info), symbol_mode_S) + reloc->r_addend+mappingb;
-                    if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) printf("((char*)mappingb + reloc->r_offset)            = %014p\n", ((char*)mappingb + reloc->r_offset));
-                    _R_X86_64_PC32++;
+                    *((char**)((char*)library[library_index].mappingb + reloc->r_offset)) = lookup_symbol_by_index(library[library_index].array, library[library_index]._elf_header, ELF64_R_SYM(reloc->r_info), symbol_mode_S, quiet) + reloc->r_addend+library[library_index].mappingb;
+                    if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) printf("((char*)library[library_index].mappingb + reloc->r_offset)            = %014p\n", ((char*)library[library_index].mappingb + reloc->r_offset));
+                    library[library_index]._R_X86_64_PC32++;
                     break;
                 }
                 case R_X86_64_GOT32:
                 {
                     if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) printf("\n\n\nR_X86_64_GOT32               calculation: G + A (address of global offset table + r_addend)\n");
-                    Elf64_Addr * GOT = lookup_symbol_by_name(array, _elf_header, "_GLOBAL_OFFSET_TABLE_");
-                    _R_X86_64_GOT32++;
+                    Elf64_Addr * GOT = lookup_symbol_by_name(library[library_index].array, library[library_index]._elf_header, "_GLOBAL_OFFSET_TABLE_");
+                    library[library_index]._R_X86_64_GOT32++;
                     break;
                 }
                 case R_X86_64_PLT32:
                 {
                     if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) printf("\n\n\nR_X86_64_PLT32               calculation: L + A - P ((L: This means the place (section offset or address) of the procedure linkage table entry for a symbol) + r_addend - (P: This means the place (section offset or address) of the storage unit being relocated (computed using r_offset ).) \n");
-                    _R_X86_64_PLT32++;
+                    library[library_index]._R_X86_64_PLT32++;
                     break;
                 }
                 case R_X86_64_COPY:
                 {
                     if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) printf("\n\n\nR_X86_64_COPY                calculation: none\n");
-                    _R_X86_64_COPY++;
+                    library[library_index]._R_X86_64_COPY++;
                     break;
                 }
                 case R_X86_64_GLOB_DAT:
                 {
                     if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) printf("\n\n\nR_X86_64_GLOB_DAT            calculation: S (symbol value)\n");
-                    if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) printf("reloc->r_offset = %014p+%014p=%014p\n", mappingb, reloc->r_offset, mappingb+reloc->r_offset);
-                    *((char**)((char*)mappingb + reloc->r_offset)) = lookup_symbol_by_index(array, _elf_header, ELF64_R_SYM(reloc->r_info), symbol_mode_S)+mappingb;
-                    char ** addr = reloc->r_offset + mappingb;
+                    if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) printf("reloc->r_offset = %014p+%014p=%014p\n", library[library_index].mappingb, reloc->r_offset, library[library_index].mappingb+reloc->r_offset);
+                    *((char**)((char*)library[library_index].mappingb + reloc->r_offset)) = lookup_symbol_by_index(library[library_index].array, library[library_index]._elf_header, ELF64_R_SYM(reloc->r_info), symbol_mode_S, quiet)+library[library_index].mappingb;
+                    char ** addr = reloc->r_offset + library[library_index].mappingb;
                     if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) printf("%014p = %014p\n", addr, *addr);
-                    _R_X86_64_GLOB_DAT++;
+                    library[library_index]._R_X86_64_GLOB_DAT++;
                     break;
                 }
                 case R_X86_64_JUMP_SLOT:
                 {
                     if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) printf("\n\n\nR_X86_64_JUMP_SLOT           calculation: S (symbol value)\n");
-                    if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) printf("mappingb    = %014p\n", mappingb);
-                    if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) printf("reloc->r_offset = %014p+%014p=%014p\n", mappingb, reloc->r_offset, mappingb+reloc->r_offset);
-                    *((char**)((char*)mappingb + reloc->r_offset)) = lookup_symbol_by_index(array, _elf_header, ELF64_R_SYM(reloc->r_info), symbol_mode_S)+mappingb;
-                    char ** addr = reloc->r_offset + mappingb;
+                    if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) printf("library[library_index].mappingb    = %014p\n", library[library_index].mappingb);
+                    if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) printf("reloc->r_offset = %014p+%014p=%014p\n", library[library_index].mappingb, reloc->r_offset, library[library_index].mappingb+reloc->r_offset);
+                    *((char**)((char*)library[library_index].mappingb + reloc->r_offset)) = lookup_symbol_by_index(library[library_index].array, library[library_index]._elf_header, ELF64_R_SYM(reloc->r_info), symbol_mode_S, quiet)+library[library_index].mappingb;
+                    char ** addr = reloc->r_offset + library[library_index].mappingb;
                     if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) printf("%014p = %014p\n", addr, *addr);
-                    _R_X86_64_JUMP_SLOT++;
+                    library[library_index]._R_X86_64_JUMP_SLOT++;
                     break;
                 }
                 case R_X86_64_RELATIVE:
                 {
                     if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) printf("\n\n\nR_X86_64_RELATIVE            calculation: B + A (base address + r_addend)\n");
-                    if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) printf("mappingb    = %014p\n", mappingb);
-                    if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) printf("reloc->r_offset = %014p+%014p=%014p\n", mappingb, reloc->r_offset, mappingb+reloc->r_offset);
-                    if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) printf("reloc->r_addend = %014p+%014p=%014p\n", mappingb, reloc->r_addend, ((char*)mappingb + reloc->r_addend) );
-                    *((char**)((char*)mappingb + reloc->r_offset)) = ((char*)mappingb + reloc->r_addend);
-                    char ** addr = reloc->r_offset + mappingb;
+                    if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) printf("library[library_index].mappingb    = %014p\n", library[library_index].mappingb);
+                    if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) printf("reloc->r_offset = %014p+%014p=%014p\n", library[library_index].mappingb, reloc->r_offset, library[library_index].mappingb+reloc->r_offset);
+                    if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) printf("reloc->r_addend = %014p+%014p=%014p\n", library[library_index].mappingb, reloc->r_addend, ((char*)library[library_index].mappingb + reloc->r_addend) );
+                    *((char**)((char*)library[library_index].mappingb + reloc->r_offset)) = ((char*)library[library_index].mappingb + reloc->r_addend);
+                    char ** addr = reloc->r_offset + library[library_index].mappingb;
                     if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) printf("%014p = %014p\n", addr, *addr);
-                    if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) printf("((char*)mappingb + reloc->r_offset)            = %014p\n", ((char*)mappingb + reloc->r_offset));
-                    _R_X86_64_RELATIVE++;
+                    if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) printf("((char*)library[library_index].mappingb + reloc->r_offset)            = %014p\n", ((char*)library[library_index].mappingb + reloc->r_offset));
+                    library[library_index]._R_X86_64_RELATIVE++;
                     break;
                 }
                 case R_X86_64_GOTPCREL:
                 {
-//                     if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) printf("\n\naddress of GOT[0] = %014p\n", ((Elf64_Addr *) lookup_symbol_by_name(array, _elf_header, "_GLOBAL_OFFSET_TABLE_"))[0]);
+//                     if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) printf("\n\naddress of GOT[0] = %014p\n", ((Elf64_Addr *) lookup_symbol_by_name(library[library_index].array, library[library_index]._elf_header, "_GLOBAL_OFFSET_TABLE_"))[0]);
                     if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) printf("\n\n\nR_X86_64_GOTPCREL            calculation: (_GOTPC: GOT + A - P (address of global offset table + r_addend - (P: This means the place (section offset or address) of the storage unit being relocated (computed using r_offset ).))) \n");
-                    Elf64_Addr * GOT = lookup_symbol_by_name(array, _elf_header, "_GLOBAL_OFFSET_TABLE_");
-                    _R_X86_64_GOTPCREL++;
+                    Elf64_Addr * GOT = lookup_symbol_by_name(library[library_index].array, library[library_index]._elf_header, "_GLOBAL_OFFSET_TABLE_");
+                    library[library_index]._R_X86_64_GOTPCREL++;
                     break;
                 }
                 case R_X86_64_32:
                 {
                     if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) printf("\n\n\nR_X86_64_32                  calculation: S + A (symbol value + r_addend)\n");
                     if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) printf("reloc->r_offset = %014p\n", reloc->r_offset);
-                    *((char**)((char*)mappingb + reloc->r_offset)) = lookup_symbol_by_index(array, _elf_header, ELF64_R_SYM(reloc->r_info), symbol_mode_S) + reloc->r_addend+mappingb;
-                    if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) printf("((char*)mappingb + reloc->r_offset)            = %014p\n", ((char*)mappingb + reloc->r_offset));
-                    _R_X86_64_32++;
+                    *((char**)((char*)library[library_index].mappingb + reloc->r_offset)) = lookup_symbol_by_index(library[library_index].array, library[library_index]._elf_header, ELF64_R_SYM(reloc->r_info), symbol_mode_S, quiet) + reloc->r_addend+library[library_index].mappingb;
+                    if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) printf("((char*)library[library_index].mappingb + reloc->r_offset)            = %014p\n", ((char*)library[library_index].mappingb + reloc->r_offset));
+                    library[library_index]._R_X86_64_32++;
                     break;
                 }
                 case R_X86_64_32S:
                 {
                     if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) printf("\n\n\nR_X86_64_32S                 calculation: S + A (symbol value + r_addend)\n");
                     if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) printf("reloc->r_offset = %014p\n", reloc->r_offset);
-                    *((char**)((char*)mappingb + reloc->r_offset)) = lookup_symbol_by_index(array, _elf_header, ELF64_R_SYM(reloc->r_info), symbol_mode_S) + reloc->r_addend+mappingb;
-                    if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) printf("((char*)mappingb + reloc->r_offset)            = %014p\n", ((char*)mappingb + reloc->r_offset));
-                    _R_X86_64_32S++;
+                    *((char**)((char*)library[library_index].mappingb + reloc->r_offset)) = lookup_symbol_by_index(library[library_index].array, library[library_index]._elf_header, ELF64_R_SYM(reloc->r_info), symbol_mode_S, quiet) + reloc->r_addend+library[library_index].mappingb;
+                    if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) printf("((char*)library[library_index].mappingb + reloc->r_offset)            = %014p\n", ((char*)library[library_index].mappingb + reloc->r_offset));
+                    library[library_index]._R_X86_64_32S++;
                     break;
                 }
                 case R_X86_64_16:
                 {
                     if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) printf("\n\n\nR_X86_64_16                  calculation: S + A (symbol value + r_addend)\n");
                     if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) printf("reloc->r_offset = %014p\n", reloc->r_offset);
-                    *((char**)((char*)mappingb + reloc->r_offset)) = lookup_symbol_by_index(array, _elf_header, ELF64_R_SYM(reloc->r_info), symbol_mode_S) + reloc->r_addend+mappingb;
-                    if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) printf("((char*)mappingb + reloc->r_offset)            = %014p\n", ((char*)mappingb + reloc->r_offset));
-                    _R_X86_64_16++;
+                    *((char**)((char*)library[library_index].mappingb + reloc->r_offset)) = lookup_symbol_by_index(library[library_index].array, library[library_index]._elf_header, ELF64_R_SYM(reloc->r_info), symbol_mode_S, quiet) + reloc->r_addend+library[library_index].mappingb;
+                    if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) printf("((char*)library[library_index].mappingb + reloc->r_offset)            = %014p\n", ((char*)library[library_index].mappingb + reloc->r_offset));
+                    library[library_index]._R_X86_64_16++;
                     break;
                 }
                 case R_X86_64_PC16:
                 {
                     if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) printf("\n\n\nR_X86_64_PC16                calculation: S + A - P (symbol value + r_addend - (P: This means the place (section offset or address) of the storage unit being relocated (computed using r_offset ).))\n");
                     if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) printf("reloc->r_offset = %014p\n", reloc->r_offset);
-                    *((char**)((char*)mappingb + reloc->r_offset)) = lookup_symbol_by_index(array, _elf_header, ELF64_R_SYM(reloc->r_info), symbol_mode_S) + reloc->r_addend+mappingb;
-                    if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) printf("((char*)mappingb + reloc->r_offset)            = %014p\n", ((char*)mappingb + reloc->r_offset));
-                    _R_X86_64_PC16++;
+                    *((char**)((char*)library[library_index].mappingb + reloc->r_offset)) = lookup_symbol_by_index(library[library_index].array, library[library_index]._elf_header, ELF64_R_SYM(reloc->r_info), symbol_mode_S, quiet) + reloc->r_addend+library[library_index].mappingb;
+                    if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) printf("((char*)library[library_index].mappingb + reloc->r_offset)            = %014p\n", ((char*)library[library_index].mappingb + reloc->r_offset));
+                    library[library_index]._R_X86_64_PC16++;
                     break;
                 }
                 case R_X86_64_8:
                 {
                     if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) printf("\n\n\nR_X86_64_8                   calculation: S + A (symbol value + r_addend)\n");
                     if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) printf("reloc->r_offset = %014p\n", reloc->r_offset);
-                    *((char**)((char*)mappingb + reloc->r_offset)) = lookup_symbol_by_index(array, _elf_header, ELF64_R_SYM(reloc->r_info), symbol_mode_S) + reloc->r_addend+mappingb;
-                    if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) printf("((char*)mappingb + reloc->r_offset)            = %014p\n", ((char*)mappingb + reloc->r_offset));
-                    _R_X86_64_8++;
+                    *((char**)((char*)library[library_index].mappingb + reloc->r_offset)) = lookup_symbol_by_index(library[library_index].array, library[library_index]._elf_header, ELF64_R_SYM(reloc->r_info), symbol_mode_S, quiet) + reloc->r_addend+library[library_index].mappingb;
+                    if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) printf("((char*)library[library_index].mappingb + reloc->r_offset)            = %014p\n", ((char*)library[library_index].mappingb + reloc->r_offset));
+                    library[library_index]._R_X86_64_8++;
                     break;
                 }
                 case R_X86_64_PC8:
                 {
                     if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) printf("\n\n\nR_X86_64_PC8                 calculation: S + A - P (symbol value + r_addend - (P: This means the place (section offset or address) of the storage unit being relocated (computed using r_offset ).))\n");
                     if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) printf("reloc->r_offset = %014p\n", reloc->r_offset);
-                    *((char**)((char*)mappingb + reloc->r_offset)) = lookup_symbol_by_index(array, _elf_header, ELF64_R_SYM(reloc->r_info), symbol_mode_S) + reloc->r_addend+mappingb;
-                    if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) printf("((char*)mappingb + reloc->r_offset)            = %014p\n", ((char*)mappingb + reloc->r_offset));
-                    _R_X86_64_PC8++;
+                    *((char**)((char*)library[library_index].mappingb + reloc->r_offset)) = lookup_symbol_by_index(library[library_index].array, library[library_index]._elf_header, ELF64_R_SYM(reloc->r_info), symbol_mode_S, quiet) + reloc->r_addend+library[library_index].mappingb;
+                    if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) printf("((char*)library[library_index].mappingb + reloc->r_offset)            = %014p\n", ((char*)library[library_index].mappingb + reloc->r_offset));
+                    library[library_index]._R_X86_64_PC8++;
                     break;
                 }
                 case R_X86_64_DTPMOD64:
                 {
                     if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) printf("\n\n\nR_X86_64_DTPMOD64\n");
-                    _R_X86_64_DTPMOD64++;
+                    library[library_index]._R_X86_64_DTPMOD64++;
                     break;
                 }
                 case R_X86_64_DTPOFF64:
                 {
                     if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) printf("\n\n\nR_X86_64_DTPOFF64\n");
-                    _R_X86_64_DTPOFF64++;
+                    library[library_index]._R_X86_64_DTPOFF64++;
                     break;
                 }
                 case R_X86_64_TPOFF64:
                 {
                     if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) printf("\n\n\nR_X86_64_TPOFF64\n");
-                    _R_X86_64_TPOFF64++;
+                    library[library_index]._R_X86_64_TPOFF64++;
                     break;
                 }
                 case R_X86_64_TLSGD:
                 {
                     if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) printf("\n\n\nR_X86_64_TLSGD\n");
-                    _R_X86_64_TLSGD++;
+                    library[library_index]._R_X86_64_TLSGD++;
                     break;
                 }
                 case R_X86_64_TLSLD:
                 {
                     if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) printf("\n\n\nR_X86_64_TLSLD\n");
-                    _R_X86_64_TLSLD++;
+                    library[library_index]._R_X86_64_TLSLD++;
                     break;
                 }
                 case R_X86_64_DTPOFF32:
                 {
                     if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) printf("\n\n\nR_X86_64_DTPOFF32\n");
-                    _R_X86_64_DTPOFF32++;
+                    library[library_index]._R_X86_64_DTPOFF32++;
                     break;
                 }
                 case R_X86_64_GOTTPOFF:
                 {
                     if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) printf("\n\n\nR_X86_64_GOTTPOFF\n");
-                    Elf64_Addr * GOT = lookup_symbol_by_name(array, _elf_header, "_GLOBAL_OFFSET_TABLE_");
-                    _R_X86_64_GOTTPOFF++;
+                    Elf64_Addr * GOT = lookup_symbol_by_name(library[library_index].array, library[library_index]._elf_header, "_GLOBAL_OFFSET_TABLE_");
+                    library[library_index]._R_X86_64_GOTTPOFF++;
                     break;
                 }
                 case R_X86_64_TPOFF32:
                 {
                     if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) printf("\n\n\nR_X86_64_TPOFF32\n");
-                    _R_X86_64_TPOFF32++;
+                    library[library_index]._R_X86_64_TPOFF32++;
                     break;
                 }
                 case R_X86_64_PC64:
                 {
                     if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) printf("\n\n\nR_X86_64_PC64                calculation: S + A (symbol value + r_addend)\n");
                     if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) printf("reloc->r_offset = %014p\n", reloc->r_offset);
-                    *((char**)((char*)mappingb + reloc->r_offset)) = lookup_symbol_by_index(array, _elf_header, ELF64_R_SYM(reloc->r_info), symbol_mode_S) + reloc->r_addend+mappingb;
-                    if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) printf("((char*)mappingb + reloc->r_offset)            = %014p\n", ((char*)mappingb + reloc->r_offset));
-                    _R_X86_64_PC64++;
+                    *((char**)((char*)library[library_index].mappingb + reloc->r_offset)) = lookup_symbol_by_index(library[library_index].array, library[library_index]._elf_header, ELF64_R_SYM(reloc->r_info), symbol_mode_S, quiet) + reloc->r_addend+library[library_index].mappingb;
+                    if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) printf("((char*)library[library_index].mappingb + reloc->r_offset)            = %014p\n", ((char*)library[library_index].mappingb + reloc->r_offset));
+                    library[library_index]._R_X86_64_PC64++;
                     break;
                 }
                 case R_X86_64_GOTOFF64:
                 {
                     if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) printf("\n\n\nR_X86_64_GOTOFF64            calculation: S + A - GOT (symbol value + r_addend - address of global offset table)\n");
                     if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) printf("reloc->r_offset = %014p\n", reloc->r_offset);
-                    *((char**)((char*)mappingb + reloc->r_offset)) = lookup_symbol_by_index(array, _elf_header, ELF64_R_SYM(reloc->r_info), symbol_mode_S) + reloc->r_addend+mappingb;
-                    if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) printf("((char*)mappingb + reloc->r_offset)            = %014p\n", ((char*)mappingb + reloc->r_offset));
-                    Elf64_Addr * GOT = lookup_symbol_by_name(array, _elf_header, "_GLOBAL_OFFSET_TABLE_");
-                    _R_X86_64_GOTOFF64++;
+                    *((char**)((char*)library[library_index].mappingb + reloc->r_offset)) = lookup_symbol_by_index(library[library_index].array, library[library_index]._elf_header, ELF64_R_SYM(reloc->r_info), symbol_mode_S, quiet) + reloc->r_addend+library[library_index].mappingb;
+                    if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) printf("((char*)library[library_index].mappingb + reloc->r_offset)            = %014p\n", ((char*)library[library_index].mappingb + reloc->r_offset));
+                    Elf64_Addr * GOT = lookup_symbol_by_name(library[library_index].array, library[library_index]._elf_header, "_GLOBAL_OFFSET_TABLE_");
+                    library[library_index]._R_X86_64_GOTOFF64++;
                     break;
                 }
                 case R_X86_64_GOTPC32:
                 {
                     if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) printf("\n\n\nR_X86_64_GOTPC32             calculation: (_GOTPC: GOT + A - P (address of global offset table + r_addend - (P: This means the place (section offset or address) of the storage unit being relocated (computed using r_offset ).)))\n");
-                    Elf64_Addr * GOT = lookup_symbol_by_name(array, _elf_header, "_GLOBAL_OFFSET_TABLE_");
-                    _R_X86_64_GOTPC32++;
+                    Elf64_Addr * GOT = lookup_symbol_by_name(library[library_index].array, library[library_index]._elf_header, "_GLOBAL_OFFSET_TABLE_");
+                    library[library_index]._R_X86_64_GOTPC32++;
                     break;
                 }
                 case R_X86_64_GOT64:
                 {
                     if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) printf("\n\n\nR_X86_64_GOT64               calculation: (_GOTPC: GOT + A - P (address of global offset table + r_addend - (P: This means the place (section offset or address) of the storage unit being relocated (computed using r_offset ).)))\n");
-                    Elf64_Addr * GOT = lookup_symbol_by_name(array, _elf_header, "_GLOBAL_OFFSET_TABLE_");
-                    _R_X86_64_GOT64++;
+                    Elf64_Addr * GOT = lookup_symbol_by_name(library[library_index].array, library[library_index]._elf_header, "_GLOBAL_OFFSET_TABLE_");
+                    library[library_index]._R_X86_64_GOT64++;
                     break;
                 }
                 case R_X86_64_GOTPCREL64:
                 {
                     if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) printf("\n\n\nR_X86_64_GOTPCREL64          calculation: (_GOTPC: GOT + A - P (address of global offset table + r_addend - (P: This means the place (section offset or address) of the storage unit being relocated (computed using r_offset ).)))\n");
-                    Elf64_Addr * GOT = lookup_symbol_by_name(array, _elf_header, "_GLOBAL_OFFSET_TABLE_");
-                    _R_X86_64_GOTPCREL64++;
+                    Elf64_Addr * GOT = lookup_symbol_by_name(library[library_index].array, library[library_index]._elf_header, "_GLOBAL_OFFSET_TABLE_");
+                    library[library_index]._R_X86_64_GOTPCREL64++;
                     break;
                 }
                 case R_X86_64_GOTPC64:
                 {
                     if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) printf("\n\n\nR_X86_64_GOTPC64             calculation: (_GOTPC: GOT + A - P (address of global offset table + r_addend - (P: This means the place (section offset or address) of the storage unit being relocated (computed using r_offset ).)))\n");
-                    Elf64_Addr * GOT = lookup_symbol_by_name(array, _elf_header, "_GLOBAL_OFFSET_TABLE_");
-                    _R_X86_64_GOTPC64++;
+                    Elf64_Addr * GOT = lookup_symbol_by_name(library[library_index].array, library[library_index]._elf_header, "_GLOBAL_OFFSET_TABLE_");
+                    library[library_index]._R_X86_64_GOTPC64++;
                     break;
                 }
                 case R_X86_64_GOTPLT64:
                 {
                     if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) printf("\n\n\nR_X86_64_GOTPLT64            calculation: (_GOTPC: GOT + A - P (address of global offset table + r_addend - (P: This means the place (section offset or address) of the storage unit being relocated (computed using r_offset ).)))\n");
-                    Elf64_Addr * GOT = lookup_symbol_by_name(array, _elf_header, "_GLOBAL_OFFSET_TABLE_");
-                    _R_X86_64_GOTPLT64++;
+                    Elf64_Addr * GOT = lookup_symbol_by_name(library[library_index].array, library[library_index]._elf_header, "_GLOBAL_OFFSET_TABLE_");
+                    library[library_index]._R_X86_64_GOTPLT64++;
                     break;
                 }
                 case R_X86_64_PLTOFF64:
                 {
                     if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) printf("\n\n\nR_X86_64_PLTOFF64\n");
-                    Elf64_Addr * GOT = lookup_symbol_by_name(array, _elf_header, "_GLOBAL_OFFSET_TABLE_");
-                    _R_X86_64_PLTOFF64++;
+                    Elf64_Addr * GOT = lookup_symbol_by_name(library[library_index].array, library[library_index]._elf_header, "_GLOBAL_OFFSET_TABLE_");
+                    library[library_index]._R_X86_64_PLTOFF64++;
                     break;
                 }
                 case R_X86_64_SIZE32:
                 {
                     if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) printf("\n\n\nR_X86_64_SIZE32                 calculation: Z + A (symbol size + r_addend)\n");
                     if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) printf("reloc->r_offset = %014p\n", reloc->r_offset);
-                    *((char**)((char*)mappingb + reloc->r_offset)) = lookup_symbol_by_index(array, _elf_header, ELF64_R_SYM(reloc->r_info), symbol_mode_Z) + reloc->r_addend+mappingb;
-                    if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) printf("((char*)mappingb + reloc->r_offset)            = %014p\n", ((char*)mappingb + reloc->r_offset));
-                    _R_X86_64_SIZE32++;
+                    *((char**)((char*)library[library_index].mappingb + reloc->r_offset)) = lookup_symbol_by_index(library[library_index].array, library[library_index]._elf_header, ELF64_R_SYM(reloc->r_info), symbol_mode_Z, quiet) + reloc->r_addend+library[library_index].mappingb;
+                    if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) printf("((char*)library[library_index].mappingb + reloc->r_offset)            = %014p\n", ((char*)library[library_index].mappingb + reloc->r_offset));
+                    library[library_index]._R_X86_64_SIZE32++;
                     break;
                 }
                 case R_X86_64_SIZE64:
                 {
                     if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) printf("\n\n\nR_X86_64_SIZE64                 calculation: Z + A (symbol size + r_addend)\n");
                     if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) printf("reloc->r_offset = %014p\n", reloc->r_offset);
-                    *((char**)((char*)mappingb + reloc->r_offset)) = lookup_symbol_by_index(array, _elf_header, ELF64_R_SYM(reloc->r_info), symbol_mode_Z) + reloc->r_addend+mappingb;
-                    if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) printf("((char*)mappingb + reloc->r_offset)            = %014p\n", ((char*)mappingb + reloc->r_offset));
-                    _R_X86_64_SIZE64++;
+                    *((char**)((char*)library[library_index].mappingb + reloc->r_offset)) = lookup_symbol_by_index(library[library_index].array, library[library_index]._elf_header, ELF64_R_SYM(reloc->r_info), symbol_mode_Z, quiet) + reloc->r_addend+library[library_index].mappingb;
+                    if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) printf("((char*)library[library_index].mappingb + reloc->r_offset)            = %014p\n", ((char*)library[library_index].mappingb + reloc->r_offset));
+                    library[library_index]._R_X86_64_SIZE64++;
                     break;
                 }
                 case R_X86_64_GOTPC32_TLSDESC:
                 {
                     if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) printf("\n\n\nR_X86_64_GOTPC32_TLSDESC     calculation: (_GOTPC: GOT + A - P (address of global offset table + r_addend - (P: This means the place (section offset or address) of the storage unit being relocated (computed using r_offset ).)))\n");
-                    Elf64_Addr * GOT = lookup_symbol_by_name(array, _elf_header, "_GLOBAL_OFFSET_TABLE_");
-                    _R_X86_64_GOTPC32_TLSDESC++;
+                    Elf64_Addr * GOT = lookup_symbol_by_name(library[library_index].array, library[library_index]._elf_header, "_GLOBAL_OFFSET_TABLE_");
+                    library[library_index]._R_X86_64_GOTPC32_TLSDESC++;
                     break;
                 }
                 case R_X86_64_TLSDESC_CALL:
                 {
                     if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) printf("\n\n\nR_X86_64_TLSDESC_CALL\n");
-                    _R_X86_64_TLSDESC_CALL++;
+                    library[library_index]._R_X86_64_TLSDESC_CALL++;
                     break;
                 }
                 case R_X86_64_TLSDESC:
                 {
                     if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) printf("\n\n\nR_X86_64_TLSDESC\n");
-                    _R_X86_64_TLSDESC++;
+                    library[library_index]._R_X86_64_TLSDESC++;
                     break;
                 }
                 case R_X86_64_IRELATIVE:
                 {
 
                     if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) printf("\n\n\nR_X86_64_IRELATIVE                 calculation: (indirect) B + A (base address + r_addend)\n");
-                    if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) printf("mappingb    = %014p\n", mappingb);
-                    if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) printf("reloc->r_offset = %014p+%014p=%014p\n", mappingb, reloc->r_offset, mappingb+reloc->r_offset);
-                    if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) printf("reloc->r_addend = %014p+%014p=%014p\n", mappingb, reloc->r_addend, ((char*)mappingb + reloc->r_addend) );
-                    ElfW(Addr) value;
+                    if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) printf("library[library_index].mappingb    = %014p\n", library[library_index].mappingb);
+                    if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) printf("reloc->r_offset = %014p+%014p=%014p\n", library[library_index].mappingb, reloc->r_offset, library[library_index].mappingb+reloc->r_offset);
+                    if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) printf("reloc->r_addend = %014p+%014p=%014p\n", library[library_index].mappingb, reloc->r_addend, ((char*)library[library_index].mappingb + reloc->r_addend) );
+                    Elf64_Addr value;
 //                     // changed, somehow this may cause a seg fault, dont use
-//                     value = ((char*)mappingb + reloc->r_addend);
-//                     value = ((ElfW(Addr) (*) (void)) value) ();
-//                     *((char**)((char*)mappingb + reloc->r_offset)) = value;
+//                     value = ((char*)library[library_index].mappingb + reloc->r_addend);
+//                     value = ((Elf64_Addr (*) (void)) value) ();
+//                     *((char**)((char*)library[library_index].mappingb + reloc->r_offset)) = value;
                     // original
-                    *((char**)((char*)mappingb + reloc->r_offset)) = ((char*)mappingb + reloc->r_addend);
+                    *((char**)((char*)library[library_index].mappingb + reloc->r_offset)) = ((char*)library[library_index].mappingb + reloc->r_addend);
                     //
-                    char ** addr = reloc->r_offset + mappingb;
+                    char ** addr = reloc->r_offset + library[library_index].mappingb;
                     if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) printf("%014p = %014p\n", addr, *addr);
-                    if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) printf("((char*)mappingb + reloc->r_offset)            = %014p\n", ((char*)mappingb + reloc->r_offset));
-                    _R_X86_64_IRELATIVE++;
+                    if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) printf("((char*)library[library_index].mappingb + reloc->r_offset)            = %014p\n", ((char*)library[library_index].mappingb + reloc->r_offset));
+                    library[library_index]._R_X86_64_IRELATIVE++;
                     break;
                 }
                 case R_X86_64_RELATIVE64:
                 {
                     if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) printf("\n\n\nR_X86_64_RELATIVE64                 calculation: B + A (base address + r_addend)\n");
-                    if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) printf("mappingb    = %014p\n", mappingb);
-                    if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) printf("reloc->r_offset = %014p+%014p=%014p\n", mappingb, reloc->r_offset, mappingb+reloc->r_offset);
-                    if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) printf("reloc->r_addend = %014p+%014p=%014p\n", mappingb, reloc->r_addend, ((char*)mappingb + reloc->r_addend) );
-                    *((char**)((char*)mappingb + reloc->r_offset)) = ((char*)mappingb + reloc->r_addend);
-                    char ** addr = reloc->r_offset + mappingb;
+                    if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) printf("library[library_index].mappingb    = %014p\n", library[library_index].mappingb);
+                    if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) printf("reloc->r_offset = %014p+%014p=%014p\n", library[library_index].mappingb, reloc->r_offset, library[library_index].mappingb+reloc->r_offset);
+                    if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) printf("reloc->r_addend = %014p+%014p=%014p\n", library[library_index].mappingb, reloc->r_addend, ((char*)library[library_index].mappingb + reloc->r_addend) );
+                    *((char**)((char*)library[library_index].mappingb + reloc->r_offset)) = ((char*)library[library_index].mappingb + reloc->r_addend);
+                    char ** addr = reloc->r_offset + library[library_index].mappingb;
                     if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) printf("%014p = %014p\n", addr, *addr);
-                    if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) printf("((char*)mappingb + reloc->r_offset)            = %014p\n", ((char*)mappingb + reloc->r_offset));
-                    _R_X86_64_RELATIVE64++;
+                    if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) printf("((char*)library[library_index].mappingb + reloc->r_offset)            = %014p\n", ((char*)library[library_index].mappingb + reloc->r_offset));
+                    library[library_index]._R_X86_64_RELATIVE64++;
                     break;
                 }
                 case R_X86_64_GOTPCRELX:
                 {
                     if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) printf("\n\n\nR_X86_64_GOTPCRELX           calculation: (_GOTPC: GOT + A - P (address of global offset table + r_addend - (P: This means the place (section offset or address) of the storage unit being relocated (computed using r_offset ).)))\n");
-                    Elf64_Addr * GOT = lookup_symbol_by_name(array, _elf_header, "_GLOBAL_OFFSET_TABLE_");
-                    _R_X86_64_GOTPCRELX++;
+                    Elf64_Addr * GOT = lookup_symbol_by_name(library[library_index].array, library[library_index]._elf_header, "_GLOBAL_OFFSET_TABLE_");
+                    library[library_index]._R_X86_64_GOTPCRELX++;
                     break;
                 }
                 case R_X86_64_REX_GOTPCRELX:
                 {
                     if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) printf("\n\n\nR_X86_64_REX_GOTPCRELX       calculation: (_GOTPC: GOT + A - P (address of global offset table + r_addend - (P: This means the place (section offset or address) of the storage unit being relocated (computed using r_offset ).)))\n");
-                    Elf64_Addr * GOT = lookup_symbol_by_name(array, _elf_header, "_GLOBAL_OFFSET_TABLE_");
-                    _R_X86_64_REX_GOTPCRELX++;
+                    Elf64_Addr * GOT = lookup_symbol_by_name(library[library_index].array, library[library_index]._elf_header, "_GLOBAL_OFFSET_TABLE_");
+                    library[library_index]._R_X86_64_REX_GOTPCRELX++;
                     break;
                 }
                 case R_X86_64_NUM:
                 {
                     if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) printf("\n\n\nR_X86_64_NUM\n");
-                    _R_X86_64_NUM++;
+                    library[library_index]._R_X86_64_NUM++;
                     break;
                 }
                 #endif
                 default:
                     if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) printf("unknown type, got %d\n", reloc_type);
-                    _R_X86_64_UNKNOWN++;
+                    library[library_index]._R_X86_64_UNKNOWN++;
                     break;
             }
         }
@@ -3176,67 +3191,67 @@ R_386_GOTPC         This relocation type resembles R_386_PC32, except it uses th
 
 int r_summary() {
     if (bytecmpq(global_quiet, "no") == 0) printf( "relocation summary:\n \
-    _R_X86_64_NONE              = %d\n \
-    _R_X86_64_64                = %d\n \
-    _R_X86_64_PC32              = %d\n \
-    _R_X86_64_GOT32             = %d\n \
-    _R_X86_64_PLT32             = %d\n \
-    _R_X86_64_COPY              = %d\n \
-    _R_X86_64_GLOB_DAT          = %d\n \
-    _R_X86_64_JUMP_SLOT         = %d\n \
-    _R_X86_64_RELATIVE          = %d\n \
-    _R_X86_64_GOTPCREL          = %d\n \
-    _R_X86_64_32                = %d\n \
-    _R_X86_64_32S               = %d\n \
-    _R_X86_64_16                = %d\n \
-    _R_X86_64_PC16              = %d\n \
-    _R_X86_64_8                 = %d\n \
-    _R_X86_64_PC8               = %d\n \
-    _R_X86_64_DTPMOD64          = %d\n \
-    _R_X86_64_DTPOFF64          = %d\n \
-    _R_X86_64_TPOFF64           = %d\n \
-    _R_X86_64_TLSGD             = %d\n \
-    _R_X86_64_TLSLD             = %d\n \
-    _R_X86_64_DTPOFF32          = %d\n \
-    _R_X86_64_GOTTPOFF          = %d\n \
-    _R_X86_64_TPOFF32           = %d\n \
-    _R_X86_64_PC64              = %d\n \
-    _R_X86_64_GOTOFF64          = %d\n \
-    _R_X86_64_GOTPC32           = %d\n \
-    _R_X86_64_GOT64             = %d\n \
-    _R_X86_64_GOTPCREL64        = %d\n \
-    _R_X86_64_GOTPC64           = %d\n \
-    _Deprecated1                = %d\n \
-    _R_X86_64_PLTOFF64          = %d\n \
-    _R_X86_64_SIZE32            = %d\n \
-    _R_X86_64_SIZE64            = %d\n \
-    _R_X86_64_GOTPC32_TLSDESC   = %d\n \
-    _R_X86_64_TLSDESC_CALL      = %d\n \
-    _R_X86_64_TLSDESC           = %d\n \
-    _R_X86_64_IRELATIVE         = %d\n \
-    _R_X86_64_RELATIVE64        = %d\n \
-    _Deprecated2                = %d\n \
-    _Deprecated3                = %d\n \
-    _R_X86_64_GOTPLT64          = %d\n \
-    _R_X86_64_GOTPCRELX         = %d\n \
-    _R_X86_64_REX_GOTPCRELX     = %d\n \
-    _R_X86_64_NUM               = %d\n \
-    _R_X86_64_UNKNOWN           = %d\n \
-    total                       = %d\n", _R_X86_64_NONE, _R_X86_64_64, _R_X86_64_PC32, _R_X86_64_GOT32, _R_X86_64_PLT32, _R_X86_64_COPY, _R_X86_64_GLOB_DAT, _R_X86_64_JUMP_SLOT, _R_X86_64_RELATIVE, _R_X86_64_GOTPCREL, _R_X86_64_32, _R_X86_64_32S, _R_X86_64_16, _R_X86_64_PC16, _R_X86_64_8, _R_X86_64_PC8, _R_X86_64_DTPMOD64, _R_X86_64_DTPOFF64, _R_X86_64_TPOFF64, _R_X86_64_TLSGD, _R_X86_64_TLSLD, _R_X86_64_DTPOFF32, _R_X86_64_GOTTPOFF, _R_X86_64_TPOFF32, _R_X86_64_PC64, _R_X86_64_GOTOFF64, _R_X86_64_GOTPC32, _R_X86_64_GOT64, _R_X86_64_GOTPCREL64, _R_X86_64_GOTPC64, _Deprecated1, _R_X86_64_PLTOFF64, _R_X86_64_SIZE32, _R_X86_64_SIZE64, _R_X86_64_GOTPC32_TLSDESC, _R_X86_64_TLSDESC_CALL, _R_X86_64_TLSDESC, _R_X86_64_IRELATIVE, _R_X86_64_RELATIVE64, _Deprecated2, _Deprecated3, _R_X86_64_GOTPLT64, _R_X86_64_GOTPCRELX, _R_X86_64_REX_GOTPCRELX, _R_X86_64_NUM, _R_X86_64_UNKNOWN, _R_X86_64_NONE + _R_X86_64_64 + _R_X86_64_PC32 + _R_X86_64_GOT32 + _R_X86_64_PLT32 + _R_X86_64_COPY + _R_X86_64_GLOB_DAT + _R_X86_64_JUMP_SLOT + _R_X86_64_RELATIVE + _R_X86_64_GOTPCREL + _R_X86_64_32 + _R_X86_64_32S + _R_X86_64_16 + _R_X86_64_PC16 + _R_X86_64_8 + _R_X86_64_PC8 + _R_X86_64_DTPMOD64 + _R_X86_64_DTPOFF64 + _R_X86_64_TPOFF64 + _R_X86_64_TLSGD + _R_X86_64_TLSLD + _R_X86_64_DTPOFF32 + _R_X86_64_GOTTPOFF + _R_X86_64_TPOFF32 + _R_X86_64_PC64 + _R_X86_64_GOTOFF64 + _R_X86_64_GOTPC32 + _R_X86_64_GOT64 + _R_X86_64_GOTPCREL64 + _R_X86_64_GOTPC64 + _Deprecated1 + _R_X86_64_PLTOFF64 + _R_X86_64_SIZE32 + _R_X86_64_SIZE64 + _R_X86_64_GOTPC32_TLSDESC + _R_X86_64_TLSDESC_CALL + _R_X86_64_TLSDESC + _R_X86_64_IRELATIVE + _R_X86_64_RELATIVE64 + _Deprecated2 + _Deprecated3 + _R_X86_64_GOTPLT64 + _R_X86_64_GOTPCRELX + _R_X86_64_REX_GOTPCRELX + _R_X86_64_NUM + _R_X86_64_UNKNOWN);
+    library[library_index]._R_X86_64_NONE              = %d\n \
+    library[library_index]._R_X86_64_64                = %d\n \
+    library[library_index]._R_X86_64_PC32              = %d\n \
+    library[library_index]._R_X86_64_GOT32             = %d\n \
+    library[library_index]._R_X86_64_PLT32             = %d\n \
+    library[library_index]._R_X86_64_COPY              = %d\n \
+    library[library_index]._R_X86_64_GLOB_DAT          = %d\n \
+    library[library_index]._R_X86_64_JUMP_SLOT         = %d\n \
+    library[library_index]._R_X86_64_RELATIVE          = %d\n \
+    library[library_index]._R_X86_64_GOTPCREL          = %d\n \
+    library[library_index]._R_X86_64_32                = %d\n \
+    library[library_index]._R_X86_64_32S               = %d\n \
+    library[library_index]._R_X86_64_16                = %d\n \
+    library[library_index]._R_X86_64_PC16              = %d\n \
+    library[library_index]._R_X86_64_8                 = %d\n \
+    library[library_index]._R_X86_64_PC8               = %d\n \
+    library[library_index]._R_X86_64_DTPMOD64          = %d\n \
+    library[library_index]._R_X86_64_DTPOFF64          = %d\n \
+    library[library_index]._R_X86_64_TPOFF64           = %d\n \
+    library[library_index]._R_X86_64_TLSGD             = %d\n \
+    library[library_index]._R_X86_64_TLSLD             = %d\n \
+    library[library_index]._R_X86_64_DTPOFF32          = %d\n \
+    library[library_index]._R_X86_64_GOTTPOFF          = %d\n \
+    library[library_index]._R_X86_64_TPOFF32           = %d\n \
+    library[library_index]._R_X86_64_PC64              = %d\n \
+    library[library_index]._R_X86_64_GOTOFF64          = %d\n \
+    library[library_index]._R_X86_64_GOTPC32           = %d\n \
+    library[library_index]._R_X86_64_GOT64             = %d\n \
+    library[library_index]._R_X86_64_GOTPCREL64        = %d\n \
+    library[library_index]._R_X86_64_GOTPC64           = %d\n \
+    library[library_index]._Deprecated1                = %d\n \
+    library[library_index]._R_X86_64_PLTOFF64          = %d\n \
+    library[library_index]._R_X86_64_SIZE32            = %d\n \
+    library[library_index]._R_X86_64_SIZE64            = %d\n \
+    library[library_index]._R_X86_64_GOTPC32_TLSDESC   = %d\n \
+    library[library_index]._R_X86_64_TLSDESC_CALL      = %d\n \
+    library[library_index]._R_X86_64_TLSDESC           = %d\n \
+    library[library_index]._R_X86_64_IRELATIVE         = %d\n \
+    library[library_index]._R_X86_64_RELATIVE64        = %d\n \
+    library[library_index]._Deprecated2                = %d\n \
+    library[library_index]._Deprecated3                = %d\n \
+    library[library_index]._R_X86_64_GOTPLT64          = %d\n \
+    library[library_index]._R_X86_64_GOTPCRELX         = %d\n \
+    library[library_index]._R_X86_64_REX_GOTPCRELX     = %d\n \
+    library[library_index]._R_X86_64_NUM               = %d\n \
+    library[library_index]._R_X86_64_UNKNOWN           = %d\n \
+    total                       = %d\n", library[library_index]._R_X86_64_NONE, library[library_index]._R_X86_64_64, library[library_index]._R_X86_64_PC32, library[library_index]._R_X86_64_GOT32, library[library_index]._R_X86_64_PLT32, library[library_index]._R_X86_64_COPY, library[library_index]._R_X86_64_GLOB_DAT, library[library_index]._R_X86_64_JUMP_SLOT, library[library_index]._R_X86_64_RELATIVE, library[library_index]._R_X86_64_GOTPCREL, library[library_index]._R_X86_64_32, library[library_index]._R_X86_64_32S, library[library_index]._R_X86_64_16, library[library_index]._R_X86_64_PC16, library[library_index]._R_X86_64_8, library[library_index]._R_X86_64_PC8, library[library_index]._R_X86_64_DTPMOD64, library[library_index]._R_X86_64_DTPOFF64, library[library_index]._R_X86_64_TPOFF64, library[library_index]._R_X86_64_TLSGD, library[library_index]._R_X86_64_TLSLD, library[library_index]._R_X86_64_DTPOFF32, library[library_index]._R_X86_64_GOTTPOFF, library[library_index]._R_X86_64_TPOFF32, library[library_index]._R_X86_64_PC64, library[library_index]._R_X86_64_GOTOFF64, library[library_index]._R_X86_64_GOTPC32, library[library_index]._R_X86_64_GOT64, library[library_index]._R_X86_64_GOTPCREL64, library[library_index]._R_X86_64_GOTPC64, library[library_index]._Deprecated1, library[library_index]._R_X86_64_PLTOFF64, library[library_index]._R_X86_64_SIZE32, library[library_index]._R_X86_64_SIZE64, library[library_index]._R_X86_64_GOTPC32_TLSDESC, library[library_index]._R_X86_64_TLSDESC_CALL, library[library_index]._R_X86_64_TLSDESC, library[library_index]._R_X86_64_IRELATIVE, library[library_index]._R_X86_64_RELATIVE64, library[library_index]._Deprecated2, library[library_index]._Deprecated3, library[library_index]._R_X86_64_GOTPLT64, library[library_index]._R_X86_64_GOTPCRELX, library[library_index]._R_X86_64_REX_GOTPCRELX, library[library_index]._R_X86_64_NUM, library[library_index]._R_X86_64_UNKNOWN, library[library_index]._R_X86_64_NONE + library[library_index]._R_X86_64_64 + library[library_index]._R_X86_64_PC32 + library[library_index]._R_X86_64_GOT32 + library[library_index]._R_X86_64_PLT32 + library[library_index]._R_X86_64_COPY + library[library_index]._R_X86_64_GLOB_DAT + library[library_index]._R_X86_64_JUMP_SLOT + library[library_index]._R_X86_64_RELATIVE + library[library_index]._R_X86_64_GOTPCREL + library[library_index]._R_X86_64_32 + library[library_index]._R_X86_64_32S + library[library_index]._R_X86_64_16 + library[library_index]._R_X86_64_PC16 + library[library_index]._R_X86_64_8 + library[library_index]._R_X86_64_PC8 + library[library_index]._R_X86_64_DTPMOD64 + library[library_index]._R_X86_64_DTPOFF64 + library[library_index]._R_X86_64_TPOFF64 + library[library_index]._R_X86_64_TLSGD + library[library_index]._R_X86_64_TLSLD + library[library_index]._R_X86_64_DTPOFF32 + library[library_index]._R_X86_64_GOTTPOFF + library[library_index]._R_X86_64_TPOFF32 + library[library_index]._R_X86_64_PC64 + library[library_index]._R_X86_64_GOTOFF64 + library[library_index]._R_X86_64_GOTPC32 + library[library_index]._R_X86_64_GOT64 + library[library_index]._R_X86_64_GOTPCREL64 + library[library_index]._R_X86_64_GOTPC64 + library[library_index]._Deprecated1 + library[library_index]._R_X86_64_PLTOFF64 + library[library_index]._R_X86_64_SIZE32 + library[library_index]._R_X86_64_SIZE64 + library[library_index]._R_X86_64_GOTPC32_TLSDESC + library[library_index]._R_X86_64_TLSDESC_CALL + library[library_index]._R_X86_64_TLSDESC + library[library_index]._R_X86_64_IRELATIVE + library[library_index]._R_X86_64_RELATIVE64 + library[library_index]._Deprecated2 + library[library_index]._Deprecated3 + library[library_index]._R_X86_64_GOTPLT64 + library[library_index]._R_X86_64_GOTPCRELX + library[library_index]._R_X86_64_REX_GOTPCRELX + library[library_index]._R_X86_64_NUM + library[library_index]._R_X86_64_UNKNOWN);
 }
 
 int
 init_(const char * filename) {
     init(filename);
-    if (init__ == 1) return 0;
-    _elf_header = (Elf64_Ehdr *) array;
-    read_section_header_table_(array, _elf_header, &_elf_symbol_table);
-    obtain_rela_plt_size(array, _elf_header, _elf_symbol_table);
-    if(!strncmp((char*)_elf_header->e_ident, "\177ELF", 4)) {
+    if (library[library_index].init__ == 1) return 0;
+    library[library_index]._elf_header = (Elf64_Ehdr *) library[library_index].array;
+    read_section_header_table_(library[library_index].array, library[library_index]._elf_header, &library[library_index]._elf_symbol_table);
+    obtain_rela_plt_size(library[library_index].array, library[library_index]._elf_header, library[library_index]._elf_symbol_table);
+    if(!strncmp((char*)library[library_index]._elf_header->e_ident, "\177ELF", 4)) {
         map();
-        for (int i = 0; i < _elf_header->e_phnum; ++i) {
+        for (int i = 0; i < library[library_index]._elf_header->e_phnum; ++i) {
             char * section_;
-            switch(_elf_program_header[i].p_type)
+            switch(library[library_index]._elf_program_header[i].p_type)
             {
                 case PT_NULL:
                     section_="PT_NULL";
@@ -3246,7 +3261,7 @@ init_(const char * filename) {
                     break;
                 case PT_DYNAMIC:
                     section_="PT_DYNAMIC";
-                    PT_DYNAMIC_=i;
+                    library[library_index].PT_DYNAMIC_=i;
                     break;
                 case PT_INTERP:
                     section_="PT_INTERP";
@@ -3299,31 +3314,31 @@ init_(const char * filename) {
             }
             if (section_ == "PT_DYNAMIC")
             {
-                read_fast_verify(array, len, &tmp99D, (_elf_program_header[i].p_memsz + _elf_program_header[i].p_offset));
-                __lseek_string__(&tmp99D, _elf_program_header[i].p_memsz, _elf_program_header[i].p_offset);
+                read_fast_verify(library[library_index].array, library[library_index].len, &library[library_index].tmp99D, (library[library_index]._elf_program_header[i].p_memsz + library[library_index]._elf_program_header[i].p_offset));
+                __lseek_string__(&library[library_index].tmp99D, library[library_index]._elf_program_header[i].p_memsz, library[library_index]._elf_program_header[i].p_offset);
             }
         }
-        if (PT_DYNAMIC_ != 0) {
-            ElfW(Dyn) * dynamic = tmp99D;
+        if (library[library_index].PT_DYNAMIC_ != 0) {
+            Elf64_Dyn * dynamic = library[library_index].tmp99D;
             r_init();
-            r(mappingb + get_dynamic_entry(dynamic, DT_RELA), get_dynamic_entry(dynamic, DT_RELASZ), "yes");
-            r(mappingb + get_dynamic_entry(dynamic, DT_JMPREL), RELA_PLT_SIZE, "yes");
+            r(library[library_index].mappingb + get_dynamic_entry(dynamic, DT_RELA), get_dynamic_entry(dynamic, DT_RELASZ), relocation_quiet);
+            r(library[library_index].mappingb + get_dynamic_entry(dynamic, DT_JMPREL), library[library_index].RELA_PLT_SIZE, relocation_quiet);
             r_summary();
         }
     } else return -1;
-    init__ = 1;
+    library[library_index].init__ = 1;
     return 0;
 }
 
 int
 initv_(const char * filename) {
     init(filename);
-    if (init__ == 1) return 0;
+    if (library[library_index].init__ == 1) return 0;
     setlocale(LC_NUMERIC, "en_US.utf-8"); /* important */
-        _elf_header = (Elf64_Ehdr *) array;
-        read_section_header_table_(array, _elf_header, &_elf_symbol_table);
-        obtain_rela_plt_size(array, _elf_header, _elf_symbol_table);
-        if(!strncmp((char*)_elf_header->e_ident, "\177ELF", 4)) {
+        library[library_index]._elf_header = (Elf64_Ehdr *) library[library_index].array;
+        read_section_header_table_(library[library_index].array, library[library_index]._elf_header, &library[library_index]._elf_symbol_table);
+        obtain_rela_plt_size(library[library_index].array, library[library_index]._elf_header, library[library_index]._elf_symbol_table);
+        if(!strncmp((char*)library[library_index]._elf_header->e_ident, "\177ELF", 4)) {
 //                 ELF Header:
 //                 Magic:   7f 45 4c 46 02 01 01 00 00 00 00 00 00 00 00 00 
 //                 Class:                             ELF64
@@ -3346,12 +3361,12 @@ initv_(const char * filename) {
 //                 Section header string table index: 29
 //
             if (bytecmpq(global_quiet, "no") == 0) printf("Name:\t\t %s\n", filename);
-            if (bytecmpq(global_quiet, "no") == 0) printf("ELF Identifier\t %s (", _elf_header->e_ident);
-            __print_quoted_string__(_elf_header->e_ident, sizeof(_elf_header->e_ident), QUOTE_FORCE_HEX|QUOTE_OMIT_LEADING_TRAILING_QUOTES, "print");
+            if (bytecmpq(global_quiet, "no") == 0) printf("ELF Identifier\t %s (", library[library_index]._elf_header->e_ident);
+            __print_quoted_string__(library[library_index]._elf_header->e_ident, sizeof(library[library_index]._elf_header->e_ident), QUOTE_FORCE_HEX|QUOTE_OMIT_LEADING_TRAILING_QUOTES, "print");
             if (bytecmpq(global_quiet, "no") == 0) printf(" )\n");
 
             if (bytecmpq(global_quiet, "no") == 0) printf("Architecture\t ");
-            switch(_elf_header->e_ident[EI_CLASS])
+            switch(library[library_index]._elf_header->e_ident[EI_CLASS])
             {
                 case ELFCLASSNONE:
                     if (bytecmpq(global_quiet, "no") == 0) printf("None\n");
@@ -3375,7 +3390,7 @@ initv_(const char * filename) {
             }
 
             if (bytecmpq(global_quiet, "no") == 0) printf("Data Type\t ");
-            switch(_elf_header->e_ident[EI_DATA])
+            switch(library[library_index]._elf_header->e_ident[EI_DATA])
             {
                 case ELFDATANONE:
                     if (bytecmpq(global_quiet, "no") == 0) printf("None\n");
@@ -3399,7 +3414,7 @@ initv_(const char * filename) {
             }
 
             if (bytecmpq(global_quiet, "no") == 0) printf("Version\t\t ");
-            switch(_elf_header->e_ident[EI_VERSION])
+            switch(library[library_index]._elf_header->e_ident[EI_VERSION])
             {
                 case EV_NONE:
                     if (bytecmpq(global_quiet, "no") == 0) printf("None\n");
@@ -3419,7 +3434,7 @@ initv_(const char * filename) {
             }
 
             if (bytecmpq(global_quiet, "no") == 0) printf("OS ABI\t\t ");
-            switch(_elf_header->e_ident[EI_OSABI])
+            switch(library[library_index]._elf_header->e_ident[EI_OSABI])
             {
                 case ELFOSABI_NONE:
                     if (bytecmpq(global_quiet, "no") == 0) printf("UNIX System V ABI\n");
@@ -3469,13 +3484,13 @@ initv_(const char * filename) {
                     if (bytecmpq(global_quiet, "no") == 0) printf("OpenBSD\n");
                     break;
 
-                case ELFOSABI_ARM_AEABI:
-                    if (bytecmpq(global_quiet, "no") == 0) printf("ARM EABI\n");
-                    break;
+//                 case ELFOSABI_ARM_AEABI: // not in musl
+//                     if (bytecmpq(global_quiet, "no") == 0) printf("ARM EABI\n");
+//                     break;
 
-                case ELFOSABI_ARM:
-                    if (bytecmpq(global_quiet, "no") == 0) printf("ARM\n");
-                    break;
+//                 case ELFOSABI_ARM: // not in musl
+//                     if (bytecmpq(global_quiet, "no") == 0) printf("ARM\n");
+//                     break;
 
                 case ELFOSABI_STANDALONE:
                     if (bytecmpq(global_quiet, "no") == 0) printf("Standalone (embedded) application\n");
@@ -3487,7 +3502,7 @@ initv_(const char * filename) {
             }
 
             if (bytecmpq(global_quiet, "no") == 0) printf("File Type\t ");
-            switch(_elf_header->e_type)
+            switch(library[library_index]._elf_header->e_type)
             {
                 case ET_NONE:
                     if (bytecmpq(global_quiet, "no") == 0) printf("None\n");
@@ -3535,7 +3550,7 @@ initv_(const char * filename) {
             }
 
             if (bytecmpq(global_quiet, "no") == 0) printf("Machine\t\t ");
-            switch(_elf_header->e_machine)
+            switch(library[library_index]._elf_header->e_machine)
             {
                 case EM_NONE:
                     if (bytecmpq(global_quiet, "no") == 0) printf("None\n");
@@ -3558,25 +3573,25 @@ initv_(const char * filename) {
             }
             
             /* Entry point */
-            int entry=_elf_header->e_entry;
-            if (bytecmpq(global_quiet, "no") == 0) printf("Entry point\t %014p\n", _elf_header->e_entry);
+            int entry=library[library_index]._elf_header->e_entry;
+            if (bytecmpq(global_quiet, "no") == 0) printf("Entry point\t %014p\n", library[library_index]._elf_header->e_entry);
             
 
             /* ELF header size in bytes */
-            if (bytecmpq(global_quiet, "no") == 0) printf("ELF header size\t %014p\n", _elf_header->e_ehsize);
+            if (bytecmpq(global_quiet, "no") == 0) printf("ELF header size\t %014p\n", library[library_index]._elf_header->e_ehsize);
 
             /* Program Header */
             if (bytecmpq(global_quiet, "no") == 0) printf("Program Header\t %014p (%d entries with a total of %d bytes)\n",
-            _elf_header->e_phoff,
-            _elf_header->e_phnum,
-            _elf_header->e_phentsize
+            library[library_index]._elf_header->e_phoff,
+            library[library_index]._elf_header->e_phnum,
+            library[library_index]._elf_header->e_phentsize
             );
             map();
 // continue analysis
-            for (int i = 0; i < _elf_header->e_phnum; ++i) {
+            for (int i = 0; i < library[library_index]._elf_header->e_phnum; ++i) {
                 char * section_;
                 if (bytecmpq(global_quiet, "no") == 0) printf("p_type:\t\t\t/* Segment type */\t\t= ");
-                switch(_elf_program_header[i].p_type)
+                switch(library[library_index]._elf_program_header[i].p_type)
                 {
                     case PT_NULL:
                         if (bytecmpq(global_quiet, "no") == 0) printf("PT_NULL\t\t/* Program header table entry unused */\n");
@@ -3589,7 +3604,7 @@ initv_(const char * filename) {
                     case PT_DYNAMIC:
                         if (bytecmpq(global_quiet, "no") == 0) printf("PT_DYNAMIC\t\t/* Dynamic linking information */\n");
                         section_="PT_DYNAMIC";
-                        PT_DYNAMIC_=i;
+                        library[library_index].PT_DYNAMIC_=i;
                         break;
                     case PT_INTERP:
                         if (bytecmpq(global_quiet, "no") == 0) printf("PT_INTERP\t\t/* Program interpreter */\n");
@@ -3658,31 +3673,31 @@ initv_(const char * filename) {
                 }
                 if (section_ == "PT_DYNAMIC")
                 {
-                    // obtain PT_DYNAMIC into seperate array for use later
-                    read_fast_verify(array, len, &tmp99D, (_elf_program_header[i].p_memsz + _elf_program_header[i].p_offset));
-                    __lseek_string__(&tmp99D, _elf_program_header[i].p_memsz, _elf_program_header[i].p_offset);
+                    // obtain PT_DYNAMIC into seperate library[library_index].array for use later
+                    read_fast_verify(library[library_index].array, library[library_index].len, &library[library_index].tmp99D, (library[library_index]._elf_program_header[i].p_memsz + library[library_index]._elf_program_header[i].p_offset));
+                    __lseek_string__(&library[library_index].tmp99D, library[library_index]._elf_program_header[i].p_memsz, library[library_index]._elf_program_header[i].p_offset);
                 }
-                char * tmp99;/* = malloc((_elf_program_header[i].p_memsz + _elf_program_header[i].p_offset));*/
+                char * tmp99;/* = malloc((library[library_index]._elf_program_header[i].p_memsz + library[library_index]._elf_program_header[i].p_offset));*/
                 if (bytecmpq(global_quiet, "no") == 0) printf("ATTEMPING TO READ\n");
-                if (bytecmpq(global_quiet, "no") == 0) printf("reading                %014p\n", (_elf_program_header[i].p_memsz + _elf_program_header[i].p_offset));
-                read_fast_verify(array, len, &tmp99, (_elf_program_header[i].p_memsz + _elf_program_header[i].p_offset));
-                if (bytecmpq(global_quiet, "no") == 0) printf("correcting position by %014p\n", _elf_program_header[i].p_offset);
-                __lseek_string__(&tmp99, _elf_program_header[i].p_memsz, _elf_program_header[i].p_offset);
-                if (bytecmpq(global_quiet, "no") == 0) printf("reading                %d\n", _elf_program_header[i].p_memsz);
-                __print_quoted_string__(tmp99, _elf_program_header[i].p_memsz, 0, "print");
+                if (bytecmpq(global_quiet, "no") == 0) printf("reading                %014p\n", (library[library_index]._elf_program_header[i].p_memsz + library[library_index]._elf_program_header[i].p_offset));
+                read_fast_verify(library[library_index].array, library[library_index].len, &tmp99, (library[library_index]._elf_program_header[i].p_memsz + library[library_index]._elf_program_header[i].p_offset));
+                if (bytecmpq(global_quiet, "no") == 0) printf("correcting position by %014p\n", library[library_index]._elf_program_header[i].p_offset);
+                __lseek_string__(&tmp99, library[library_index]._elf_program_header[i].p_memsz, library[library_index]._elf_program_header[i].p_offset);
+                if (bytecmpq(global_quiet, "no") == 0) printf("reading                %d\n", library[library_index]._elf_program_header[i].p_memsz);
+                __print_quoted_string__(tmp99, library[library_index]._elf_program_header[i].p_memsz, 0, "print");
                 if (bytecmpq(global_quiet, "no") == 0) printf("\nREAD\n");
-                if (bytecmpq(global_quiet, "no") == 0) printf("p_flags:\t\t/* Segment flags */\t\t= %014p\np_offset:\t\t/* Segment file offset */\t= %014p\np_vaddr:\t\t/* Segment virtual address */\t= %014p\np_paddr:\t\t/* Segment physical address */\t= %014p\np_filesz:\t\t/* Segment size in file */\t= %014p\np_memsz:\t\t/* Segment size in memory */\t= %014p\np_align:\t\t/* Segment alignment */\t\t= %014p\n\n\n", _elf_program_header[i].p_flags, _elf_program_header[i].p_offset, _elf_program_header[i].p_vaddr+mappingb, _elf_program_header[i].p_paddr, _elf_program_header[i].p_filesz, _elf_program_header[i].p_memsz, _elf_program_header[i].p_align);
+                if (bytecmpq(global_quiet, "no") == 0) printf("p_flags:\t\t/* Segment flags */\t\t= %014p\np_offset:\t\t/* Segment file offset */\t= %014p\np_vaddr:\t\t/* Segment virtual address */\t= %014p\np_paddr:\t\t/* Segment physical address */\t= %014p\np_filesz:\t\t/* Segment size in file */\t= %014p\np_memsz:\t\t/* Segment size in memory */\t= %014p\np_align:\t\t/* Segment library[library_index].alignment */\t\t= %014p\n\n\n", library[library_index]._elf_program_header[i].p_flags, library[library_index]._elf_program_header[i].p_offset, library[library_index]._elf_program_header[i].p_vaddr+library[library_index].mappingb, library[library_index]._elf_program_header[i].p_paddr, library[library_index]._elf_program_header[i].p_filesz, library[library_index]._elf_program_header[i].p_memsz, library[library_index]._elf_program_header[i].p_align);
                 if (bytecmpq(global_quiet, "no") == 0) nl();
-                if (bytecmpq(global_quiet, "no") == 0) printf("\t\tp_flags: %014p", _elf_program_header[i].p_flags);
-                if (bytecmpq(global_quiet, "no") == 0) printf(" p_offset: %014p", _elf_program_header[i].p_offset);
-                if (bytecmpq(global_quiet, "no") == 0) printf(" p_vaddr:  %014p", _elf_program_header[i].p_vaddr+mappingb);
-                if (bytecmpq(global_quiet, "no") == 0) printf(" p_paddr: %014p", _elf_program_header[i].p_paddr);
-                if (bytecmpq(global_quiet, "no") == 0) printf(" p_filesz: %014p", _elf_program_header[i].p_filesz);
-                if (bytecmpq(global_quiet, "no") == 0) printf(" p_memsz: %014p", _elf_program_header[i].p_memsz);
-                if (bytecmpq(global_quiet, "no") == 0) printf(" p_align: %014p\n", _elf_program_header[i].p_align);
+                if (bytecmpq(global_quiet, "no") == 0) printf("\t\tp_flags: %014p", library[library_index]._elf_program_header[i].p_flags);
+                if (bytecmpq(global_quiet, "no") == 0) printf(" p_offset: %014p", library[library_index]._elf_program_header[i].p_offset);
+                if (bytecmpq(global_quiet, "no") == 0) printf(" p_vaddr:  %014p", library[library_index]._elf_program_header[i].p_vaddr+library[library_index].mappingb);
+                if (bytecmpq(global_quiet, "no") == 0) printf(" p_paddr: %014p", library[library_index]._elf_program_header[i].p_paddr);
+                if (bytecmpq(global_quiet, "no") == 0) printf(" p_filesz: %014p", library[library_index]._elf_program_header[i].p_filesz);
+                if (bytecmpq(global_quiet, "no") == 0) printf(" p_memsz: %014p", library[library_index]._elf_program_header[i].p_memsz);
+                if (bytecmpq(global_quiet, "no") == 0) printf(" p_align: %014p\n", library[library_index]._elf_program_header[i].p_align);
             }
 
-            if (PT_DYNAMIC_ != 0) {
+            if (library[library_index].PT_DYNAMIC_ != 0) {
 // A PT_DYNAMIC program header element points at the .dynamic section, explained in
 // "Dynamic Section" below. The .got and .plt sections also hold information related to
 // position-independent code and dynamic linking. Although the .plt appears in a text segment
@@ -3694,54 +3709,72 @@ initv_(const char * filename) {
 // 
 
                 if (bytecmpq(global_quiet, "no") == 0) printf("PT_LOAD 1 = \n");
-                if (bytecmpq(global_quiet, "no") == 0) printf("p_flags:\t\t/* Segment flags */\t\t= %014p\np_offset:\t\t/* Segment file offset */\t= %014p\np_vaddr:\t\t/* Segment virtual address */\t= %014p\np_paddr:\t\t/* Segment physical address */\t= %014p\np_filesz:\t\t/* Segment size in file */\t= %014p\np_memsz:\t\t/* Segment size in memory */\t= %014p\np_align:\t\t/* Segment alignment */\t\t= %014p\n\n\n", _elf_program_header[First_Load_Header_index].p_flags, _elf_program_header[First_Load_Header_index].p_offset, _elf_program_header[First_Load_Header_index].p_vaddr+mappingb, _elf_program_header[First_Load_Header_index].p_paddr, _elf_program_header[First_Load_Header_index].p_filesz, _elf_program_header[First_Load_Header_index].p_memsz, _elf_program_header[First_Load_Header_index].p_align);
+                if (bytecmpq(global_quiet, "no") == 0) printf("p_flags:\t\t/* Segment flags */\t\t= %014p\np_offset:\t\t/* Segment file offset */\t= %014p\np_vaddr:\t\t/* Segment virtual address */\t= %014p\np_paddr:\t\t/* Segment physical address */\t= %014p\np_filesz:\t\t/* Segment size in file */\t= %014p\np_memsz:\t\t/* Segment size in memory */\t= %014p\np_align:\t\t/* Segment library[library_index].alignment */\t\t= %014p\n\n\n", library[library_index]._elf_program_header[library[library_index].First_Load_Header_index].p_flags, library[library_index]._elf_program_header[library[library_index].First_Load_Header_index].p_offset, library[library_index]._elf_program_header[library[library_index].First_Load_Header_index].p_vaddr+library[library_index].mappingb, library[library_index]._elf_program_header[library[library_index].First_Load_Header_index].p_paddr, library[library_index]._elf_program_header[library[library_index].First_Load_Header_index].p_filesz, library[library_index]._elf_program_header[library[library_index].First_Load_Header_index].p_memsz, library[library_index]._elf_program_header[library[library_index].First_Load_Header_index].p_align);
                 if (bytecmpq(global_quiet, "no") == 0) printf("PT_LOAD 2 = \n");
-                if (bytecmpq(global_quiet, "no") == 0) printf("p_flags:\t\t/* Segment flags */\t\t= %014p\np_offset:\t\t/* Segment file offset */\t= %014p\np_vaddr:\t\t/* Segment virtual address */\t= %014p\np_paddr:\t\t/* Segment physical address */\t= %014p\np_filesz:\t\t/* Segment size in file */\t= %014p\np_memsz:\t\t/* Segment size in memory */\t= %014p\np_align:\t\t/* Segment alignment */\t\t= %014p\n\n\n", _elf_program_header[Last_Load_Header_index].p_flags, _elf_program_header[Last_Load_Header_index].p_offset, _elf_program_header[Last_Load_Header_index].p_vaddr+mappingb, _elf_program_header[Last_Load_Header_index].p_paddr, _elf_program_header[Last_Load_Header_index].p_filesz, _elf_program_header[Last_Load_Header_index].p_memsz, _elf_program_header[Last_Load_Header_index].p_align);
-                if (bytecmpq(global_quiet, "no") == 0) printf("first PT_LOAD _elf_program_header[%d]->p_paddr = \n%014p\n", First_Load_Header_index, _elf_program_header[First_Load_Header_index].p_paddr+mappingb);
-                if (bytecmpq(global_quiet, "no") == 0) printf("Second PT_LOAD _elf_program_header[%d]->p_paddr = \n%014p\n", Last_Load_Header_index, _elf_program_header[Last_Load_Header_index].p_paddr+mappingb);
-                ElfW(Dyn) * dynamic = tmp99D;
+                if (bytecmpq(global_quiet, "no") == 0) printf("p_flags:\t\t/* Segment flags */\t\t= %014p\np_offset:\t\t/* Segment file offset */\t= %014p\np_vaddr:\t\t/* Segment virtual address */\t= %014p\np_paddr:\t\t/* Segment physical address */\t= %014p\np_filesz:\t\t/* Segment size in file */\t= %014p\np_memsz:\t\t/* Segment size in memory */\t= %014p\np_align:\t\t/* Segment library[library_index].alignment */\t\t= %014p\n\n\n", library[library_index]._elf_program_header[library[library_index].Last_Load_Header_index].p_flags, library[library_index]._elf_program_header[library[library_index].Last_Load_Header_index].p_offset, library[library_index]._elf_program_header[library[library_index].Last_Load_Header_index].p_vaddr+library[library_index].mappingb, library[library_index]._elf_program_header[library[library_index].Last_Load_Header_index].p_paddr, library[library_index]._elf_program_header[library[library_index].Last_Load_Header_index].p_filesz, library[library_index]._elf_program_header[library[library_index].Last_Load_Header_index].p_memsz, library[library_index]._elf_program_header[library[library_index].Last_Load_Header_index].p_align);
+                if (bytecmpq(global_quiet, "no") == 0) printf("first PT_LOAD library[library_index]._elf_program_header[%d]->p_paddr = \n%014p\n", library[library_index].First_Load_Header_index, library[library_index]._elf_program_header[library[library_index].First_Load_Header_index].p_paddr+library[library_index].mappingb);
+                if (bytecmpq(global_quiet, "no") == 0) printf("Second PT_LOAD library[library_index]._elf_program_header[%d]->p_paddr = \n%014p\n", library[library_index].Last_Load_Header_index, library[library_index]._elf_program_header[library[library_index].Last_Load_Header_index].p_paddr+library[library_index].mappingb);
+                Elf64_Dyn * dynamic = library[library_index].tmp99D;
 
 //                 if (bytecmpq(global_quiet, "no") == 0) printf("printing symbol data\n");
-//                 Elf64_Sym *syms = mappingb + get_dynamic_entry(dynamic, DT_SYMTAB);
-//                 symbol1(array, syms, 0);
+//                 Elf64_Sym *syms = library[library_index].mappingb + get_dynamic_entry(dynamic, DT_SYMTAB);
+//                 symbol1(library[library_index].array, syms, 0);
                 if (bytecmpq(global_quiet, "no") == 0) printf("examining current entries:\n");
                 get_dynamic_entry(dynamic, -1);
                 if (bytecmpq(global_quiet, "no") == 0) printf("printing relocation data\n");
                 // needs to be the address of the mapping itself, not the base address
                 r_init();
-                r(mappingb + get_dynamic_entry(dynamic, DT_RELA), get_dynamic_entry(dynamic, DT_RELASZ), "yes");
-                r(mappingb + get_dynamic_entry(dynamic, DT_JMPREL), RELA_PLT_SIZE, "yes");
+                r(library[library_index].mappingb + get_dynamic_entry(dynamic, DT_RELA), get_dynamic_entry(dynamic, DT_RELASZ), relocation_quiet);
+                r(library[library_index].mappingb + get_dynamic_entry(dynamic, DT_JMPREL), library[library_index].RELA_PLT_SIZE, relocation_quiet);
                 r_summary();
             }
 //             if (bytecmpq(global_quiet, "no") == 0) nl();
             
             if (bytecmpq(global_quiet, "no") == 0) printf("Section Header\t \
-_elf_header->e_shstrndx %014p (\
-_elf_header->e_shnum = %d entries with a total of \
-_elf_header->e_shentsize = %d (should match %d) bytes, offset is \
-_elf_header->e_shoff = %014p)\n",\
-            _elf_header->e_shstrndx,\
-            _elf_header->e_shnum,\
-            _elf_header->e_shentsize,\
+library[library_index]._elf_header->e_shstrndx %014p (\
+library[library_index]._elf_header->e_shnum = %d entries with a total of \
+library[library_index]._elf_header->e_shentsize = %d (should match %d) bytes, offset is \
+library[library_index]._elf_header->e_shoff = %014p)\n",\
+            library[library_index]._elf_header->e_shstrndx,\
+            library[library_index]._elf_header->e_shnum,\
+            library[library_index]._elf_header->e_shentsize,\
             sizeof(Elf64_Shdr),\
-            _elf_header->e_shoff,\
-            (char *)array + _elf_header->e_shoff\
+            library[library_index]._elf_header->e_shoff,\
+            (char *)library[library_index].array + library[library_index]._elf_header->e_shoff\
             );
-            read_section_header_table_(array, _elf_header, &_elf_symbol_table);
-            print_section_headers_(array, _elf_header, _elf_symbol_table);
-            print_symbols(array, _elf_header, _elf_symbol_table);
+            read_section_header_table_(library[library_index].array, library[library_index]._elf_header, &library[library_index]._elf_symbol_table);
+            print_section_headers_(library[library_index].array, library[library_index]._elf_header, library[library_index]._elf_symbol_table);
+            print_symbols(library[library_index].array, library[library_index]._elf_header, library[library_index]._elf_symbol_table);
         } else {
                 /* Not ELF file */
                 if (bytecmpq(global_quiet, "no") == 0) printf("ELFMAGIC not found\n");
                 if (bytecmpq(global_quiet, "no") == 0) printf ("header = ");
-                __print_quoted_string__(array, sizeof(_elf_header->e_ident), QUOTE_OMIT_LEADING_TRAILING_QUOTES, "print");
+                __print_quoted_string__(library[library_index].array, sizeof(library[library_index]._elf_header->e_ident), QUOTE_OMIT_LEADING_TRAILING_QUOTES, "print");
                 if (bytecmpq(global_quiet, "no") == 0) printf("\n");
-                if (bytecmpq(global_quiet, "no") == 0) printf("ELF Identifier\t %s (", _elf_header->e_ident);
-                __print_quoted_string__(_elf_header->e_ident, sizeof(_elf_header->e_ident), QUOTE_FORCE_HEX|QUOTE_OMIT_LEADING_TRAILING_QUOTES, "print");
+                if (bytecmpq(global_quiet, "no") == 0) printf("ELF Identifier\t %s (", library[library_index]._elf_header->e_ident);
+                __print_quoted_string__(library[library_index]._elf_header->e_ident, sizeof(library[library_index]._elf_header->e_ident), QUOTE_FORCE_HEX|QUOTE_OMIT_LEADING_TRAILING_QUOTES, "print");
                 if (bytecmpq(global_quiet, "no") == 0) printf(" )\n");
             return 0;
         }
-    init__ = 1;
+    library[library_index].init__ = 1;
+    return 0;
+}
+
+dlopen(const char * cc)
+{
+    library_index++;
+    library[library_index].library_name = cc;
+    library[library_index].library_first_character = library[library_index].library_name[0];
+    library[library_index].library_len = strlen(library[library_index].library_name);
+    printf("dlopen: adding %s to index %d\n", library[library_index].library_name, library_index);
+    return library_index;
+}
+
+int
+dlsym(int index, const char * cc)
+{
+    library[index].library_symbol = cc;
+    printf("dlsym: adding %s to index %d\n", library[index].library_symbol, library_index);
     return 0;
 }
 
@@ -3749,7 +3782,7 @@ int
 readelf_(const char * filename) {
     setlocale(LC_NUMERIC, "en_US.utf-8"); /* important */
     init_(filename);
-        if(!strncmp((char*)_elf_header->e_ident, "\177ELF", 4)) {
+        if(!strncmp((char*)library[library_index]._elf_header->e_ident, "\177ELF", 4)) {
 //                 ELF Header:
 //                 Magic:   7f 45 4c 46 02 01 01 00 00 00 00 00 00 00 00 00 
 //                 Class:                             ELF64
@@ -3772,12 +3805,12 @@ readelf_(const char * filename) {
 //                 Section header string table index: 29
 //
             if (bytecmpq(global_quiet, "no") == 0) printf("Name:\t\t %s\n", filename);
-            if (bytecmpq(global_quiet, "no") == 0) printf("ELF Identifier\t %s (", _elf_header->e_ident);
-            __print_quoted_string__(_elf_header->e_ident, sizeof(_elf_header->e_ident), QUOTE_FORCE_HEX|QUOTE_OMIT_LEADING_TRAILING_QUOTES, "print");
+            if (bytecmpq(global_quiet, "no") == 0) printf("ELF Identifier\t %s (", library[library_index]._elf_header->e_ident);
+            __print_quoted_string__(library[library_index]._elf_header->e_ident, sizeof(library[library_index]._elf_header->e_ident), QUOTE_FORCE_HEX|QUOTE_OMIT_LEADING_TRAILING_QUOTES, "print");
             if (bytecmpq(global_quiet, "no") == 0) printf(" )\n");
 
             if (bytecmpq(global_quiet, "no") == 0) printf("Architecture\t ");
-            switch(_elf_header->e_ident[EI_CLASS])
+            switch(library[library_index]._elf_header->e_ident[EI_CLASS])
             {
                 case ELFCLASSNONE:
                     if (bytecmpq(global_quiet, "no") == 0) printf("None\n");
@@ -3801,7 +3834,7 @@ readelf_(const char * filename) {
             }
 
             if (bytecmpq(global_quiet, "no") == 0) printf("Data Type\t ");
-            switch(_elf_header->e_ident[EI_DATA])
+            switch(library[library_index]._elf_header->e_ident[EI_DATA])
             {
                 case ELFDATANONE:
                     if (bytecmpq(global_quiet, "no") == 0) printf("None\n");
@@ -3825,7 +3858,7 @@ readelf_(const char * filename) {
             }
 
             if (bytecmpq(global_quiet, "no") == 0) printf("Version\t\t ");
-            switch(_elf_header->e_ident[EI_VERSION])
+            switch(library[library_index]._elf_header->e_ident[EI_VERSION])
             {
                 case EV_NONE:
                     if (bytecmpq(global_quiet, "no") == 0) printf("None\n");
@@ -3845,7 +3878,7 @@ readelf_(const char * filename) {
             }
 
             if (bytecmpq(global_quiet, "no") == 0) printf("OS ABI\t\t ");
-            switch(_elf_header->e_ident[EI_OSABI])
+            switch(library[library_index]._elf_header->e_ident[EI_OSABI])
             {
                 case ELFOSABI_NONE:
                     if (bytecmpq(global_quiet, "no") == 0) printf("UNIX System V ABI\n");
@@ -3895,13 +3928,13 @@ readelf_(const char * filename) {
                     if (bytecmpq(global_quiet, "no") == 0) printf("OpenBSD\n");
                     break;
 
-                case ELFOSABI_ARM_AEABI:
-                    if (bytecmpq(global_quiet, "no") == 0) printf("ARM EABI\n");
-                    break;
+//                 case ELFOSABI_ARM_AEABI:
+//                     if (bytecmpq(global_quiet, "no") == 0) printf("ARM EABI\n");
+//                     break;
 
-                case ELFOSABI_ARM:
-                    if (bytecmpq(global_quiet, "no") == 0) printf("ARM\n");
-                    break;
+//                 case ELFOSABI_ARM:
+//                     if (bytecmpq(global_quiet, "no") == 0) printf("ARM\n");
+//                     break;
 
                 case ELFOSABI_STANDALONE:
                     if (bytecmpq(global_quiet, "no") == 0) printf("Standalone (embedded) application\n");
@@ -3913,7 +3946,7 @@ readelf_(const char * filename) {
             }
 
             if (bytecmpq(global_quiet, "no") == 0) printf("File Type\t ");
-            switch(_elf_header->e_type)
+            switch(library[library_index]._elf_header->e_type)
             {
                 case ET_NONE:
                     if (bytecmpq(global_quiet, "no") == 0) printf("None\n");
@@ -3961,7 +3994,7 @@ readelf_(const char * filename) {
             }
 
             if (bytecmpq(global_quiet, "no") == 0) printf("Machine\t\t ");
-            switch(_elf_header->e_machine)
+            switch(library[library_index]._elf_header->e_machine)
             {
                 case EM_NONE:
                     if (bytecmpq(global_quiet, "no") == 0) printf("None\n");
@@ -3984,24 +4017,24 @@ readelf_(const char * filename) {
             }
             
             /* Entry point */
-            int entry=_elf_header->e_entry;
-            if (bytecmpq(global_quiet, "no") == 0) printf("Entry point\t %014p\n", _elf_header->e_entry);
+            int entry=library[library_index]._elf_header->e_entry;
+            if (bytecmpq(global_quiet, "no") == 0) printf("Entry point\t %014p\n", library[library_index]._elf_header->e_entry);
             
 
             /* ELF header size in bytes */
-            if (bytecmpq(global_quiet, "no") == 0) printf("ELF header size\t %014p\n", _elf_header->e_ehsize);
+            if (bytecmpq(global_quiet, "no") == 0) printf("ELF header size\t %014p\n", library[library_index]._elf_header->e_ehsize);
 
             /* Program Header */
             if (bytecmpq(global_quiet, "no") == 0) printf("Program Header\t %014p (%d entries with a total of %d bytes)\n",
-            _elf_header->e_phoff,
-            _elf_header->e_phnum,
-            _elf_header->e_phentsize
+            library[library_index]._elf_header->e_phoff,
+            library[library_index]._elf_header->e_phnum,
+            library[library_index]._elf_header->e_phentsize
             );
 // continue analysis
-            for (int i = 0; i < _elf_header->e_phnum; ++i) {
+            for (int i = 0; i < library[library_index]._elf_header->e_phnum; ++i) {
                 char * section_;
                 if (bytecmpq(global_quiet, "no") == 0) printf("p_type:\t\t\t/* Segment type */\t\t= ");
-                switch(_elf_program_header[i].p_type)
+                switch(library[library_index]._elf_program_header[i].p_type)
                 {
                     case PT_NULL:
                         if (bytecmpq(global_quiet, "no") == 0) printf("PT_NULL\t\t/* Program header table entry unused */\n");
@@ -4014,7 +4047,7 @@ readelf_(const char * filename) {
                     case PT_DYNAMIC:
                         if (bytecmpq(global_quiet, "no") == 0) printf("PT_DYNAMIC\t\t/* Dynamic linking information */\n");
                         section_="PT_DYNAMIC";
-                        PT_DYNAMIC_=i;
+                        library[library_index].PT_DYNAMIC_=i;
                         break;
                     case PT_INTERP:
                         if (bytecmpq(global_quiet, "no") == 0) printf("PT_INTERP\t\t/* Program interpreter */\n");
@@ -4083,31 +4116,31 @@ readelf_(const char * filename) {
                 }
                 if (section_ == "PT_DYNAMIC")
                 {
-                    // obtain PT_DYNAMIC into seperate array for use later
-                    read_fast_verify(array, len, &tmp99D, (_elf_program_header[i].p_memsz + _elf_program_header[i].p_offset));
-                    __lseek_string__(&tmp99D, _elf_program_header[i].p_memsz, _elf_program_header[i].p_offset);
+                    // obtain PT_DYNAMIC into seperate library[library_index].array for use later
+                    read_fast_verify(library[library_index].array, library[library_index].len, &library[library_index].tmp99D, (library[library_index]._elf_program_header[i].p_memsz + library[library_index]._elf_program_header[i].p_offset));
+                    __lseek_string__(&library[library_index].tmp99D, library[library_index]._elf_program_header[i].p_memsz, library[library_index]._elf_program_header[i].p_offset);
                 }
-                char * tmp99;/* = malloc((_elf_program_header[i].p_memsz + _elf_program_header[i].p_offset));*/
+                char * tmp99;/* = malloc((library[library_index]._elf_program_header[i].p_memsz + library[library_index]._elf_program_header[i].p_offset));*/
                 if (bytecmpq(global_quiet, "no") == 0) printf("ATTEMPING TO READ\n");
-                if (bytecmpq(global_quiet, "no") == 0) printf("reading                %014p\n", (_elf_program_header[i].p_memsz + _elf_program_header[i].p_offset));
-                read_fast_verify(array, len, &tmp99, (_elf_program_header[i].p_memsz + _elf_program_header[i].p_offset));
-                if (bytecmpq(global_quiet, "no") == 0) printf("correcting position by %014p\n", _elf_program_header[i].p_offset);
-                __lseek_string__(&tmp99, _elf_program_header[i].p_memsz, _elf_program_header[i].p_offset);
-                if (bytecmpq(global_quiet, "no") == 0) printf("reading                %d\n", _elf_program_header[i].p_memsz);
-                __print_quoted_string__(tmp99, _elf_program_header[i].p_memsz, 0, "print");
+                if (bytecmpq(global_quiet, "no") == 0) printf("reading                %014p\n", (library[library_index]._elf_program_header[i].p_memsz + library[library_index]._elf_program_header[i].p_offset));
+                read_fast_verify(library[library_index].array, library[library_index].len, &tmp99, (library[library_index]._elf_program_header[i].p_memsz + library[library_index]._elf_program_header[i].p_offset));
+                if (bytecmpq(global_quiet, "no") == 0) printf("correcting position by %014p\n", library[library_index]._elf_program_header[i].p_offset);
+                __lseek_string__(&tmp99, library[library_index]._elf_program_header[i].p_memsz, library[library_index]._elf_program_header[i].p_offset);
+                if (bytecmpq(global_quiet, "no") == 0) printf("reading                %d\n", library[library_index]._elf_program_header[i].p_memsz);
+                __print_quoted_string__(tmp99, library[library_index]._elf_program_header[i].p_memsz, 0, "print");
                 if (bytecmpq(global_quiet, "no") == 0) printf("\nREAD\n");
-                if (bytecmpq(global_quiet, "no") == 0) printf("p_flags:\t\t/* Segment flags */\t\t= %014p\np_offset:\t\t/* Segment file offset */\t= %014p\np_vaddr:\t\t/* Segment virtual address */\t= %014p\np_paddr:\t\t/* Segment physical address */\t= %014p\np_filesz:\t\t/* Segment size in file */\t= %014p\np_memsz:\t\t/* Segment size in memory */\t= %014p\np_align:\t\t/* Segment alignment */\t\t= %014p\n\n\n", _elf_program_header[i].p_flags, _elf_program_header[i].p_offset, _elf_program_header[i].p_vaddr+mappingb, _elf_program_header[i].p_paddr, _elf_program_header[i].p_filesz, _elf_program_header[i].p_memsz, _elf_program_header[i].p_align);
+                if (bytecmpq(global_quiet, "no") == 0) printf("p_flags:\t\t/* Segment flags */\t\t= %014p\np_offset:\t\t/* Segment file offset */\t= %014p\np_vaddr:\t\t/* Segment virtual address */\t= %014p\np_paddr:\t\t/* Segment physical address */\t= %014p\np_filesz:\t\t/* Segment size in file */\t= %014p\np_memsz:\t\t/* Segment size in memory */\t= %014p\np_align:\t\t/* Segment library[library_index].alignment */\t\t= %014p\n\n\n", library[library_index]._elf_program_header[i].p_flags, library[library_index]._elf_program_header[i].p_offset, library[library_index]._elf_program_header[i].p_vaddr+library[library_index].mappingb, library[library_index]._elf_program_header[i].p_paddr, library[library_index]._elf_program_header[i].p_filesz, library[library_index]._elf_program_header[i].p_memsz, library[library_index]._elf_program_header[i].p_align);
                 if (bytecmpq(global_quiet, "no") == 0) nl();
-                if (bytecmpq(global_quiet, "no") == 0) printf("\t\tp_flags: %014p", _elf_program_header[i].p_flags);
-                if (bytecmpq(global_quiet, "no") == 0) printf(" p_offset: %014p", _elf_program_header[i].p_offset);
-                if (bytecmpq(global_quiet, "no") == 0) printf(" p_vaddr:  %014p", _elf_program_header[i].p_vaddr+mappingb);
-                if (bytecmpq(global_quiet, "no") == 0) printf(" p_paddr: %014p", _elf_program_header[i].p_paddr);
-                if (bytecmpq(global_quiet, "no") == 0) printf(" p_filesz: %014p", _elf_program_header[i].p_filesz);
-                if (bytecmpq(global_quiet, "no") == 0) printf(" p_memsz: %014p", _elf_program_header[i].p_memsz);
-                if (bytecmpq(global_quiet, "no") == 0) printf(" p_align: %014p\n", _elf_program_header[i].p_align);
+                if (bytecmpq(global_quiet, "no") == 0) printf("\t\tp_flags: %014p", library[library_index]._elf_program_header[i].p_flags);
+                if (bytecmpq(global_quiet, "no") == 0) printf(" p_offset: %014p", library[library_index]._elf_program_header[i].p_offset);
+                if (bytecmpq(global_quiet, "no") == 0) printf(" p_vaddr:  %014p", library[library_index]._elf_program_header[i].p_vaddr+library[library_index].mappingb);
+                if (bytecmpq(global_quiet, "no") == 0) printf(" p_paddr: %014p", library[library_index]._elf_program_header[i].p_paddr);
+                if (bytecmpq(global_quiet, "no") == 0) printf(" p_filesz: %014p", library[library_index]._elf_program_header[i].p_filesz);
+                if (bytecmpq(global_quiet, "no") == 0) printf(" p_memsz: %014p", library[library_index]._elf_program_header[i].p_memsz);
+                if (bytecmpq(global_quiet, "no") == 0) printf(" p_align: %014p\n", library[library_index]._elf_program_header[i].p_align);
             }
 
-            if (PT_DYNAMIC_ != 0) {
+            if (library[library_index].PT_DYNAMIC_ != 0) {
 // A PT_DYNAMIC program header element points at the .dynamic section, explained in
 // "Dynamic Section" below. The .got and .plt sections also hold information related to
 // position-independent code and dynamic linking. Although the .plt appears in a text segment
@@ -4119,40 +4152,40 @@ readelf_(const char * filename) {
 // 
 
                 if (bytecmpq(global_quiet, "no") == 0) printf("PT_LOAD 1 = \n");
-                if (bytecmpq(global_quiet, "no") == 0) printf("p_flags:\t\t/* Segment flags */\t\t= %014p\np_offset:\t\t/* Segment file offset */\t= %014p\np_vaddr:\t\t/* Segment virtual address */\t= %014p\np_paddr:\t\t/* Segment physical address */\t= %014p\np_filesz:\t\t/* Segment size in file */\t= %014p\np_memsz:\t\t/* Segment size in memory */\t= %014p\np_align:\t\t/* Segment alignment */\t\t= %014p\n\n\n", _elf_program_header[First_Load_Header_index].p_flags, _elf_program_header[First_Load_Header_index].p_offset, _elf_program_header[First_Load_Header_index].p_vaddr+mappingb, _elf_program_header[First_Load_Header_index].p_paddr, _elf_program_header[First_Load_Header_index].p_filesz, _elf_program_header[First_Load_Header_index].p_memsz, _elf_program_header[First_Load_Header_index].p_align);
+                if (bytecmpq(global_quiet, "no") == 0) printf("p_flags:\t\t/* Segment flags */\t\t= %014p\np_offset:\t\t/* Segment file offset */\t= %014p\np_vaddr:\t\t/* Segment virtual address */\t= %014p\np_paddr:\t\t/* Segment physical address */\t= %014p\np_filesz:\t\t/* Segment size in file */\t= %014p\np_memsz:\t\t/* Segment size in memory */\t= %014p\np_align:\t\t/* Segment library[library_index].alignment */\t\t= %014p\n\n\n", library[library_index]._elf_program_header[library[library_index].First_Load_Header_index].p_flags, library[library_index]._elf_program_header[library[library_index].First_Load_Header_index].p_offset, library[library_index]._elf_program_header[library[library_index].First_Load_Header_index].p_vaddr+library[library_index].mappingb, library[library_index]._elf_program_header[library[library_index].First_Load_Header_index].p_paddr, library[library_index]._elf_program_header[library[library_index].First_Load_Header_index].p_filesz, library[library_index]._elf_program_header[library[library_index].First_Load_Header_index].p_memsz, library[library_index]._elf_program_header[library[library_index].First_Load_Header_index].p_align);
                 if (bytecmpq(global_quiet, "no") == 0) printf("PT_LOAD 2 = \n");
-                if (bytecmpq(global_quiet, "no") == 0) printf("p_flags:\t\t/* Segment flags */\t\t= %014p\np_offset:\t\t/* Segment file offset */\t= %014p\np_vaddr:\t\t/* Segment virtual address */\t= %014p\np_paddr:\t\t/* Segment physical address */\t= %014p\np_filesz:\t\t/* Segment size in file */\t= %014p\np_memsz:\t\t/* Segment size in memory */\t= %014p\np_align:\t\t/* Segment alignment */\t\t= %014p\n\n\n", _elf_program_header[Last_Load_Header_index].p_flags, _elf_program_header[Last_Load_Header_index].p_offset, _elf_program_header[Last_Load_Header_index].p_vaddr+mappingb, _elf_program_header[Last_Load_Header_index].p_paddr, _elf_program_header[Last_Load_Header_index].p_filesz, _elf_program_header[Last_Load_Header_index].p_memsz, _elf_program_header[Last_Load_Header_index].p_align);
-                if (bytecmpq(global_quiet, "no") == 0) printf("first PT_LOAD _elf_program_header[%d]->p_paddr = \n%014p\n", First_Load_Header_index, _elf_program_header[First_Load_Header_index].p_paddr+mappingb);
-                if (bytecmpq(global_quiet, "no") == 0) printf("Second PT_LOAD _elf_program_header[%d]->p_paddr = \n%014p\n", Last_Load_Header_index, _elf_program_header[Last_Load_Header_index].p_paddr+mappingb);
-                ElfW(Dyn) * dynamic = tmp99D;
+                if (bytecmpq(global_quiet, "no") == 0) printf("p_flags:\t\t/* Segment flags */\t\t= %014p\np_offset:\t\t/* Segment file offset */\t= %014p\np_vaddr:\t\t/* Segment virtual address */\t= %014p\np_paddr:\t\t/* Segment physical address */\t= %014p\np_filesz:\t\t/* Segment size in file */\t= %014p\np_memsz:\t\t/* Segment size in memory */\t= %014p\np_align:\t\t/* Segment library[library_index].alignment */\t\t= %014p\n\n\n", library[library_index]._elf_program_header[library[library_index].Last_Load_Header_index].p_flags, library[library_index]._elf_program_header[library[library_index].Last_Load_Header_index].p_offset, library[library_index]._elf_program_header[library[library_index].Last_Load_Header_index].p_vaddr+library[library_index].mappingb, library[library_index]._elf_program_header[library[library_index].Last_Load_Header_index].p_paddr, library[library_index]._elf_program_header[library[library_index].Last_Load_Header_index].p_filesz, library[library_index]._elf_program_header[library[library_index].Last_Load_Header_index].p_memsz, library[library_index]._elf_program_header[library[library_index].Last_Load_Header_index].p_align);
+                if (bytecmpq(global_quiet, "no") == 0) printf("first PT_LOAD library[library_index]._elf_program_header[%d]->p_paddr = \n%014p\n", library[library_index].First_Load_Header_index, library[library_index]._elf_program_header[library[library_index].First_Load_Header_index].p_paddr+library[library_index].mappingb);
+                if (bytecmpq(global_quiet, "no") == 0) printf("Second PT_LOAD library[library_index]._elf_program_header[%d]->p_paddr = \n%014p\n", library[library_index].Last_Load_Header_index, library[library_index]._elf_program_header[library[library_index].Last_Load_Header_index].p_paddr+library[library_index].mappingb);
+                Elf64_Dyn * dynamic = library[library_index].tmp99D;
 
                 if (bytecmpq(global_quiet, "no") == 0) printf("examining current entries:\n");
                 get_dynamic_entry(dynamic, -1);
             }
 
             if (bytecmpq(global_quiet, "no") == 0) printf("Section Header\t \
-_elf_header->e_shstrndx %014p (\
-_elf_header->e_shnum = %d entries with a total of \
-_elf_header->e_shentsize = %d (should match %d) bytes, offset is \
-_elf_header->e_shoff = %014p)\n",\
-            _elf_header->e_shstrndx,\
-            _elf_header->e_shnum,\
-            _elf_header->e_shentsize,\
+library[library_index]._elf_header->e_shstrndx %014p (\
+library[library_index]._elf_header->e_shnum = %d entries with a total of \
+library[library_index]._elf_header->e_shentsize = %d (should match %d) bytes, offset is \
+library[library_index]._elf_header->e_shoff = %014p)\n",\
+            library[library_index]._elf_header->e_shstrndx,\
+            library[library_index]._elf_header->e_shnum,\
+            library[library_index]._elf_header->e_shentsize,\
             sizeof(Elf64_Shdr),\
-            _elf_header->e_shoff,\
-            (char *)array + _elf_header->e_shoff\
+            library[library_index]._elf_header->e_shoff,\
+            (char *)library[library_index].array + library[library_index]._elf_header->e_shoff\
             );
-            read_section_header_table_(array, _elf_header, &_elf_symbol_table);
-            print_section_headers_(array, _elf_header, _elf_symbol_table);
-            print_symbols(array, _elf_header, _elf_symbol_table);
+            read_section_header_table_(library[library_index].array, library[library_index]._elf_header, &library[library_index]._elf_symbol_table);
+            print_section_headers_(library[library_index].array, library[library_index]._elf_header, library[library_index]._elf_symbol_table);
+            print_symbols(library[library_index].array, library[library_index]._elf_header, library[library_index]._elf_symbol_table);
         } else {
                 /* Not ELF file */
                 if (bytecmpq(global_quiet, "no") == 0) printf("ELFMAGIC not found\n");
                 if (bytecmpq(global_quiet, "no") == 0) printf ("header = ");
-                __print_quoted_string__(array, sizeof(_elf_header->e_ident), QUOTE_OMIT_LEADING_TRAILING_QUOTES, "print");
+                __print_quoted_string__(library[library_index].array, sizeof(library[library_index]._elf_header->e_ident), QUOTE_OMIT_LEADING_TRAILING_QUOTES, "print");
                 if (bytecmpq(global_quiet, "no") == 0) printf("\n");
-                if (bytecmpq(global_quiet, "no") == 0) printf("ELF Identifier\t %s (", _elf_header->e_ident);
-                __print_quoted_string__(_elf_header->e_ident, sizeof(_elf_header->e_ident), QUOTE_FORCE_HEX|QUOTE_OMIT_LEADING_TRAILING_QUOTES, "print");
+                if (bytecmpq(global_quiet, "no") == 0) printf("ELF Identifier\t %s (", library[library_index]._elf_header->e_ident);
+                __print_quoted_string__(library[library_index]._elf_header->e_ident, sizeof(library[library_index]._elf_header->e_ident), QUOTE_FORCE_HEX|QUOTE_OMIT_LEADING_TRAILING_QUOTES, "print");
                 if (bytecmpq(global_quiet, "no") == 0) printf(" )\n");
             return 0;
         }

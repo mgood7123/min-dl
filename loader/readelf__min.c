@@ -1,3 +1,9 @@
+int readelf_(const char * filename) {} // dummy
+const char * global_quiet = "no";
+const char * symbol_quiet = "no";
+const char * relocation_quiet = "no";
+#define quiet symbol_quiet
+
 //sig handling
 #include <signal.h>
 #include <ucontext.h>
@@ -61,12 +67,12 @@ int test(char * address)
 
 
         */
-        printf("value: %15d\t", *(int*)address);
+        if (bytecmpq(global_quiet, "no") == 0) printf("value: %15d\t", *(int*)address);
         return 0;
     }
     else
     {
-        printf("value: %s\t", "     is not int");
+        if (bytecmpq(global_quiet, "no") == 0) printf("value: %s\t", "     is not int");
         return -1;
     }
 }
@@ -77,7 +83,7 @@ int test(char * address)
 #include <unistd.h>
 #include <fcntl.h>
 void nl() {
-    printf("\n");
+    if (bytecmpq(global_quiet, "no") == 0) printf("\n");
 }
 
 int bcmp_q(void const *vp, size_t n, void const *vp2, size_t n2)
@@ -88,7 +94,6 @@ int bcmp_q(void const *vp, size_t n, void const *vp2, size_t n2)
         unsigned char const *p2 = vp2;
         for (size_t i=0; i<n; i++)
             if (p[i] == p2[i]) {
-//                 printf("p[%d] = %c\n", i, p[i]);
                 string_match = 1;
             } else { string_match = 0; break; }
         if (string_match == 0) {
@@ -105,19 +110,19 @@ int bytecmpq(void const * p, void const * pp) { return bcmp_q(p, strlen(p), pp, 
 
 uintptr_t round_down(uintptr_t value, uintptr_t size)
 {
-    printf("called round_down\nreturning %014p\n", value ? size * (value / size) : value);
+    if (bytecmpq(global_quiet, "no") == 0) printf("called round_down\nreturning %014p\n", value ? size * (value / size) : value);
     return value ? size * (value / size) : value;
 }
 
 uintptr_t round_up(uintptr_t value, uintptr_t size)
 {
-    printf("called round_up\nreturning %014p\n", value ? size * ((value + (size - 1)) / size) : size);
+    if (bytecmpq(global_quiet, "no") == 0) printf("called round_up\nreturning %014p\n", value ? size * ((value + (size - 1)) / size) : size);
 //     return size * ((value + (size - 1)) / size);
     return value ? size * ((value + (size - 1)) / size) : size;
 }
 
 void abort_() {
-    printf("cannot continue, pausing execution to allow for debugging\nif you do now know how to debug this process as paused execute the following in a new terminal:\n\n    sudo gdb -p %d\n\n", getpid());
+    if (bytecmpq(global_quiet, "no") == 0) printf("cannot continue, pausing execution to allow for debugging\nif you do now know how to debug this process as paused execute the following in a new terminal:\n\n    sudo gdb -p %d\n\n", getpid());
     pause();
 }
 
@@ -148,11 +153,11 @@ int read_fast_verifyb(const char *src, int len_of_source, char **dest, int reque
     *dest = malloc(requested_len+align+PT_LOAD_L.p_align);
     if (len_of_source < requested_len) memcpy(*dest, src, len_of_source);
     else memcpy(*dest, src, requested_len);
-    printf("memmove: round_up(%014p, %014p)+%014p = %014p\n", *dest, align, PT_LOAD_L.p_align, round_up(*dest, align)+PT_LOAD_L.p_align);
+    if (bytecmpq(global_quiet, "no") == 0) printf("memmove: round_up(%014p, %014p)+%014p = %014p\n", *dest, align, PT_LOAD_L.p_align, round_up(*dest, align)+PT_LOAD_L.p_align);
     *dest = memmove(round_up(*dest, align)+PT_LOAD_L.p_align, *dest, requested_len);
-    printf("dest = %014p\n", *dest);
+    if (bytecmpq(global_quiet, "no") == 0) printf("dest = %014p\n", *dest);
     *dest = memmove(*dest-PT_LOAD_L.p_align, *dest, PT_LOAD_F.p_memsz);
-    printf("dest = %014p\n", *dest);
+    if (bytecmpq(global_quiet, "no") == 0) printf("dest = %014p\n", *dest);
     return requested_len;
 }
 
@@ -201,7 +206,7 @@ char * demangle_it (char *mangled_name)
 
   result = cplus_demangle (mangled_name + skip_first, flags);
 //   bytecmp(mangled_name, mangled_name);
-//   printf("\n\nmangled_name[%d] = %c , mangled_name[%d] = %c\n\n", strlen(mangled_name)-2, strlen(mangled_name)-1, mangled_name[strlen(mangled_name)-2], mangled_name[strlen(mangled_name)-1]);
+//   if (bytecmpq(global_quiet, "no") == 0) printf("\n\nmangled_name[%d] = %c , mangled_name[%d] = %c\n\n", strlen(mangled_name)-2, strlen(mangled_name)-1, mangled_name[strlen(mangled_name)-2], mangled_name[strlen(mangled_name)-1]);
 //     if ( mangled_name[-2] == '(' && mangled_name[-1] == ')')
 //         mangled_name[-2] = '\0';
   if (result == NULL) return mangled_name;
@@ -250,7 +255,7 @@ char * init(char * lib) {
     if (array == NULL) {
         int fd = open(lib, O_RDONLY);
         if (fd < 0) {
-            printf("cannot open \"%s\", returned %i\n", lib, fd);
+            if (bytecmpq(global_quiet, "no") == 0) printf("cannot open \"%s\", returned %i\n", lib, fd);
             return -1;
         }
         len = 0;
@@ -258,10 +263,10 @@ char * init(char * lib) {
         lseek(fd, 0, 0);
         array = mmap (NULL, len, PROT_READ, MAP_PRIVATE, fd, 0);
         if (array == MAP_FAILED) {
-            printf ("map failed\n");
+            if (bytecmpq(global_quiet, "no") == 0) printf ("map failed\n");
             exit;
         } else {
-            printf ("map succeded with address: %014p\n", array);
+            if (bytecmpq(global_quiet, "no") == 0) printf ("map succeded with address: %014p\n", array);
             return 0;
         }
     } else return 0;
@@ -273,17 +278,17 @@ int prot_from_phdr(const int p_flags)
     int prot = 0;
     if (p_flags & PF_R)
     {
-        printf("PROT_READ|");
+        if (bytecmpq(global_quiet, "no") == 0) printf("PROT_READ|");
         prot |= PROT_READ;
     }
     if (p_flags & PF_W)
     {
-        printf("PROT_WRITE|");
+        if (bytecmpq(global_quiet, "no") == 0) printf("PROT_WRITE|");
         prot |= PROT_WRITE;
     }
     if (p_flags & PF_X)
     {
-        printf("PROT_EXEC|");
+        if (bytecmpq(global_quiet, "no") == 0) printf("PROT_EXEC|");
         prot |= PROT_EXEC;
     }
     return prot;
@@ -325,14 +330,14 @@ void map() {
             switch(_elf_program_header[i].p_type)
             {
                 case PT_LOAD:
-//                         printf("i = %d\n", i);
-//                         printf("PT_LOADS = %d\n", PT_LOADS);
+//                         if (bytecmpq(global_quiet, "no") == 0) printf("i = %d\n", i);
+//                         if (bytecmpq(global_quiet, "no") == 0) printf("PT_LOADS = %d\n", PT_LOADS);
                     if (!PT_LOADS)  {
-//                             printf("saving first load\n");
+//                             if (bytecmpq(global_quiet, "no") == 0) printf("saving first load\n");
                         First_Load_Header_index = i;
                     }
                     if (PT_LOADS) {
-//                             printf("saving last load\n");
+//                             if (bytecmpq(global_quiet, "no") == 0) printf("saving last load\n");
                         Last_Load_Header_index = i;
                     }
                     PT_LOADS=PT_LOADS+1;
@@ -349,10 +354,10 @@ void map() {
         base_address = mappingb - align;
         mappingb_end = mappingb+span;
 
-//             printf("base address range = %014p - %014p\nmapping = %014p\n", mappingb, mappingb_end, mapping);
+//             if (bytecmpq(global_quiet, "no") == 0) printf("base address range = %014p - %014p\nmapping = %014p\n", mappingb, mappingb_end, mapping);
 
 // base address aquired, map all PT_LOAD segments adjusting by base address then continue with the rest
-        printf("\n\n\nfind %014p, %014p, (int) 1239\n\n\n\n", mappingb, mappingb_end);
+        if (bytecmpq(global_quiet, "no") == 0) printf("\n\n\nfind %014p, %014p, (int) 1239\n\n\n\n", mappingb, mappingb_end);
 
         if (mappingb == 0x00000000) abort_();
         int PT_LOADS_CURRENT = 0;
@@ -361,36 +366,36 @@ void map() {
             {
                 case PT_LOAD:
                     PT_LOADS_CURRENT = PT_LOADS_CURRENT + 1;
-//                         printf ("mapping PT_LOAD number %d\n", PT_LOADS_CURRENT);
-//                         printf("\t\tp_flags:  %014p\n", _elf_program_header[i].p_flags);
-//                         printf("\t\tp_offset: %014p\n", _elf_program_header[i].p_offset);
-//                         printf("\t\tp_vaddr:  %014p\n", _elf_program_header[i].p_vaddr+mappingb);
-//                         printf("\t\tp_paddr:  %014p\n", _elf_program_header[i].p_paddr);
-//                         printf("\t\tp_filesz: %014p\n", _elf_program_header[i].p_filesz);
-//                         printf("\t\tp_memsz:  %014p\n", _elf_program_header[i].p_memsz);
-//                         printf("\t\tp_align:  %014p\n\n", _elf_program_header[i].p_align);
+//                         if (bytecmpq(global_quiet, "no") == 0) printf ("mapping PT_LOAD number %d\n", PT_LOADS_CURRENT);
+//                         if (bytecmpq(global_quiet, "no") == 0) printf("\t\tp_flags:  %014p\n", _elf_program_header[i].p_flags);
+//                         if (bytecmpq(global_quiet, "no") == 0) printf("\t\tp_offset: %014p\n", _elf_program_header[i].p_offset);
+//                         if (bytecmpq(global_quiet, "no") == 0) printf("\t\tp_vaddr:  %014p\n", _elf_program_header[i].p_vaddr+mappingb);
+//                         if (bytecmpq(global_quiet, "no") == 0) printf("\t\tp_paddr:  %014p\n", _elf_program_header[i].p_paddr);
+//                         if (bytecmpq(global_quiet, "no") == 0) printf("\t\tp_filesz: %014p\n", _elf_program_header[i].p_filesz);
+//                         if (bytecmpq(global_quiet, "no") == 0) printf("\t\tp_memsz:  %014p\n", _elf_program_header[i].p_memsz);
+//                         if (bytecmpq(global_quiet, "no") == 0) printf("\t\tp_align:  %014p\n\n", _elf_program_header[i].p_align);
 // 
-//                         printf("\tp_flags: %014p", _elf_program_header[i].p_flags);
-//                         printf(" p_offset: %014p", _elf_program_header[i].p_offset);
-//                         printf(" p_vaddr: %014p", _elf_program_header[i].p_vaddr+mappingb);
-//                         printf(" p_paddr: %014p", _elf_program_header[i].p_paddr);
-//                         printf(" p_filesz: %014p", _elf_program_header[i].p_filesz);
-//                         printf(" p_memsz: %014p", _elf_program_header[i].p_memsz);
-//                         printf(" p_align: %014p\n\n\n", _elf_program_header[i].p_align);
+//                         if (bytecmpq(global_quiet, "no") == 0) printf("\tp_flags: %014p", _elf_program_header[i].p_flags);
+//                         if (bytecmpq(global_quiet, "no") == 0) printf(" p_offset: %014p", _elf_program_header[i].p_offset);
+//                         if (bytecmpq(global_quiet, "no") == 0) printf(" p_vaddr: %014p", _elf_program_header[i].p_vaddr+mappingb);
+//                         if (bytecmpq(global_quiet, "no") == 0) printf(" p_paddr: %014p", _elf_program_header[i].p_paddr);
+//                         if (bytecmpq(global_quiet, "no") == 0) printf(" p_filesz: %014p", _elf_program_header[i].p_filesz);
+//                         if (bytecmpq(global_quiet, "no") == 0) printf(" p_memsz: %014p", _elf_program_header[i].p_memsz);
+//                         if (bytecmpq(global_quiet, "no") == 0) printf(" p_align: %014p\n\n\n", _elf_program_header[i].p_align);
 
-                    printf("mprotect(%014p+round_down(%014p, %014p), %014p, ", mappingb, _elf_program_header[i].p_vaddr, _elf_program_header[i].p_align, _elf_program_header[i].p_memsz);
+                    if (bytecmpq(global_quiet, "no") == 0) printf("mprotect(%014p+round_down(%014p, %014p), %014p, ", mappingb, _elf_program_header[i].p_vaddr, _elf_program_header[i].p_align, _elf_program_header[i].p_memsz);
                     prot_from_phdr(_elf_program_header[i].p_flags);
-                    printf(");\n");
+                    if (bytecmpq(global_quiet, "no") == 0) printf(");\n");
                     
                     int check_map_success = mprotect(mappingb+round_down(_elf_program_header[i].p_vaddr, _elf_program_header[i].p_align), round_up(_elf_program_header[i].p_memsz, _elf_program_header[i].p_align), _elf_program_header[i].p_flags);
                     if (errno == 0)
                     {
-                        printf ("mprotect on %014p succeded with size: %014p\n", mappingb+round_down(_elf_program_header[i].p_vaddr, _elf_program_header[i].p_align), round_up(_elf_program_header[i].p_memsz, _elf_program_header[i].p_align));
+                        if (bytecmpq(global_quiet, "no") == 0) printf ("mprotect on %014p succeded with size: %014p\n", mappingb+round_down(_elf_program_header[i].p_vaddr, _elf_program_header[i].p_align), round_up(_elf_program_header[i].p_memsz, _elf_program_header[i].p_align));
                         print_maps();
                     }
                     else
                     {
-                        printf ("mprotect failed with: %s (errno: %d)\n", strerror(errno), errno);
+                        if (bytecmpq(global_quiet, "no") == 0) printf ("mprotect failed with: %s (errno: %d)\n", strerror(errno), errno);
                         print_maps();
                         abort_();
                     }
@@ -411,7 +416,7 @@ int read_section_header_table_(const char * arrayb, Elf64_Ehdr * eh, Elf64_Shdr 
 {
     *sh_table = (Elf64_Shdr *)(arrayb + eh->e_shoff);
     if(!sh_table) {
-        printf("Failed to read table\n");
+        if (bytecmpq(global_quiet, "no") == 0) printf("Failed to read table\n");
         return -1;
     }
     return 0;
@@ -428,38 +433,38 @@ char * obtain_rela_plt_size(char * sourcePtr, Elf64_Ehdr * eh, Elf64_Shdr sh_tab
 }
 
 char * print_section_headers_(char * sourcePtr, Elf64_Ehdr * eh, Elf64_Shdr sh_table[]) {
-    printf ("\n");
-    printf("eh->e_shstrndx = 0x%x (%d)\n", eh->e_shstrndx+mappingb, eh->e_shstrndx);
+    if (bytecmpq(global_quiet, "no") == 0) printf ("\n");
+    if (bytecmpq(global_quiet, "no") == 0) printf("eh->e_shstrndx = 0x%x (%d)\n", eh->e_shstrndx+mappingb, eh->e_shstrndx);
     char * sh_str;
     sh_str = read_section_(sourcePtr, sh_table[eh->e_shstrndx]); // will fail untill section header table can be read
-    printf("\t========================================");
-    printf("========================================\n");
-    printf("\tidx offset     load-addr  size       algn type       flags      section\n");
-    printf("\t========================================");
-    printf("========================================\n");
+    if (bytecmpq(global_quiet, "no") == 0) printf("\t========================================");
+    if (bytecmpq(global_quiet, "no") == 0) printf("========================================\n");
+    if (bytecmpq(global_quiet, "no") == 0) printf("\tidx offset     load-addr  size       algn type       flags      section\n");
+    if (bytecmpq(global_quiet, "no") == 0) printf("\t========================================");
+    if (bytecmpq(global_quiet, "no") == 0) printf("========================================\n");
 
     for(int i=0; i<eh->e_shnum; i++) { // will fail untill section header table can be read
-        printf("\t%03d ", i);
-        printf("%014p ", _elf_symbol_table[i].sh_offset); // not sure if this should be adjusted to base address
-        printf("%014p ", _elf_symbol_table[i].sh_addr+mappingb);
-        printf("%014p ", _elf_symbol_table[i].sh_size);
-        printf("%4d ", _elf_symbol_table[i].sh_addralign);
-        printf("%014p ", _elf_symbol_table[i].sh_type);
-        printf("%014p ", _elf_symbol_table[i].sh_flags);
-        printf("%s\t", (sh_str + sh_table[i].sh_name));
-        printf("\n");
+        if (bytecmpq(global_quiet, "no") == 0) printf("\t%03d ", i);
+        if (bytecmpq(global_quiet, "no") == 0) printf("%014p ", _elf_symbol_table[i].sh_offset); // not sure if this should be adjusted to base address
+        if (bytecmpq(global_quiet, "no") == 0) printf("%014p ", _elf_symbol_table[i].sh_addr+mappingb);
+        if (bytecmpq(global_quiet, "no") == 0) printf("%014p ", _elf_symbol_table[i].sh_size);
+        if (bytecmpq(global_quiet, "no") == 0) printf("%4d ", _elf_symbol_table[i].sh_addralign);
+        if (bytecmpq(global_quiet, "no") == 0) printf("%014p ", _elf_symbol_table[i].sh_type);
+        if (bytecmpq(global_quiet, "no") == 0) printf("%014p ", _elf_symbol_table[i].sh_flags);
+        if (bytecmpq(global_quiet, "no") == 0) printf("%s\t", (sh_str + sh_table[i].sh_name));
+        if (bytecmpq(global_quiet, "no") == 0) printf("\n");
         if (bytecmpq((sh_str + sh_table[i].sh_name), ".rela.plt") == 0) RELA_PLT_SIZE=_elf_symbol_table[i].sh_size;
     }
-    printf("\t========================================");
-    printf("========================================\n");
-    printf("\n");
+    if (bytecmpq(global_quiet, "no") == 0) printf("\t========================================");
+    if (bytecmpq(global_quiet, "no") == 0) printf("========================================\n");
+    if (bytecmpq(global_quiet, "no") == 0) printf("\n");
 }
 
 int symbol(char * arrayc, Elf64_Shdr sh_table[], uint64_t symbol_table) {
     char *str_tbl;
     Elf64_Sym* sym_tbl;
     uint64_t i, symbol_count;
-    printf("symbol_table = %d\n", symbol_table);
+    if (bytecmpq(global_quiet, "no") == 0) printf("symbol_table = %d\n", symbol_table);
     sym_tbl = (Elf64_Sym*)read_section_(arrayc, sh_table[symbol_table]);
 
     /* Read linked string-table
@@ -467,7 +472,7 @@ int symbol(char * arrayc, Elf64_Shdr sh_table[], uint64_t symbol_table) {
     * symbols of this section
     */
     uint64_t str_tbl_ndx = sh_table[symbol_table].sh_link;
-    printf("string/symbol table index = %d\n", str_tbl_ndx);
+    if (bytecmpq(global_quiet, "no") == 0) printf("string/symbol table index = %d\n", str_tbl_ndx);
     str_tbl = read_section_(arrayc, sh_table[str_tbl_ndx]);
 
     symbol_count = (sh_table[symbol_table].sh_size/sizeof(Elf64_Sym));
@@ -478,8 +483,8 @@ int symbol(char * arrayc, Elf64_Shdr sh_table[], uint64_t symbol_table) {
         link_ = sh_table[link_].sh_link;
         linkn++;
     }
-    printf("links: %d\n", linkn);
-    printf("%d symbols\n", symbol_count);
+    if (bytecmpq(global_quiet, "no") == 0) printf("links: %d\n", linkn);
+    if (bytecmpq(global_quiet, "no") == 0) printf("%d symbols\n", symbol_count);
 
 //   Elf64_Word	st_name;		/* Symbol name (string tbl index) */
 //   unsigned char	st_info;		/* Symbol type and binding */
@@ -488,8 +493,8 @@ int symbol(char * arrayc, Elf64_Shdr sh_table[], uint64_t symbol_table) {
 //   Elf64_Addr	st_value;		/* Symbol value */
 //   Elf64_Xword	st_size;		/* Symbol size */
     for(int i=0; i< symbol_count; i++) {
-        printf("index: %d\t", i);
-        printf("size: %10d \t", sym_tbl[i].st_size);
+        if (bytecmpq(global_quiet, "no") == 0) printf("index: %d\t", i);
+        if (bytecmpq(global_quiet, "no") == 0) printf("size: %10d \t", sym_tbl[i].st_size);
 // /* Legal values for ST_BIND subfield of st_info (symbol binding).  */
 // 
 // #define STB_LOCAL	0		/* Local symbol */
@@ -501,19 +506,19 @@ int symbol(char * arrayc, Elf64_Shdr sh_table[], uint64_t symbol_table) {
 // #define STB_HIOS	12		/* End of OS-specific */
 // #define STB_LOPROC	13		/* Start of processor-specific */
 // #define STB_HIPROC	15		/* End of processor-specific */
-        printf("binding: ");
+        if (bytecmpq(global_quiet, "no") == 0) printf("binding: ");
         switch (ELF64_ST_BIND(sym_tbl[i].st_info)) {
             case STB_LOCAL:
-                printf("LOCAL   ( Local  symbol )  ");
+                if (bytecmpq(global_quiet, "no") == 0) printf("LOCAL   ( Local  symbol )  ");
                 break;
             case STB_GLOBAL:
-                printf("GLOBAL  ( Global symbol )  ");
+                if (bytecmpq(global_quiet, "no") == 0) printf("GLOBAL  ( Global symbol )  ");
                 break;
             case STB_WEAK:
-                printf("WEAK    (  Weak symbol  )  ");
+                if (bytecmpq(global_quiet, "no") == 0) printf("WEAK    (  Weak symbol  )  ");
                 break;
             default:
-                printf("UNKNOWN (%d)                ", ELF64_ST_BIND(sym_tbl[i].st_info));
+                if (bytecmpq(global_quiet, "no") == 0) printf("UNKNOWN (%d)                ", ELF64_ST_BIND(sym_tbl[i].st_info));
                 break;
         }
 // /* Legal values for ST_TYPE subfield of st_info (symbol type).  */
@@ -536,76 +541,76 @@ int symbol(char * arrayc, Elf64_Shdr sh_table[], uint64_t symbol_table) {
 // #define STV_INTERNAL	1		/* Processor specific hidden class */
 // #define STV_HIDDEN	2		/* Sym unavailable in other modules */
 // #define STV_PROTECTED	3		/* Not preemptible, not exported */
-        printf("visibility: ");
+        if (bytecmpq(global_quiet, "no") == 0) printf("visibility: ");
         switch (ELF64_ST_VISIBILITY(sym_tbl[i].st_other)) {
             case STV_DEFAULT:
-                printf("default   (Default symbol visibility rules)      ");
+                if (bytecmpq(global_quiet, "no") == 0) printf("default   (Default symbol visibility rules)      ");
                 break;
             case STV_INTERNAL:
-                printf("internal  (Processor specific hidden class)      ");
+                if (bytecmpq(global_quiet, "no") == 0) printf("internal  (Processor specific hidden class)      ");
                 break;
             case STV_HIDDEN:
-                printf("hidden    (Symbol unavailable in other modules)  ");
+                if (bytecmpq(global_quiet, "no") == 0) printf("hidden    (Symbol unavailable in other modules)  ");
                 break;
             case STV_PROTECTED:
-                printf("protected (Not preemptible, not exported)        ");
+                if (bytecmpq(global_quiet, "no") == 0) printf("protected (Not preemptible, not exported)        ");
                 break;
         }
         char * address = sym_tbl[i].st_value+mappingb;
-        printf("address: %014p\t", address);
+        if (bytecmpq(global_quiet, "no") == 0) printf("address: %014p\t", address);
         if ( address > mappingb && address < mappingb_end ) test(address);
-        else printf("value: %015p\t", sym_tbl[i].st_value);
-        printf("type: ");
+        else if (bytecmpq(global_quiet, "no") == 0) printf("value: %015p\t", sym_tbl[i].st_value);
+        if (bytecmpq(global_quiet, "no") == 0) printf("type: ");
         switch (ELF64_ST_TYPE(sym_tbl[i].st_info)) {
             case STT_NOTYPE:
-                printf("NOTYPE   (Symbol type is unspecified)             ");
+                if (bytecmpq(global_quiet, "no") == 0) printf("NOTYPE   (Symbol type is unspecified)             ");
                 break;
             case STT_OBJECT:
-                printf("OBJECT   (Symbol is a data object)                ");
+                if (bytecmpq(global_quiet, "no") == 0) printf("OBJECT   (Symbol is a data object)                ");
                 break;
                 case STT_FUNC:
-                printf("FUNCTION (Symbol is a code object)                ");
+                if (bytecmpq(global_quiet, "no") == 0) printf("FUNCTION (Symbol is a code object)                ");
                 break;
                 case STT_SECTION:
-                printf("SECTION  (Symbol associated with a section)       ");
+                if (bytecmpq(global_quiet, "no") == 0) printf("SECTION  (Symbol associated with a section)       ");
                 break;
                 case STT_FILE:
-                printf("FILE     (Symbol's name is file name)             ");
+                if (bytecmpq(global_quiet, "no") == 0) printf("FILE     (Symbol's name is file name)             ");
                 break;
                 case STT_COMMON:
-                printf("COMMON   (Symbol is a common data object)         ");
+                if (bytecmpq(global_quiet, "no") == 0) printf("COMMON   (Symbol is a common data object)         ");
                 break;
                 case STT_TLS:
-                printf("TLS      (Symbol is thread-local data object)     ");
+                if (bytecmpq(global_quiet, "no") == 0) printf("TLS      (Symbol is thread-local data object)     ");
                 break;
             default:
-                printf("UNKNOWN  (%d)                                     ", ELF64_ST_TYPE(sym_tbl[i].st_info));
+                if (bytecmpq(global_quiet, "no") == 0) printf("UNKNOWN  (%d)                                     ", ELF64_ST_TYPE(sym_tbl[i].st_info));
                 break;
         }
         char * name = str_tbl + sym_tbl[i].st_name;
-        printf("name: %s\n", demangle_it(name));
+        if (bytecmpq(global_quiet, "no") == 0) printf("name: %s\n", demangle_it(name));
         nl();
 //         if (bytecmp(name,"t") == 0) {
 // 
-//             printf("t found\n");
+//             if (bytecmpq(global_quiet, "no") == 0) printf("t found\n");
 //                         
 // // #define JMP_ADDR(x) asm("\tjmp  *%0\n" :: "r" (x))
-// //             printf("(%014p+%014p=%014p)\n", mappingb, sym_tbl[i].st_value, sym_tbl[i].st_value+mappingb);
-// //             printf("JMP_ADDR(%014p);\n", address);
+// //             if (bytecmpq(global_quiet, "no") == 0) printf("(%014p+%014p=%014p)\n", mappingb, sym_tbl[i].st_value, sym_tbl[i].st_value+mappingb);
+// //             if (bytecmpq(global_quiet, "no") == 0) printf("JMP_ADDR(%014p);\n", address);
 // //             JMP_ADDR(address);
-//                         printf("int (*testb)()                               =%014p\n", address);
+//                         if (bytecmpq(global_quiet, "no") == 0) printf("int (*testb)()                               =%014p\n", address);
 // // 
-//             printf("(%014p+%014p=%014p)\n", mappingb, sym_tbl[i].st_value, sym_tbl[i].st_value+mappingb);
+//             if (bytecmpq(global_quiet, "no") == 0) printf("(%014p+%014p=%014p)\n", mappingb, sym_tbl[i].st_value, sym_tbl[i].st_value+mappingb);
 // // 
 //             int (*testb)() = lookup_symbol_by_name_("/chakra/home/universalpackagemanager/chroot/arch-chroot/arch-pkg-build/packages/glibc/repos/core-x86_64/min-dl/loader/files/test_lib.so", "t");
-//             printf("testb = %014p\n", testb);
-//             printf("testb() returned %d;\n",
+//             if (bytecmpq(global_quiet, "no") == 0) printf("testb = %014p\n", testb);
+//             if (bytecmpq(global_quiet, "no") == 0) printf("testb() returned %d;\n",
 //             testb()
 //             );
 // 
 //             nl();
 // //             int (*testc)() = mappingb+sym_tbl[i].st_value;
-// //             printf("int (*testc)()                =%014p ; testc();\n", mappingb+sym_tbl[i].st_value);
+// //             if (bytecmpq(global_quiet, "no") == 0) printf("int (*testc)()                =%014p ; testc();\n", mappingb+sym_tbl[i].st_value);
 // //             testc();
 // //             nl();
 // //             int foo(int i){ return i + 1;}
@@ -633,7 +638,7 @@ int relocation(char * arrayc, Elf64_Shdr sh_table[], uint64_t symbol_table) {
     * symbols of this section
     */
     uint64_t str_tbl_ndx = sh_table[symbol_table].sh_link;
-    printf("string/symbol table index = %d\n", str_tbl_ndx);
+    if (bytecmpq(global_quiet, "no") == 0) printf("string/symbol table index = %d\n", str_tbl_ndx);
     str_tbl = read_section_(arrayc, sh_table[str_tbl_ndx]);
 
     symbol_count = (sh_table[symbol_table].sh_size/sizeof(Elf64_Sym));
@@ -644,8 +649,8 @@ int relocation(char * arrayc, Elf64_Shdr sh_table[], uint64_t symbol_table) {
         link_ = sh_table[link_].sh_link;
         linkn++;
     }
-    printf("links: %d\n", linkn);
-    printf("%d symbols\n", symbol_count);
+    if (bytecmpq(global_quiet, "no") == 0) printf("links: %d\n", linkn);
+    if (bytecmpq(global_quiet, "no") == 0) printf("%d symbols\n", symbol_count);
 
 //   Elf64_Word	st_name;		/* Symbol name (string tbl index) */
 //   unsigned char	st_info;		/* Symbol type and binding */
@@ -654,8 +659,8 @@ int relocation(char * arrayc, Elf64_Shdr sh_table[], uint64_t symbol_table) {
 //   Elf64_Addr	st_value;		/* Symbol value */
 //   Elf64_Xword	st_size;		/* Symbol size */
     for(int i=0; i< symbol_count; i++) {
-        printf("index: %d\t", i);
-        printf("size: %10d \t", sym_tbl[i].st_size);
+        if (bytecmpq(global_quiet, "no") == 0) printf("index: %d\t", i);
+        if (bytecmpq(global_quiet, "no") == 0) printf("size: %10d \t", sym_tbl[i].st_size);
 // /* Legal values for ST_BIND subfield of st_info (symbol binding).  */
 // 
 // #define STB_LOCAL	0		/* Local symbol */
@@ -667,19 +672,19 @@ int relocation(char * arrayc, Elf64_Shdr sh_table[], uint64_t symbol_table) {
 // #define STB_HIOS	12		/* End of OS-specific */
 // #define STB_LOPROC	13		/* Start of processor-specific */
 // #define STB_HIPROC	15		/* End of processor-specific */
-        printf("binding: ");
+        if (bytecmpq(global_quiet, "no") == 0) printf("binding: ");
         switch (ELF64_ST_BIND(sym_tbl[i].st_info)) {
             case STB_LOCAL:
-                printf("LOCAL   ( Local  symbol )  ");
+                if (bytecmpq(global_quiet, "no") == 0) printf("LOCAL   ( Local  symbol )  ");
                 break;
             case STB_GLOBAL:
-                printf("GLOBAL  ( Global symbol )  ");
+                if (bytecmpq(global_quiet, "no") == 0) printf("GLOBAL  ( Global symbol )  ");
                 break;
             case STB_WEAK:
-                printf("WEAK    (  Weak symbol  )  ");
+                if (bytecmpq(global_quiet, "no") == 0) printf("WEAK    (  Weak symbol  )  ");
                 break;
             default:
-                printf("UNKNOWN (%d)                ", ELF64_ST_BIND(sym_tbl[i].st_info));
+                if (bytecmpq(global_quiet, "no") == 0) printf("UNKNOWN (%d)                ", ELF64_ST_BIND(sym_tbl[i].st_info));
                 break;
         }
 // /* Legal values for ST_TYPE subfield of st_info (symbol type).  */
@@ -702,63 +707,63 @@ int relocation(char * arrayc, Elf64_Shdr sh_table[], uint64_t symbol_table) {
 // #define STV_INTERNAL	1		/* Processor specific hidden class */
 // #define STV_HIDDEN	2		/* Sym unavailable in other modules */
 // #define STV_PROTECTED	3		/* Not preemptible, not exported */
-        printf("visibility: ");
+        if (bytecmpq(global_quiet, "no") == 0) printf("visibility: ");
         switch (ELF64_ST_VISIBILITY(sym_tbl[i].st_other)) {
             case STV_DEFAULT:
-                printf("default   (Default symbol visibility rules)      ");
+                if (bytecmpq(global_quiet, "no") == 0) printf("default   (Default symbol visibility rules)      ");
                 break;
             case STV_INTERNAL:
-                printf("internal  (Processor specific hidden class)      ");
+                if (bytecmpq(global_quiet, "no") == 0) printf("internal  (Processor specific hidden class)      ");
                 break;
             case STV_HIDDEN:
-                printf("hidden    (Symbol unavailable in other modules)  ");
+                if (bytecmpq(global_quiet, "no") == 0) printf("hidden    (Symbol unavailable in other modules)  ");
                 break;
             case STV_PROTECTED:
-                printf("protected (Not preemptible, not exported)        ");
+                if (bytecmpq(global_quiet, "no") == 0) printf("protected (Not preemptible, not exported)        ");
                 break;
         }
         char * address;
         if ( ELF64_ST_TYPE(sym_tbl[i].st_info) == STT_FUNC)
         {
             address = sym_tbl[i].st_value+mappingb+align;
-            printf("address: %014p\t", address);
+            if (bytecmpq(global_quiet, "no") == 0) printf("address: %014p\t", address);
         }
         else
         {
             address = sym_tbl[i].st_value+mappingb;
-            printf("address: %014p\t", address);
+            if (bytecmpq(global_quiet, "no") == 0) printf("address: %014p\t", address);
         }
         if ( address > mappingb && address < mappingb_end ) test(address);
-        else printf("value: %15s\t", "invalid range");
-        printf("type: ");
+        else if (bytecmpq(global_quiet, "no") == 0) printf("value: %15s\t", "invalid range");
+        if (bytecmpq(global_quiet, "no") == 0) printf("type: ");
         switch (ELF64_ST_TYPE(sym_tbl[i].st_info)) {
             case STT_NOTYPE:
-                printf("NOTYPE   (Symbol type is unspecified)             ");
+                if (bytecmpq(global_quiet, "no") == 0) printf("NOTYPE   (Symbol type is unspecified)             ");
                 break;
             case STT_OBJECT:
-                printf("OBJECT   (Symbol is a data object)                ");
+                if (bytecmpq(global_quiet, "no") == 0) printf("OBJECT   (Symbol is a data object)                ");
                 break;
                 case STT_FUNC:
-                printf("FUNCTION (Symbol is a code object)                ");
+                if (bytecmpq(global_quiet, "no") == 0) printf("FUNCTION (Symbol is a code object)                ");
                 break;
                 case STT_SECTION:
-                printf("SECTION  (Symbol associated with a section)       ");
+                if (bytecmpq(global_quiet, "no") == 0) printf("SECTION  (Symbol associated with a section)       ");
                 break;
                 case STT_FILE:
-                printf("FILE     (Symbol's name is file name)             ");
+                if (bytecmpq(global_quiet, "no") == 0) printf("FILE     (Symbol's name is file name)             ");
                 break;
                 case STT_COMMON:
-                printf("COMMON   (Symbol is a common data object)         ");
+                if (bytecmpq(global_quiet, "no") == 0) printf("COMMON   (Symbol is a common data object)         ");
                 break;
                 case STT_TLS:
-                printf("TLS      (Symbol is thread-local data object)     ");
+                if (bytecmpq(global_quiet, "no") == 0) printf("TLS      (Symbol is thread-local data object)     ");
                 break;
             default:
-                printf("UNKNOWN  (%d)                                     ", ELF64_ST_TYPE(sym_tbl[i].st_info));
+                if (bytecmpq(global_quiet, "no") == 0) printf("UNKNOWN  (%d)                                     ", ELF64_ST_TYPE(sym_tbl[i].st_info));
                 break;
         }
-        printf("name: [Not obtained due to it may crash this program]\n");
-//         printf("\n");
+        if (bytecmpq(global_quiet, "no") == 0) printf("name: [Not obtained due to it may crash this program]\n");
+//         if (bytecmpq(global_quiet, "no") == 0) printf("\n");
     }
 }
 
@@ -866,7 +871,7 @@ void print_elf_symbol_table(char * arrayc, Elf64_Ehdr * eh, Elf64_Shdr sh_table[
                 if (level == 3) relocation(arrayc, sh_table, symbol_table);
                 break;
             default:
-                printf("UNKNOWN ");
+                if (bytecmpq(global_quiet, "no") == 0) printf("UNKNOWN ");
                 break;
         }
 }
@@ -913,123 +918,123 @@ void print_symbols(char * arrayd, Elf64_Ehdr * eh, Elf64_Shdr sh_table[])
 // #define SHT_HIUSER	  0x8fffffff	/* End of application-specific */
     int ii = 0;
     for(int i=0; i<eh->e_shnum; i++) {
-        printf("\n[");
+        if (bytecmpq(global_quiet, "no") == 0) printf("\n[");
         switch(sh_table[i].sh_type) {
             case SHT_NULL:
-                printf("NULL                     (Section header table entry unused)                   ");
+                if (bytecmpq(global_quiet, "no") == 0) printf("NULL                     (Section header table entry unused)                   ");
                 break;
             case SHT_PROGBITS:
-                printf("PROGBITS                 (Program data)                                        ");
+                if (bytecmpq(global_quiet, "no") == 0) printf("PROGBITS                 (Program data)                                        ");
                 break;
             case SHT_SYMTAB: 
-                printf("SYMTAB                   (Symbol table)                                        ");
+                if (bytecmpq(global_quiet, "no") == 0) printf("SYMTAB                   (Symbol table)                                        ");
                 break;
             case SHT_STRTAB:
-                printf("STRTAB                   (String table)                                        ");
+                if (bytecmpq(global_quiet, "no") == 0) printf("STRTAB                   (String table)                                        ");
                 break;
             case SHT_RELA:
-                printf("RELA                     (Relocation entries with addends)                     ");
+                if (bytecmpq(global_quiet, "no") == 0) printf("RELA                     (Relocation entries with addends)                     ");
                 break;
             case SHT_HASH:
-                printf("HASH                     (Symbol hash table)                                   ");
+                if (bytecmpq(global_quiet, "no") == 0) printf("HASH                     (Symbol hash table)                                   ");
                 break;
             case SHT_DYNAMIC:
-                printf("DYNAMIC                  (Dynamic linking information)                         ");
+                if (bytecmpq(global_quiet, "no") == 0) printf("DYNAMIC                  (Dynamic linking information)                         ");
                 break;
             case SHT_NOTE:
-                printf("NOTE                     (Notes)                                               ");
+                if (bytecmpq(global_quiet, "no") == 0) printf("NOTE                     (Notes)                                               ");
                 break;
             case SHT_NOBITS:
-                printf("NOBITS                   (Program space with no data (bss))                    ");
+                if (bytecmpq(global_quiet, "no") == 0) printf("NOBITS                   (Program space with no data (bss))                    ");
                 break;
             case SHT_REL:
-                printf("REL                      (Relocation entries, no addends)                      ");
+                if (bytecmpq(global_quiet, "no") == 0) printf("REL                      (Relocation entries, no addends)                      ");
                 break;
             case SHT_SHLIB:
-                printf("SHLIB                    (Reserved)                                            ");
+                if (bytecmpq(global_quiet, "no") == 0) printf("SHLIB                    (Reserved)                                            ");
                 break;
             case SHT_DYNSYM:
-                printf("DYNSYM                   (Dynamic linker symbol table)                         ");
+                if (bytecmpq(global_quiet, "no") == 0) printf("DYNSYM                   (Dynamic linker symbol table)                         ");
                 break;
             case SHT_INIT_ARRAY:
-                printf("INIT_ARRAY               (Array of constructors)                               ");
+                if (bytecmpq(global_quiet, "no") == 0) printf("INIT_ARRAY               (Array of constructors)                               ");
                 break;
             case SHT_FINI_ARRAY:
-                printf("FINI_ARRAY               (Array of destructors)                                ");
+                if (bytecmpq(global_quiet, "no") == 0) printf("FINI_ARRAY               (Array of destructors)                                ");
                 break;
             case SHT_PREINIT_ARRAY:
-                printf("PREINIT_ARRAY            (Array of pre-constructors)                           ");
+                if (bytecmpq(global_quiet, "no") == 0) printf("PREINIT_ARRAY            (Array of pre-constructors)                           ");
                 break;
             case SHT_GROUP:
-                printf("GROUP                    (Section group)                                       ");
+                if (bytecmpq(global_quiet, "no") == 0) printf("GROUP                    (Section group)                                       ");
                 break;
             case SHT_SYMTAB_SHNDX:
-                printf("SYMTAB_SHNDX             (Extended section indeces)                            ");
+                if (bytecmpq(global_quiet, "no") == 0) printf("SYMTAB_SHNDX             (Extended section indeces)                            ");
                 break;
             case SHT_NUM:
-                printf("NUM                      (Number of defined types)                             ");
+                if (bytecmpq(global_quiet, "no") == 0) printf("NUM                      (Number of defined types)                             ");
                 break;
             case SHT_LOOS:
-                printf("LOOS                     (Start OS-specific)                                   ");
+                if (bytecmpq(global_quiet, "no") == 0) printf("LOOS                     (Start OS-specific)                                   ");
                 break;
             case SHT_GNU_ATTRIBUTES:
-                printf("GNU_ATTRIBUTES           (Object attributes)                                   ");
+                if (bytecmpq(global_quiet, "no") == 0) printf("GNU_ATTRIBUTES           (Object attributes)                                   ");
                 break;
             case SHT_GNU_HASH:
-                printf("GNU_HASH                 (GNU-style hash table)                                ");
+                if (bytecmpq(global_quiet, "no") == 0) printf("GNU_HASH                 (GNU-style hash table)                                ");
                 break;
             case SHT_GNU_LIBLIST:
-                printf("GNU_LIBLIST              (Prelink library list)                                ");
+                if (bytecmpq(global_quiet, "no") == 0) printf("GNU_LIBLIST              (Prelink library list)                                ");
                 break;
             case SHT_CHECKSUM:
-                printf("CHECKSUM                 (Checksum for DSO content)                            ");
+                if (bytecmpq(global_quiet, "no") == 0) printf("CHECKSUM                 (Checksum for DSO content)                            ");
                 break;
             case SHT_LOSUNW:
-                printf("LOSUNW or SUNW_move                                                            ");
+                if (bytecmpq(global_quiet, "no") == 0) printf("LOSUNW or SUNW_move                                                            ");
                 break;
             case SHT_SUNW_COMDAT:
-                printf("SUNW_COMDAT                                                                    ");
+                if (bytecmpq(global_quiet, "no") == 0) printf("SUNW_COMDAT                                                                    ");
                 break;
             case SHT_SUNW_syminfo:
-                printf("SUNW_syminfo                                                                   ");
+                if (bytecmpq(global_quiet, "no") == 0) printf("SUNW_syminfo                                                                   ");
                 break;
             case SHT_GNU_verdef:
-                printf("GNU_verdef               (Version definition section)                          ");
+                if (bytecmpq(global_quiet, "no") == 0) printf("GNU_verdef               (Version definition section)                          ");
                 break;
             case SHT_GNU_verneed:
-                printf("GNU_verneed              (Version needs section)                               ");
+                if (bytecmpq(global_quiet, "no") == 0) printf("GNU_verneed              (Version needs section)                               ");
                 break;
             case SHT_GNU_versym:
-                printf("GNU_versym               (Version symbol table) or HISUNW (Sun-specific high bound) or HIOS (End OS-specific type) ");
+                if (bytecmpq(global_quiet, "no") == 0) printf("GNU_versym               (Version symbol table) or HISUNW (Sun-specific high bound) or HIOS (End OS-specific type) ");
                 break;
             case SHT_LOPROC:
-                printf("LOPROC                   (Start of processor-specific)                         ");
+                if (bytecmpq(global_quiet, "no") == 0) printf("LOPROC                   (Start of processor-specific)                         ");
                 break;
             case SHT_HIPROC:
-                printf("HIPROC                   (End of processor-specific)                           ");
+                if (bytecmpq(global_quiet, "no") == 0) printf("HIPROC                   (End of processor-specific)                           ");
                 break;
             case SHT_LOUSER:
-                printf("LOUSER                   (Start of application-specific)                       ");
+                if (bytecmpq(global_quiet, "no") == 0) printf("LOUSER                   (Start of application-specific)                       ");
                 break;
             case SHT_HIUSER:
-                printf("HIUSER                   (End of application-specific)                         ");
+                if (bytecmpq(global_quiet, "no") == 0) printf("HIUSER                   (End of application-specific)                         ");
                 break;
             default:
-                printf("UNKNOWN                                                                        ");
+                if (bytecmpq(global_quiet, "no") == 0) printf("UNKNOWN                                                                        ");
         }
-        printf("Section %d, Index %d]\n", ii, i);
+        if (bytecmpq(global_quiet, "no") == 0) printf("Section %d, Index %d]\n", ii, i);
         print_elf_symbol_table(arrayd, eh, sh_table, i);
         ii++;
     }
 }
 
 char * symbol_lookup(char * arrayc, Elf64_Shdr sh_table[], uint64_t symbol_table, int index, int mode) {
-    printf("looking up index %d of table %d\n", index, symbol_table);
+    if (bytecmpq(global_quiet, "no") == 0) printf("looking up index %d of table %d\n", index, symbol_table);
     Elf64_Sym* sym_tbl = (Elf64_Sym*)read_section_(arrayc, sh_table[symbol_table]);
     uint64_t str_tbl_ndx = sh_table[symbol_table].sh_link;
     char *str_tbl = read_section_(arrayc, sh_table[str_tbl_ndx]);
     uint64_t symbol_count = (sh_table[symbol_table].sh_size/sizeof(Elf64_Sym));
-    printf("requested symbol name for index %d is %s\n", index, demangle_it(str_tbl + sym_tbl[index].st_name));
+    if (bytecmpq(global_quiet, "no") == 0) printf("requested symbol name for index %d is %s\n", index, demangle_it(str_tbl + sym_tbl[index].st_name));
     if ( mode == 1) return sym_tbl[index].st_value;
     else if (mode == 2) return sym_tbl[index].st_size;
 }
@@ -1049,11 +1054,11 @@ char * symbol_lookup_name(char * arrayc, Elf64_Shdr sh_table[], uint64_t symbol_
         char * name = demangle_it(str_tbl + sym_tbl[i].st_name);
         if (bytecmpq(name,name_) == 0) {
             char * address = sym_tbl[i].st_value+mappingb;
-            printf("requested symbol name \"%s\" found in table %d at address %014p is \"%s\"\n", name_, symbol_table, address, name);
+            if (bytecmpq(global_quiet, "no") == 0) printf("requested symbol name \"%s\" found in table %d at address %014p is \"%s\"\n", name_, symbol_table, address, name);
             return address;
         }
     }
-    printf("\nrequested symbol name \"%s\" could not be found in table %d\n\n", name_, symbol_table);
+    if (bytecmpq(global_quiet, "no") == 0) printf("\nrequested symbol name \"%s\" could not be found in table %d\n\n", name_, symbol_table);
     return NULL;
 }
 
@@ -1139,21 +1144,19 @@ void * lookup_symbol_by_name_(const char * lib, const char * name) {
         else abort_();
 }
 
-void * lookup_symbol_by_index(const char * arrayb, Elf64_Ehdr * eh, int symbol_index, int mode) {
-        printf("attempting to look up symbol, index = %d\n", symbol_index);
+void * lookup_symbol_by_index(const char * arrayb, Elf64_Ehdr * eh, int symbol_index, int mode, const char * am_i_quiet) {
+        if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) printf("attempting to look up symbol, index = %d\n", symbol_index);
 
         read_section_header_table_(arrayb, eh, &_elf_symbol_table);
-        nl();
-        nl();
         char * symbol = print_symbols_lookup(arrayb, eh, _elf_symbol_table, symbol_index, mode);
-        printf("symbol = %d (%014p)\n", symbol, symbol);
+        if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) printf("symbol = %d (%014p)\n", symbol, symbol);
         return symbol;
 }
 
 ElfW(Word)
 get_dynamic_entry(ElfW(Dyn) *dynamic, int field)
 {
-    printf("called get_dynamic_entry\n");
+    if (bytecmpq(global_quiet, "no") == 0) printf("called get_dynamic_entry\n");
 
 // Name        Value       d_un        Executable      Shared Object
 // DT_NULL     0           ignored     mandatory       mandatory
@@ -1295,7 +1298,7 @@ get_dynamic_entry(ElfW(Dyn) *dynamic, int field)
 
 
     for (; dynamic->d_tag != DT_NULL; dynamic++) {
-        printf("testing if ");
+        if (bytecmpq(global_quiet, "no") == 0) printf("testing if ");
 /* Legal values for d_tag (dynamic entry type).  */
 
 // #define DT_NULL		0		/* Marks end of dynamic section */
@@ -1340,314 +1343,415 @@ get_dynamic_entry(ElfW(Dyn) *dynamic, int field)
 // #define	DT_PROCNUM	DT_MIPS_NUM	/* Most used by any processor */
         switch (dynamic->d_tag) {
             case DT_NULL:
-                printf("DT_NULL");
+                if (bytecmpq(global_quiet, "no") == 0) printf("DT_NULL");
                 break;
             case DT_NEEDED:
-                printf("DT_NEEDED");
+                if (bytecmpq(global_quiet, "no") == 0) printf("DT_NEEDED");
                 break;
             case DT_PLTRELSZ:
-                printf("DT_PLTRELSZ");
+                if (bytecmpq(global_quiet, "no") == 0) printf("DT_PLTRELSZ");
                 break;
             case DT_PLTGOT:
-                printf("DT_PLTGOT");
+                if (bytecmpq(global_quiet, "no") == 0) printf("DT_PLTGOT");
                 break;
             case DT_HASH:
-                printf("DT_HASH");
+                if (bytecmpq(global_quiet, "no") == 0) printf("DT_HASH");
                 break;
             case DT_STRTAB:
-                printf("DT_STRTAB");
+                if (bytecmpq(global_quiet, "no") == 0) printf("DT_STRTAB");
                 break;
             case DT_SYMTAB:
-                printf("DT_SYMTAB");
+                if (bytecmpq(global_quiet, "no") == 0) printf("DT_SYMTAB");
                 break;
             case DT_RELA:
-                printf("DT_RELA");
+                if (bytecmpq(global_quiet, "no") == 0) printf("DT_RELA");
                 break;
             case DT_RELASZ:
-                printf("DT_RELASZ");
+                if (bytecmpq(global_quiet, "no") == 0) printf("DT_RELASZ");
                 break;
             case DT_RELAENT:
-                printf("DT_RELAENT");
+                if (bytecmpq(global_quiet, "no") == 0) printf("DT_RELAENT");
                 break;
             case DT_STRSZ:
-                printf("DT_STRSZ");
+                if (bytecmpq(global_quiet, "no") == 0) printf("DT_STRSZ");
                 break;
             case DT_SYMENT:
-                printf("DT_SYMENT");
+                if (bytecmpq(global_quiet, "no") == 0) printf("DT_SYMENT");
                 break;
             case DT_INIT:
-                printf("DT_INIT");
+                if (bytecmpq(global_quiet, "no") == 0) printf("DT_INIT");
                 break;
             case DT_FINI:
-                printf("DT_FINI");
+                if (bytecmpq(global_quiet, "no") == 0) printf("DT_FINI");
                 break;
             case DT_SONAME:
-                printf("DT_SONAME");
+                if (bytecmpq(global_quiet, "no") == 0) printf("DT_SONAME");
                 break;
             case DT_RPATH:
-                printf("DT_RPATH");
+                if (bytecmpq(global_quiet, "no") == 0) printf("DT_RPATH");
                 break;
             case DT_SYMBOLIC:
-                printf("DT_SYMBOLIC");
+                if (bytecmpq(global_quiet, "no") == 0) printf("DT_SYMBOLIC");
                 break;
             case DT_REL:
-                printf("DT_REL");
+                if (bytecmpq(global_quiet, "no") == 0) printf("DT_REL");
                 break;
             case DT_RELSZ:
-                printf("DT_RELSZ");
+                if (bytecmpq(global_quiet, "no") == 0) printf("DT_RELSZ");
                 break;
             case DT_RELENT:
-                printf("DT_RELENT");
+                if (bytecmpq(global_quiet, "no") == 0) printf("DT_RELENT");
                 break;
             case DT_PLTREL:
-                printf("DT_PLTREL");
+                if (bytecmpq(global_quiet, "no") == 0) printf("DT_PLTREL");
                 break;
             case DT_DEBUG:
-                printf("DT_DEBUG");
+                if (bytecmpq(global_quiet, "no") == 0) printf("DT_DEBUG");
                 break;
             case DT_TEXTREL:
-                printf("DT_TEXTREL");
+                if (bytecmpq(global_quiet, "no") == 0) printf("DT_TEXTREL");
                 break;
             case DT_JMPREL:
-                printf("DT_JMPREL");
+                if (bytecmpq(global_quiet, "no") == 0) printf("DT_JMPREL");
                 break;
             case DT_BIND_NOW:
-                printf("DT_BIND_NOW");
+                if (bytecmpq(global_quiet, "no") == 0) printf("DT_BIND_NOW");
                 break;
             case DT_INIT_ARRAY:
-                printf("DT_INIT_ARRAY");
+                if (bytecmpq(global_quiet, "no") == 0) printf("DT_INIT_ARRAY");
                 break;
             case DT_FINI_ARRAY:
-                printf("DT_FINI_ARRAY");
+                if (bytecmpq(global_quiet, "no") == 0) printf("DT_FINI_ARRAY");
                 break;
             case DT_INIT_ARRAYSZ:
-                printf("DT_INIT_ARRAYSZ");
+                if (bytecmpq(global_quiet, "no") == 0) printf("DT_INIT_ARRAYSZ");
                 break;
             case DT_FINI_ARRAYSZ:
-                printf("DT_FINI_ARRAYSZ");
+                if (bytecmpq(global_quiet, "no") == 0) printf("DT_FINI_ARRAYSZ");
                 break;
             case DT_RUNPATH:
-                printf("DT_RUNPATH");
+                if (bytecmpq(global_quiet, "no") == 0) printf("DT_RUNPATH");
                 break;
             case DT_FLAGS:
-                printf("DT_FLAGS");
+                if (bytecmpq(global_quiet, "no") == 0) printf("DT_FLAGS");
                 break;
             case DT_ENCODING:
-                printf("DT_ENCODING (or DT_PREINIT_ARRAY)");
+                if (bytecmpq(global_quiet, "no") == 0) printf("DT_ENCODING (or DT_PREINIT_ARRAY)");
                 break;
             case DT_PREINIT_ARRAYSZ:
-                printf("DT_PREINIT_ARRAYSZ");
+                if (bytecmpq(global_quiet, "no") == 0) printf("DT_PREINIT_ARRAYSZ");
                 break;
             case DT_NUM:
-                printf("DT_NUM");
+                if (bytecmpq(global_quiet, "no") == 0) printf("DT_NUM");
                 break;
             case DT_LOOS:
-                printf("DT_LOOS");
+                if (bytecmpq(global_quiet, "no") == 0) printf("DT_LOOS");
                 break;
             case DT_HIOS:
-                printf("DT_HIOS");
+                if (bytecmpq(global_quiet, "no") == 0) printf("DT_HIOS");
                 break;
             case DT_LOPROC:
-                printf("DT_LOPROC");
+                if (bytecmpq(global_quiet, "no") == 0) printf("DT_LOPROC");
                 break;
             case DT_HIPROC:
-                printf("DT_HIPROC (or DT_FILTER)");
+                if (bytecmpq(global_quiet, "no") == 0) printf("DT_HIPROC (or DT_FILTER)");
                 break;
             case DT_PROCNUM:
-                printf("DT_PROCNUM");
+                if (bytecmpq(global_quiet, "no") == 0) printf("DT_PROCNUM");
                 break;
             case DT_VERSYM:
-                printf("DT_VERSYM");
+                if (bytecmpq(global_quiet, "no") == 0) printf("DT_VERSYM");
                 break;
             case DT_RELACOUNT:
-                printf("DT_RELACOUNT");
+                if (bytecmpq(global_quiet, "no") == 0) printf("DT_RELACOUNT");
                 break;
             case DT_RELCOUNT:
-                printf("DT_RELCOUNT");
+                if (bytecmpq(global_quiet, "no") == 0) printf("DT_RELCOUNT");
                 break;
             case DT_FLAGS_1:
-                printf("DT_FLAGS_1");
+                if (bytecmpq(global_quiet, "no") == 0) printf("DT_FLAGS_1");
                 break;
             case DT_VERDEF:
-                printf("DT_VERDEF");
+                if (bytecmpq(global_quiet, "no") == 0) printf("DT_VERDEF");
                 break;
             case DT_VERDEFNUM:
-                printf("DT_VERDEFNUM");
+                if (bytecmpq(global_quiet, "no") == 0) printf("DT_VERDEFNUM");
                 break;
             case DT_VERNEED:
-                printf("DT_VERNEED");
+                if (bytecmpq(global_quiet, "no") == 0) printf("DT_VERNEED");
                 break;
             case DT_VERNEEDNUM:
-                printf("DT_VERNEEDNUM");
+                if (bytecmpq(global_quiet, "no") == 0) printf("DT_VERNEEDNUM");
                 break;
             case DT_AUXILIARY:
-                printf("DT_AUXILIARY");
+                if (bytecmpq(global_quiet, "no") == 0) printf("DT_AUXILIARY");
                 break;
             default:
-                printf("%d", dynamic->d_tag);
+                if (bytecmpq(global_quiet, "no") == 0) printf("%d", dynamic->d_tag);
                 break;
         }
-        printf(" == ");
+        if (bytecmpq(global_quiet, "no") == 0) printf(" == ");
         switch (field) {
             case DT_NULL:
-                printf("DT_NULL");
+                if (bytecmpq(global_quiet, "no") == 0) printf("DT_NULL");
                 break;
             case DT_NEEDED:
-                printf("DT_NEEDED");
+                if (bytecmpq(global_quiet, "no") == 0) printf("DT_NEEDED");
                 break;
             case DT_PLTRELSZ:
-                printf("DT_PLTRELSZ");
+                if (bytecmpq(global_quiet, "no") == 0) printf("DT_PLTRELSZ");
                 break;
             case DT_PLTGOT:
-                printf("DT_PLTGOT");
+                if (bytecmpq(global_quiet, "no") == 0) printf("DT_PLTGOT");
                 break;
             case DT_HASH:
-                printf("DT_HASH");
+                if (bytecmpq(global_quiet, "no") == 0) printf("DT_HASH");
                 break;
             case DT_STRTAB:
-                printf("DT_STRTAB");
+                if (bytecmpq(global_quiet, "no") == 0) printf("DT_STRTAB");
                 break;
             case DT_SYMTAB:
-                printf("DT_SYMTAB");
+                if (bytecmpq(global_quiet, "no") == 0) printf("DT_SYMTAB");
                 break;
             case DT_RELA:
-                printf("DT_RELA");
+                if (bytecmpq(global_quiet, "no") == 0) printf("DT_RELA");
                 break;
             case DT_RELASZ:
-                printf("DT_RELASZ");
+                if (bytecmpq(global_quiet, "no") == 0) printf("DT_RELASZ");
                 break;
             case DT_RELAENT:
-                printf("DT_RELAENT");
+                if (bytecmpq(global_quiet, "no") == 0) printf("DT_RELAENT");
                 break;
             case DT_STRSZ:
-                printf("DT_STRSZ");
+                if (bytecmpq(global_quiet, "no") == 0) printf("DT_STRSZ");
                 break;
             case DT_SYMENT:
-                printf("DT_SYMENT");
+                if (bytecmpq(global_quiet, "no") == 0) printf("DT_SYMENT");
                 break;
             case DT_INIT:
-                printf("DT_INIT");
+                if (bytecmpq(global_quiet, "no") == 0) printf("DT_INIT");
                 break;
             case DT_FINI:
-                printf("DT_FINI");
+                if (bytecmpq(global_quiet, "no") == 0) printf("DT_FINI");
                 break;
             case DT_SONAME:
-                printf("DT_SONAME");
+                if (bytecmpq(global_quiet, "no") == 0) printf("DT_SONAME");
                 break;
             case DT_RPATH:
-                printf("DT_RPATH");
+                if (bytecmpq(global_quiet, "no") == 0) printf("DT_RPATH");
                 break;
             case DT_SYMBOLIC:
-                printf("DT_SYMBOLIC");
+                if (bytecmpq(global_quiet, "no") == 0) printf("DT_SYMBOLIC");
                 break;
             case DT_REL:
-                printf("DT_REL");
+                if (bytecmpq(global_quiet, "no") == 0) printf("DT_REL");
                 break;
             case DT_RELSZ:
-                printf("DT_RELSZ");
+                if (bytecmpq(global_quiet, "no") == 0) printf("DT_RELSZ");
                 break;
             case DT_RELENT:
-                printf("DT_RELENT");
+                if (bytecmpq(global_quiet, "no") == 0) printf("DT_RELENT");
                 break;
             case DT_PLTREL:
-                printf("DT_PLTREL");
+                if (bytecmpq(global_quiet, "no") == 0) printf("DT_PLTREL");
                 break;
             case DT_DEBUG:
-                printf("DT_DEBUG");
+                if (bytecmpq(global_quiet, "no") == 0) printf("DT_DEBUG");
                 break;
             case DT_TEXTREL:
-                printf("DT_TEXTREL");
+                if (bytecmpq(global_quiet, "no") == 0) printf("DT_TEXTREL");
                 break;
             case DT_JMPREL:
-                printf("DT_JMPREL");
+                if (bytecmpq(global_quiet, "no") == 0) printf("DT_JMPREL");
                 break;
             case DT_BIND_NOW:
-                printf("DT_BIND_NOW");
+                if (bytecmpq(global_quiet, "no") == 0) printf("DT_BIND_NOW");
                 break;
             case DT_INIT_ARRAY:
-                printf("DT_INIT_ARRAY");
+                if (bytecmpq(global_quiet, "no") == 0) printf("DT_INIT_ARRAY");
                 break;
             case DT_FINI_ARRAY:
-                printf("DT_FINI_ARRAY");
+                if (bytecmpq(global_quiet, "no") == 0) printf("DT_FINI_ARRAY");
                 break;
             case DT_INIT_ARRAYSZ:
-                printf("DT_INIT_ARRAYSZ");
+                if (bytecmpq(global_quiet, "no") == 0) printf("DT_INIT_ARRAYSZ");
                 break;
             case DT_FINI_ARRAYSZ:
-                printf("DT_FINI_ARRAYSZ");
+                if (bytecmpq(global_quiet, "no") == 0) printf("DT_FINI_ARRAYSZ");
                 break;
             case DT_RUNPATH:
-                printf("DT_RUNPATH");
+                if (bytecmpq(global_quiet, "no") == 0) printf("DT_RUNPATH");
                 break;
             case DT_FLAGS:
-                printf("DT_FLAGS");
+                if (bytecmpq(global_quiet, "no") == 0) printf("DT_FLAGS");
                 break;
             case DT_ENCODING:
-                printf("DT_ENCODING (or DT_PREINIT_ARRAY)");
+                if (bytecmpq(global_quiet, "no") == 0) printf("DT_ENCODING (or DT_PREINIT_ARRAY)");
                 break;
             case DT_PREINIT_ARRAYSZ:
-                printf("DT_PREINIT_ARRAYSZ");
+                if (bytecmpq(global_quiet, "no") == 0) printf("DT_PREINIT_ARRAYSZ");
                 break;
             case DT_NUM:
-                printf("DT_NUM");
+                if (bytecmpq(global_quiet, "no") == 0) printf("DT_NUM");
                 break;
             case DT_LOOS:
-                printf("DT_LOOS");
+                if (bytecmpq(global_quiet, "no") == 0) printf("DT_LOOS");
                 break;
             case DT_HIOS:
-                printf("DT_HIOS");
+                if (bytecmpq(global_quiet, "no") == 0) printf("DT_HIOS");
                 break;
             case DT_LOPROC:
-                printf("DT_LOPROC");
+                if (bytecmpq(global_quiet, "no") == 0) printf("DT_LOPROC");
                 break;
             case DT_HIPROC:
-                printf("DT_HIPROC (or DT_FILTER)");
+                if (bytecmpq(global_quiet, "no") == 0) printf("DT_HIPROC (or DT_FILTER)");
                 break;
             case DT_PROCNUM:
-                printf("DT_PROCNUM");
+                if (bytecmpq(global_quiet, "no") == 0) printf("DT_PROCNUM");
                 break;
             case DT_VERSYM:
-                printf("DT_VERSYM");
+                if (bytecmpq(global_quiet, "no") == 0) printf("DT_VERSYM");
                 break;
             case DT_RELACOUNT:
-                printf("DT_RELACOUNT");
+                if (bytecmpq(global_quiet, "no") == 0) printf("DT_RELACOUNT");
                 break;
             case DT_RELCOUNT:
-                printf("DT_RELCOUNT");
+                if (bytecmpq(global_quiet, "no") == 0) printf("DT_RELCOUNT");
                 break;
             case DT_FLAGS_1:
-                printf("DT_FLAGS_1");
+                if (bytecmpq(global_quiet, "no") == 0) printf("DT_FLAGS_1");
                 break;
             case DT_VERDEF:
-                printf("DT_VERDEF");
+                if (bytecmpq(global_quiet, "no") == 0) printf("DT_VERDEF");
                 break;
             case DT_VERDEFNUM:
-                printf("DT_VERDEFNUM");
+                if (bytecmpq(global_quiet, "no") == 0) printf("DT_VERDEFNUM");
                 break;
             case DT_VERNEED:
-                printf("DT_VERNEED");
+                if (bytecmpq(global_quiet, "no") == 0) printf("DT_VERNEED");
                 break;
             case DT_VERNEEDNUM:
-                printf("DT_VERNEEDNUM");
+                if (bytecmpq(global_quiet, "no") == 0) printf("DT_VERNEEDNUM");
                 break;
             case DT_AUXILIARY:
-                printf("DT_AUXILIARY");
+                if (bytecmpq(global_quiet, "no") == 0) printf("DT_AUXILIARY");
                 break;
             default:
-                printf("%d (unknown)", field);
+                if (bytecmpq(global_quiet, "no") == 0) printf("%d (unknown)", field);
                 break;
         }
-        printf("\n");
+        if (bytecmpq(global_quiet, "no") == 0) printf("\n");
         if (dynamic->d_tag == field) {
-            printf("returning %014p\n", dynamic->d_un.d_val);
+            if (bytecmpq(global_quiet, "no") == 0) printf("returning %014p\n", dynamic->d_un.d_val);
             return dynamic->d_un.d_val;
         }
     }
-    printf("returning 0\n");
+    if (bytecmpq(global_quiet, "no") == 0) printf("returning 0\n");
     return 0;
 }
 
-r(Elf64_Rela *relocs, size_t relocs_size) {
+#define symbol_mode_S 1
+#define symbol_mode_Z 2
+
+int _R_X86_64_NONE = 0;
+int _R_X86_64_64 = 0;
+int _R_X86_64_PC32 = 0;
+int _R_X86_64_GOT32 = 0;
+int _R_X86_64_PLT32 = 0;
+int _R_X86_64_COPY = 0;
+int _R_X86_64_GLOB_DAT = 0;
+int _R_X86_64_JUMP_SLOT = 0;
+int _R_X86_64_RELATIVE = 0;
+int _R_X86_64_GOTPCREL = 0;
+int _R_X86_64_32 = 0;
+int _R_X86_64_32S = 0;
+int _R_X86_64_16 = 0;
+int _R_X86_64_PC16 = 0;
+int _R_X86_64_8 = 0;
+int _R_X86_64_PC8 = 0;
+int _R_X86_64_DTPMOD64 = 0;
+int _R_X86_64_DTPOFF64 = 0;
+int _R_X86_64_TPOFF64 = 0;
+int _R_X86_64_TLSGD = 0;
+int _R_X86_64_TLSLD = 0;
+int _R_X86_64_DTPOFF32 = 0;
+int _R_X86_64_GOTTPOFF = 0;
+int _R_X86_64_TPOFF32 = 0;
+int _R_X86_64_PC64 = 0;
+int _R_X86_64_GOTOFF64 = 0;
+int _R_X86_64_GOTPC32 = 0;
+int _R_X86_64_GOT64 = 0;
+int _R_X86_64_GOTPCREL64 = 0;
+int _R_X86_64_GOTPC64 = 0;
+int _Deprecated1 = 0;
+int _R_X86_64_PLTOFF64 = 0;
+int _R_X86_64_SIZE32 = 0;
+int _R_X86_64_SIZE64 = 0;
+int _R_X86_64_GOTPC32_TLSDESC = 0;
+int _R_X86_64_TLSDESC_CALL = 0;
+int _R_X86_64_TLSDESC = 0;
+int _R_X86_64_IRELATIVE = 0;
+int _R_X86_64_RELATIVE64 = 0;
+int _Deprecated2 = 0;
+int _Deprecated3 = 0;
+int _R_X86_64_GOTPLT64 = 0;
+int _R_X86_64_GOTPCRELX = 0;
+int _R_X86_64_REX_GOTPCRELX = 0;
+int _R_X86_64_NUM = 0;
+int _R_X86_64_UNKNOWN = 0;
+
+void
+r_init() {
+    _R_X86_64_NONE = 0;
+    _R_X86_64_64 = 0;
+    _R_X86_64_PC32 = 0;
+    _R_X86_64_GOT32 = 0;
+    _R_X86_64_PLT32 = 0;
+    _R_X86_64_COPY = 0;
+    _R_X86_64_GLOB_DAT = 0;
+    _R_X86_64_JUMP_SLOT = 0;
+    _R_X86_64_RELATIVE = 0;
+    _R_X86_64_GOTPCREL = 0;
+    _R_X86_64_32 = 0;
+    _R_X86_64_32S = 0;
+    _R_X86_64_16 = 0;
+    _R_X86_64_PC16 = 0;
+    _R_X86_64_8 = 0;
+    _R_X86_64_PC8 = 0;
+    _R_X86_64_DTPMOD64 = 0;
+    _R_X86_64_DTPOFF64 = 0;
+    _R_X86_64_TPOFF64 = 0;
+    _R_X86_64_TLSGD = 0;
+    _R_X86_64_TLSLD = 0;
+    _R_X86_64_DTPOFF32 = 0;
+    _R_X86_64_GOTTPOFF = 0;
+    _R_X86_64_TPOFF32 = 0;
+    _R_X86_64_PC64 = 0;
+    _R_X86_64_GOTOFF64 = 0;
+    _R_X86_64_GOTPC32 = 0;
+    _R_X86_64_GOT64 = 0;
+    _R_X86_64_GOTPCREL64 = 0;
+    _R_X86_64_GOTPC64 = 0;
+    _Deprecated1 = 0;
+    _R_X86_64_PLTOFF64 = 0;
+    _R_X86_64_SIZE32 = 0;
+    _R_X86_64_SIZE64 = 0;
+    _R_X86_64_GOTPC32_TLSDESC = 0;
+    _R_X86_64_TLSDESC_CALL = 0;
+    _R_X86_64_TLSDESC = 0;
+    _R_X86_64_IRELATIVE = 0;
+    _R_X86_64_RELATIVE64 = 0;
+    _Deprecated2 = 0;
+    _Deprecated3 = 0;
+    _R_X86_64_GOTPLT64 = 0;
+    _R_X86_64_GOTPCRELX = 0;
+    _R_X86_64_REX_GOTPCRELX = 0;
+    _R_X86_64_NUM = 0;
+    _R_X86_64_UNKNOWN = 0;
+}
+
+int
+r(Elf64_Rela *relocs, size_t relocs_size, const char * am_i_quiet) {
 /*
 
 Relocation
@@ -1901,296 +2005,411 @@ R_386_GOTPC         This relocation type resembles R_386_PC32, except it uses th
         for (int i = 0; i < relocs_size  / sizeof(Elf64_Rela); i++) {
             Elf64_Rela *reloc = &relocs[i];
             int reloc_type = ELF64_R_TYPE(reloc->r_info);
-            printf("i = %d,\t\tELF64_R_TYPE(reloc->r_info)\t= ", i);
+            if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) printf("i = %d,\t\tELF64_R_TYPE(reloc->r_info)\t= ", i);
             switch (reloc_type) {
                 #if defined(__x86_64__)
-                    
                 case R_X86_64_NONE:
                 {
-                    printf("\n\n\nR_X86_64_NONE                calculation: none\n");
+                    if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) printf("\n\n\nR_X86_64_NONE                calculation: none\n");
+                    _R_X86_64_NONE++;
                     break;
                 }
                 case R_X86_64_64:
                 {
-                    printf("\n\n\nR_X86_64_64                  calculation: S + A (symbol value + r_addend)\n");
-                    printf("reloc->r_offset = %014p\n", reloc->r_offset);
-                    *((char**)((char*)mappingb + reloc->r_offset)) = lookup_symbol_by_index(array, _elf_header, ELF64_R_SYM(reloc->r_info), symbol_mode_S) + reloc->r_addend+mappingb;
-                    printf("((char*)mappingb + reloc->r_offset)            = %014p\n", ((char*)mappingb + reloc->r_offset));
+                    if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) printf("\n\n\nR_X86_64_64                  calculation: S + A (symbol value + r_addend)\n");
+                    if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) printf("reloc->r_offset = %014p\n", reloc->r_offset);
+                    *((char**)((char*)mappingb + reloc->r_offset)) = lookup_symbol_by_index(array, _elf_header, ELF64_R_SYM(reloc->r_info), symbol_mode_S, quiet) + reloc->r_addend+mappingb;
+                    if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) printf("((char*)mappingb + reloc->r_offset)            = %014p\n", ((char*)mappingb + reloc->r_offset));
+                    _R_X86_64_64++;
                     break;
                 }
                 case R_X86_64_PC32:
                 {
-                    printf("\n\n\nR_X86_64_PC32                calculation: S + A - P (symbol value + r_addend - (P: This means the place (section offset or address) of the storage unit being relocated (computed using r_offset ).)\n");
-                    printf("reloc->r_offset = %014p\n", reloc->r_offset);
-                    *((char**)((char*)mappingb + reloc->r_offset)) = lookup_symbol_by_index(array, _elf_header, ELF64_R_SYM(reloc->r_info), symbol_mode_S) + reloc->r_addend+mappingb;
-                    printf("((char*)mappingb + reloc->r_offset)            = %014p\n", ((char*)mappingb + reloc->r_offset));
+                    if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) printf("\n\n\nR_X86_64_PC32                calculation: S + A - P (symbol value + r_addend - (P: This means the place (section offset or address) of the storage unit being relocated (computed using r_offset ).)\n");
+                    if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) printf("reloc->r_offset = %014p\n", reloc->r_offset);
+                    *((char**)((char*)mappingb + reloc->r_offset)) = lookup_symbol_by_index(array, _elf_header, ELF64_R_SYM(reloc->r_info), symbol_mode_S, quiet) + reloc->r_addend+mappingb;
+                    if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) printf("((char*)mappingb + reloc->r_offset)            = %014p\n", ((char*)mappingb + reloc->r_offset));
+                    _R_X86_64_PC32++;
                     break;
                 }
                 case R_X86_64_GOT32:
                 {
-                    printf("\n\n\nR_X86_64_GOT32               calculation: G + A (address of global offset table + r_addend)\n");
+                    if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) printf("\n\n\nR_X86_64_GOT32               calculation: G + A (address of global offset table + r_addend)\n");
+                    Elf64_Addr * GOT = lookup_symbol_by_name(array, _elf_header, "_GLOBAL_OFFSET_TABLE_");
+                    _R_X86_64_GOT32++;
                     break;
                 }
                 case R_X86_64_PLT32:
                 {
-                    printf("\n\n\nR_X86_64_PLT32               calculation: L + A - P ((L: This means the place (section offset or address) of the procedure linkage table entry for a symbol) + r_addend - (P: This means the place (section offset or address) of the storage unit being relocated (computed using r_offset ).) \n");
+                    if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) printf("\n\n\nR_X86_64_PLT32               calculation: L + A - P ((L: This means the place (section offset or address) of the procedure linkage table entry for a symbol) + r_addend - (P: This means the place (section offset or address) of the storage unit being relocated (computed using r_offset ).) \n");
+                    _R_X86_64_PLT32++;
                     break;
                 }
                 case R_X86_64_COPY:
                 {
-                    printf("\n\n\nR_X86_64_COPY                calculation: none\n");
+                    if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) printf("\n\n\nR_X86_64_COPY                calculation: none\n");
+                    _R_X86_64_COPY++;
                     break;
                 }
                 case R_X86_64_GLOB_DAT:
                 {
-                    printf("\n\n\nR_X86_64_GLOB_DAT            calculation: S (symbol value)\n");
-                    printf("reloc->r_offset = %014p+%014p=%014p\n", mappingb, reloc->r_offset, mappingb+reloc->r_offset);
-                    *((char**)((char*)mappingb + reloc->r_offset)) = lookup_symbol_by_index(array, _elf_header, ELF64_R_SYM(reloc->r_info), symbol_mode_S)+mappingb;
+                    if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) printf("\n\n\nR_X86_64_GLOB_DAT            calculation: S (symbol value)\n");
+                    if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) printf("reloc->r_offset = %014p+%014p=%014p\n", mappingb, reloc->r_offset, mappingb+reloc->r_offset);
+                    *((char**)((char*)mappingb + reloc->r_offset)) = lookup_symbol_by_index(array, _elf_header, ELF64_R_SYM(reloc->r_info), symbol_mode_S, quiet)+mappingb;
                     char ** addr = reloc->r_offset + mappingb;
-                    printf("%014p = %014p\n", addr, *addr);
+                    if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) printf("%014p = %014p\n", addr, *addr);
+                    _R_X86_64_GLOB_DAT++;
                     break;
                 }
                 case R_X86_64_JUMP_SLOT:
                 {
-                    printf("\n\n\nR_X86_64_JUMP_SLOT           calculation: S (symbol value)\n");
-                    printf("mappingb    = %014p\n", mappingb);
-                    printf("reloc->r_offset = %014p+%014p=%014p\n", mappingb, reloc->r_offset, mappingb+reloc->r_offset);
-                    *((char**)((char*)mappingb + reloc->r_offset)) = lookup_symbol_by_index(array, _elf_header, ELF64_R_SYM(reloc->r_info), symbol_mode_S)+mappingb;
+                    if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) printf("\n\n\nR_X86_64_JUMP_SLOT           calculation: S (symbol value)\n");
+                    if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) printf("mappingb    = %014p\n", mappingb);
+                    if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) printf("reloc->r_offset = %014p+%014p=%014p\n", mappingb, reloc->r_offset, mappingb+reloc->r_offset);
+                    *((char**)((char*)mappingb + reloc->r_offset)) = lookup_symbol_by_index(array, _elf_header, ELF64_R_SYM(reloc->r_info), symbol_mode_S, quiet)+mappingb;
                     char ** addr = reloc->r_offset + mappingb;
-                    printf("%014p = %014p\n", addr, *addr);
+                    if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) printf("%014p = %014p\n", addr, *addr);
+                    _R_X86_64_JUMP_SLOT++;
                     break;
                 }
                 case R_X86_64_RELATIVE:
                 {
-                    printf("\n\n\nR_X86_64_RELATIVE            calculation: B + A (base address + r_addend)\n");
-                    printf("mappingb    = %014p\n", mappingb);
-                    printf("reloc->r_offset = %014p+%014p=%014p\n", mappingb, reloc->r_offset, mappingb+reloc->r_offset);
-                    printf("reloc->r_addend = %014p+%014p=%014p\n", mappingb, reloc->r_addend, ((char*)mappingb + reloc->r_addend) );
+                    if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) printf("\n\n\nR_X86_64_RELATIVE            calculation: B + A (base address + r_addend)\n");
+                    if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) printf("mappingb    = %014p\n", mappingb);
+                    if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) printf("reloc->r_offset = %014p+%014p=%014p\n", mappingb, reloc->r_offset, mappingb+reloc->r_offset);
+                    if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) printf("reloc->r_addend = %014p+%014p=%014p\n", mappingb, reloc->r_addend, ((char*)mappingb + reloc->r_addend) );
                     *((char**)((char*)mappingb + reloc->r_offset)) = ((char*)mappingb + reloc->r_addend);
                     char ** addr = reloc->r_offset + mappingb;
-                    printf("%014p = %014p\n", addr, *addr);
-                    printf("((char*)mappingb + reloc->r_offset)            = %014p\n", ((char*)mappingb + reloc->r_offset));
+                    if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) printf("%014p = %014p\n", addr, *addr);
+                    if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) printf("((char*)mappingb + reloc->r_offset)            = %014p\n", ((char*)mappingb + reloc->r_offset));
+                    _R_X86_64_RELATIVE++;
                     break;
                 }
                 case R_X86_64_GOTPCREL:
                 {
-                    printf("\n\n\nR_X86_64_GOTPCREL            calculation: (_GOTPC: GOT + A - P (address of global offset table + r_addend - (P: This means the place (section offset or address) of the storage unit being relocated (computed using r_offset ).))) \n");
+//                     if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) printf("\n\naddress of GOT[0] = %014p\n", ((Elf64_Addr *) lookup_symbol_by_name(array, _elf_header, "_GLOBAL_OFFSET_TABLE_"))[0]);
+                    if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) printf("\n\n\nR_X86_64_GOTPCREL            calculation: (_GOTPC: GOT + A - P (address of global offset table + r_addend - (P: This means the place (section offset or address) of the storage unit being relocated (computed using r_offset ).))) \n");
+                    Elf64_Addr * GOT = lookup_symbol_by_name(array, _elf_header, "_GLOBAL_OFFSET_TABLE_");
+                    _R_X86_64_GOTPCREL++;
                     break;
                 }
                 case R_X86_64_32:
                 {
-                    printf("\n\n\nR_X86_64_32                  calculation: S + A (symbol value + r_addend)\n");
-                    printf("reloc->r_offset = %014p\n", reloc->r_offset);
-                    *((char**)((char*)mappingb + reloc->r_offset)) = lookup_symbol_by_index(array, _elf_header, ELF64_R_SYM(reloc->r_info), symbol_mode_S) + reloc->r_addend+mappingb;
-                    printf("((char*)mappingb + reloc->r_offset)            = %014p\n", ((char*)mappingb + reloc->r_offset));
+                    if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) printf("\n\n\nR_X86_64_32                  calculation: S + A (symbol value + r_addend)\n");
+                    if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) printf("reloc->r_offset = %014p\n", reloc->r_offset);
+                    *((char**)((char*)mappingb + reloc->r_offset)) = lookup_symbol_by_index(array, _elf_header, ELF64_R_SYM(reloc->r_info), symbol_mode_S, quiet) + reloc->r_addend+mappingb;
+                    if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) printf("((char*)mappingb + reloc->r_offset)            = %014p\n", ((char*)mappingb + reloc->r_offset));
+                    _R_X86_64_32++;
                     break;
                 }
                 case R_X86_64_32S:
                 {
-                    printf("\n\n\nR_X86_64_32S                 calculation: S + A (symbol value + r_addend)\n");
-                    printf("reloc->r_offset = %014p\n", reloc->r_offset);
-                    *((char**)((char*)mappingb + reloc->r_offset)) = lookup_symbol_by_index(array, _elf_header, ELF64_R_SYM(reloc->r_info), symbol_mode_S) + reloc->r_addend+mappingb;
-                    printf("((char*)mappingb + reloc->r_offset)            = %014p\n", ((char*)mappingb + reloc->r_offset));
+                    if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) printf("\n\n\nR_X86_64_32S                 calculation: S + A (symbol value + r_addend)\n");
+                    if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) printf("reloc->r_offset = %014p\n", reloc->r_offset);
+                    *((char**)((char*)mappingb + reloc->r_offset)) = lookup_symbol_by_index(array, _elf_header, ELF64_R_SYM(reloc->r_info), symbol_mode_S, quiet) + reloc->r_addend+mappingb;
+                    if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) printf("((char*)mappingb + reloc->r_offset)            = %014p\n", ((char*)mappingb + reloc->r_offset));
+                    _R_X86_64_32S++;
                     break;
                 }
                 case R_X86_64_16:
                 {
-                    printf("\n\n\nR_X86_64_16                  calculation: S + A (symbol value + r_addend)\n");
-                    printf("reloc->r_offset = %014p\n", reloc->r_offset);
-                    *((char**)((char*)mappingb + reloc->r_offset)) = lookup_symbol_by_index(array, _elf_header, ELF64_R_SYM(reloc->r_info), symbol_mode_S) + reloc->r_addend+mappingb;
-                    printf("((char*)mappingb + reloc->r_offset)            = %014p\n", ((char*)mappingb + reloc->r_offset));
+                    if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) printf("\n\n\nR_X86_64_16                  calculation: S + A (symbol value + r_addend)\n");
+                    if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) printf("reloc->r_offset = %014p\n", reloc->r_offset);
+                    *((char**)((char*)mappingb + reloc->r_offset)) = lookup_symbol_by_index(array, _elf_header, ELF64_R_SYM(reloc->r_info), symbol_mode_S, quiet) + reloc->r_addend+mappingb;
+                    if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) printf("((char*)mappingb + reloc->r_offset)            = %014p\n", ((char*)mappingb + reloc->r_offset));
+                    _R_X86_64_16++;
                     break;
                 }
                 case R_X86_64_PC16:
                 {
-                    printf("\n\n\nR_X86_64_PC16                calculation: S + A - P (symbol value + r_addend - (P: This means the place (section offset or address) of the storage unit being relocated (computed using r_offset ).))\n");
-                    printf("reloc->r_offset = %014p\n", reloc->r_offset);
-                    *((char**)((char*)mappingb + reloc->r_offset)) = lookup_symbol_by_index(array, _elf_header, ELF64_R_SYM(reloc->r_info), symbol_mode_S) + reloc->r_addend+mappingb;
-                    printf("((char*)mappingb + reloc->r_offset)            = %014p\n", ((char*)mappingb + reloc->r_offset));
+                    if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) printf("\n\n\nR_X86_64_PC16                calculation: S + A - P (symbol value + r_addend - (P: This means the place (section offset or address) of the storage unit being relocated (computed using r_offset ).))\n");
+                    if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) printf("reloc->r_offset = %014p\n", reloc->r_offset);
+                    *((char**)((char*)mappingb + reloc->r_offset)) = lookup_symbol_by_index(array, _elf_header, ELF64_R_SYM(reloc->r_info), symbol_mode_S, quiet) + reloc->r_addend+mappingb;
+                    if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) printf("((char*)mappingb + reloc->r_offset)            = %014p\n", ((char*)mappingb + reloc->r_offset));
+                    _R_X86_64_PC16++;
                     break;
                 }
                 case R_X86_64_8:
                 {
-                    printf("\n\n\nR_X86_64_8                   calculation: S + A (symbol value + r_addend)\n");
-                    printf("reloc->r_offset = %014p\n", reloc->r_offset);
-                    *((char**)((char*)mappingb + reloc->r_offset)) = lookup_symbol_by_index(array, _elf_header, ELF64_R_SYM(reloc->r_info), symbol_mode_S) + reloc->r_addend+mappingb;
-                    printf("((char*)mappingb + reloc->r_offset)            = %014p\n", ((char*)mappingb + reloc->r_offset));
+                    if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) printf("\n\n\nR_X86_64_8                   calculation: S + A (symbol value + r_addend)\n");
+                    if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) printf("reloc->r_offset = %014p\n", reloc->r_offset);
+                    *((char**)((char*)mappingb + reloc->r_offset)) = lookup_symbol_by_index(array, _elf_header, ELF64_R_SYM(reloc->r_info), symbol_mode_S, quiet) + reloc->r_addend+mappingb;
+                    if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) printf("((char*)mappingb + reloc->r_offset)            = %014p\n", ((char*)mappingb + reloc->r_offset));
+                    _R_X86_64_8++;
                     break;
                 }
                 case R_X86_64_PC8:
                 {
-                    printf("\n\n\nR_X86_64_PC8                 calculation: S + A - P (symbol value + r_addend - (P: This means the place (section offset or address) of the storage unit being relocated (computed using r_offset ).))\n");
-                    printf("reloc->r_offset = %014p\n", reloc->r_offset);
-                    *((char**)((char*)mappingb + reloc->r_offset)) = lookup_symbol_by_index(array, _elf_header, ELF64_R_SYM(reloc->r_info), symbol_mode_S) + reloc->r_addend+mappingb;
-                    printf("((char*)mappingb + reloc->r_offset)            = %014p\n", ((char*)mappingb + reloc->r_offset));
+                    if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) printf("\n\n\nR_X86_64_PC8                 calculation: S + A - P (symbol value + r_addend - (P: This means the place (section offset or address) of the storage unit being relocated (computed using r_offset ).))\n");
+                    if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) printf("reloc->r_offset = %014p\n", reloc->r_offset);
+                    *((char**)((char*)mappingb + reloc->r_offset)) = lookup_symbol_by_index(array, _elf_header, ELF64_R_SYM(reloc->r_info), symbol_mode_S, quiet) + reloc->r_addend+mappingb;
+                    if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) printf("((char*)mappingb + reloc->r_offset)            = %014p\n", ((char*)mappingb + reloc->r_offset));
+                    _R_X86_64_PC8++;
                     break;
                 }
                 case R_X86_64_DTPMOD64:
                 {
-                    printf("\n\n\nR_X86_64_DTPMOD64\n");
+                    if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) printf("\n\n\nR_X86_64_DTPMOD64\n");
+                    _R_X86_64_DTPMOD64++;
                     break;
                 }
                 case R_X86_64_DTPOFF64:
                 {
-                    printf("\n\n\nR_X86_64_DTPOFF64\n");
+                    if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) printf("\n\n\nR_X86_64_DTPOFF64\n");
+                    _R_X86_64_DTPOFF64++;
                     break;
                 }
                 case R_X86_64_TPOFF64:
                 {
-                    printf("\n\n\nR_X86_64_TPOFF64\n");
+                    if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) printf("\n\n\nR_X86_64_TPOFF64\n");
+                    _R_X86_64_TPOFF64++;
                     break;
                 }
                 case R_X86_64_TLSGD:
                 {
-                    printf("\n\n\nR_X86_64_TLSGD\n");
+                    if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) printf("\n\n\nR_X86_64_TLSGD\n");
+                    _R_X86_64_TLSGD++;
                     break;
                 }
                 case R_X86_64_TLSLD:
                 {
-                    printf("\n\n\nR_X86_64_TLSLD\n");
+                    if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) printf("\n\n\nR_X86_64_TLSLD\n");
+                    _R_X86_64_TLSLD++;
                     break;
                 }
                 case R_X86_64_DTPOFF32:
                 {
-                    printf("\n\n\nR_X86_64_DTPOFF32\n");
+                    if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) printf("\n\n\nR_X86_64_DTPOFF32\n");
+                    _R_X86_64_DTPOFF32++;
                     break;
                 }
                 case R_X86_64_GOTTPOFF:
                 {
-                    printf("\n\n\nR_X86_64_GOTTPOFF\n");
+                    if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) printf("\n\n\nR_X86_64_GOTTPOFF\n");
+                    Elf64_Addr * GOT = lookup_symbol_by_name(array, _elf_header, "_GLOBAL_OFFSET_TABLE_");
+                    _R_X86_64_GOTTPOFF++;
                     break;
                 }
                 case R_X86_64_TPOFF32:
                 {
-                    printf("\n\n\nR_X86_64_TPOFF32\n");
+                    if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) printf("\n\n\nR_X86_64_TPOFF32\n");
+                    _R_X86_64_TPOFF32++;
                     break;
                 }
                 case R_X86_64_PC64:
                 {
-                    printf("\n\n\nR_X86_64_PC64                calculation: S + A (symbol value + r_addend)\n");
-                    printf("reloc->r_offset = %014p\n", reloc->r_offset);
-                    *((char**)((char*)mappingb + reloc->r_offset)) = lookup_symbol_by_index(array, _elf_header, ELF64_R_SYM(reloc->r_info), symbol_mode_S) + reloc->r_addend+mappingb;
-                    printf("((char*)mappingb + reloc->r_offset)            = %014p\n", ((char*)mappingb + reloc->r_offset));
+                    if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) printf("\n\n\nR_X86_64_PC64                calculation: S + A (symbol value + r_addend)\n");
+                    if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) printf("reloc->r_offset = %014p\n", reloc->r_offset);
+                    *((char**)((char*)mappingb + reloc->r_offset)) = lookup_symbol_by_index(array, _elf_header, ELF64_R_SYM(reloc->r_info), symbol_mode_S, quiet) + reloc->r_addend+mappingb;
+                    if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) printf("((char*)mappingb + reloc->r_offset)            = %014p\n", ((char*)mappingb + reloc->r_offset));
+                    _R_X86_64_PC64++;
                     break;
                 }
                 case R_X86_64_GOTOFF64:
                 {
-                    printf("\n\n\nR_X86_64_GOTOFF64            calculation: S + A - GOT (symbol value + r_addend - address of global offset table)\n");
-                    printf("reloc->r_offset = %014p\n", reloc->r_offset);
-                    *((char**)((char*)mappingb + reloc->r_offset)) = lookup_symbol_by_index(array, _elf_header, ELF64_R_SYM(reloc->r_info), symbol_mode_S) + reloc->r_addend+mappingb;
-                    printf("((char*)mappingb + reloc->r_offset)            = %014p\n", ((char*)mappingb + reloc->r_offset));
+                    if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) printf("\n\n\nR_X86_64_GOTOFF64            calculation: S + A - GOT (symbol value + r_addend - address of global offset table)\n");
+                    if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) printf("reloc->r_offset = %014p\n", reloc->r_offset);
+                    *((char**)((char*)mappingb + reloc->r_offset)) = lookup_symbol_by_index(array, _elf_header, ELF64_R_SYM(reloc->r_info), symbol_mode_S, quiet) + reloc->r_addend+mappingb;
+                    if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) printf("((char*)mappingb + reloc->r_offset)            = %014p\n", ((char*)mappingb + reloc->r_offset));
+                    Elf64_Addr * GOT = lookup_symbol_by_name(array, _elf_header, "_GLOBAL_OFFSET_TABLE_");
+                    _R_X86_64_GOTOFF64++;
                     break;
                 }
                 case R_X86_64_GOTPC32:
                 {
-                    printf("\n\n\nR_X86_64_GOTPC32             calculation: (_GOTPC: GOT + A - P (address of global offset table + r_addend - (P: This means the place (section offset or address) of the storage unit being relocated (computed using r_offset ).)))\n");
+                    if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) printf("\n\n\nR_X86_64_GOTPC32             calculation: (_GOTPC: GOT + A - P (address of global offset table + r_addend - (P: This means the place (section offset or address) of the storage unit being relocated (computed using r_offset ).)))\n");
+                    Elf64_Addr * GOT = lookup_symbol_by_name(array, _elf_header, "_GLOBAL_OFFSET_TABLE_");
+                    _R_X86_64_GOTPC32++;
                     break;
                 }
                 case R_X86_64_GOT64:
                 {
-                    printf("\n\n\nR_X86_64_GOT64               calculation: (_GOTPC: GOT + A - P (address of global offset table + r_addend - (P: This means the place (section offset or address) of the storage unit being relocated (computed using r_offset ).)))\n");
+                    if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) printf("\n\n\nR_X86_64_GOT64               calculation: (_GOTPC: GOT + A - P (address of global offset table + r_addend - (P: This means the place (section offset or address) of the storage unit being relocated (computed using r_offset ).)))\n");
+                    Elf64_Addr * GOT = lookup_symbol_by_name(array, _elf_header, "_GLOBAL_OFFSET_TABLE_");
+                    _R_X86_64_GOT64++;
                     break;
                 }
                 case R_X86_64_GOTPCREL64:
                 {
-                    printf("\n\n\nR_X86_64_GOTPCREL64          calculation: (_GOTPC: GOT + A - P (address of global offset table + r_addend - (P: This means the place (section offset or address) of the storage unit being relocated (computed using r_offset ).)))\n");
+                    if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) printf("\n\n\nR_X86_64_GOTPCREL64          calculation: (_GOTPC: GOT + A - P (address of global offset table + r_addend - (P: This means the place (section offset or address) of the storage unit being relocated (computed using r_offset ).)))\n");
+                    Elf64_Addr * GOT = lookup_symbol_by_name(array, _elf_header, "_GLOBAL_OFFSET_TABLE_");
+                    _R_X86_64_GOTPCREL64++;
                     break;
                 }
                 case R_X86_64_GOTPC64:
                 {
-                    printf("\n\n\nR_X86_64_GOTPC64             calculation: (_GOTPC: GOT + A - P (address of global offset table + r_addend - (P: This means the place (section offset or address) of the storage unit being relocated (computed using r_offset ).)))\n");
+                    if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) printf("\n\n\nR_X86_64_GOTPC64             calculation: (_GOTPC: GOT + A - P (address of global offset table + r_addend - (P: This means the place (section offset or address) of the storage unit being relocated (computed using r_offset ).)))\n");
+                    Elf64_Addr * GOT = lookup_symbol_by_name(array, _elf_header, "_GLOBAL_OFFSET_TABLE_");
+                    _R_X86_64_GOTPC64++;
                     break;
                 }
                 case R_X86_64_GOTPLT64:
                 {
-                    printf("\n\n\nR_X86_64_GOTPLT64            calculation: (_GOTPC: GOT + A - P (address of global offset table + r_addend - (P: This means the place (section offset or address) of the storage unit being relocated (computed using r_offset ).)))\n");
+                    if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) printf("\n\n\nR_X86_64_GOTPLT64            calculation: (_GOTPC: GOT + A - P (address of global offset table + r_addend - (P: This means the place (section offset or address) of the storage unit being relocated (computed using r_offset ).)))\n");
+                    Elf64_Addr * GOT = lookup_symbol_by_name(array, _elf_header, "_GLOBAL_OFFSET_TABLE_");
+                    _R_X86_64_GOTPLT64++;
                     break;
                 }
                 case R_X86_64_PLTOFF64:
                 {
-                    printf("\n\n\nR_X86_64_PLTOFF64\n");
+                    if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) printf("\n\n\nR_X86_64_PLTOFF64\n");
+                    Elf64_Addr * GOT = lookup_symbol_by_name(array, _elf_header, "_GLOBAL_OFFSET_TABLE_");
+                    _R_X86_64_PLTOFF64++;
                     break;
                 }
                 case R_X86_64_SIZE32:
                 {
-                    printf("\n\n\nR_X86_64_SIZE32                 calculation: Z + A (symbol size + r_addend)\n");
-                    printf("reloc->r_offset = %014p\n", reloc->r_offset);
-                    *((char**)((char*)mappingb + reloc->r_offset)) = lookup_symbol_by_index(array, _elf_header, ELF64_R_SYM(reloc->r_info), symbol_mode_Z) + reloc->r_addend+mappingb;
-                    printf("((char*)mappingb + reloc->r_offset)            = %014p\n", ((char*)mappingb + reloc->r_offset));
+                    if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) printf("\n\n\nR_X86_64_SIZE32                 calculation: Z + A (symbol size + r_addend)\n");
+                    if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) printf("reloc->r_offset = %014p\n", reloc->r_offset);
+                    *((char**)((char*)mappingb + reloc->r_offset)) = lookup_symbol_by_index(array, _elf_header, ELF64_R_SYM(reloc->r_info), symbol_mode_Z, quiet) + reloc->r_addend+mappingb;
+                    if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) printf("((char*)mappingb + reloc->r_offset)            = %014p\n", ((char*)mappingb + reloc->r_offset));
+                    _R_X86_64_SIZE32++;
                     break;
                 }
                 case R_X86_64_SIZE64:
                 {
-                    printf("\n\n\nR_X86_64_SIZE64                 calculation: Z + A (symbol size + r_addend)\n");
-                    printf("reloc->r_offset = %014p\n", reloc->r_offset);
-                    *((char**)((char*)mappingb + reloc->r_offset)) = lookup_symbol_by_index(array, _elf_header, ELF64_R_SYM(reloc->r_info), symbol_mode_Z) + reloc->r_addend+mappingb;
-                    printf("((char*)mappingb + reloc->r_offset)            = %014p\n", ((char*)mappingb + reloc->r_offset));
+                    if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) printf("\n\n\nR_X86_64_SIZE64                 calculation: Z + A (symbol size + r_addend)\n");
+                    if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) printf("reloc->r_offset = %014p\n", reloc->r_offset);
+                    *((char**)((char*)mappingb + reloc->r_offset)) = lookup_symbol_by_index(array, _elf_header, ELF64_R_SYM(reloc->r_info), symbol_mode_Z, quiet) + reloc->r_addend+mappingb;
+                    if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) printf("((char*)mappingb + reloc->r_offset)            = %014p\n", ((char*)mappingb + reloc->r_offset));
+                    _R_X86_64_SIZE64++;
                     break;
                 }
                 case R_X86_64_GOTPC32_TLSDESC:
                 {
-                    printf("\n\n\nR_X86_64_GOTPC32_TLSDESC     calculation: (_GOTPC: GOT + A - P (address of global offset table + r_addend - (P: This means the place (section offset or address) of the storage unit being relocated (computed using r_offset ).)))\n");
+                    if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) printf("\n\n\nR_X86_64_GOTPC32_TLSDESC     calculation: (_GOTPC: GOT + A - P (address of global offset table + r_addend - (P: This means the place (section offset or address) of the storage unit being relocated (computed using r_offset ).)))\n");
+                    Elf64_Addr * GOT = lookup_symbol_by_name(array, _elf_header, "_GLOBAL_OFFSET_TABLE_");
+                    _R_X86_64_GOTPC32_TLSDESC++;
                     break;
                 }
                 case R_X86_64_TLSDESC_CALL:
                 {
-                    printf("\n\n\nR_X86_64_TLSDESC_CALL\n");
+                    if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) printf("\n\n\nR_X86_64_TLSDESC_CALL\n");
+                    _R_X86_64_TLSDESC_CALL++;
                     break;
                 }
                 case R_X86_64_TLSDESC:
                 {
-                    printf("\n\n\nR_X86_64_TLSDESC\n");
+                    if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) printf("\n\n\nR_X86_64_TLSDESC\n");
+                    _R_X86_64_TLSDESC++;
                     break;
                 }
                 case R_X86_64_IRELATIVE:
                 {
-                    printf("\n\n\nR_X86_64_IRELATIVE                 calculation: (indirect) B + A (base address + r_addend)\n");
-                    printf("mappingb    = %014p\n", mappingb);
-                    printf("reloc->r_offset = %014p+%014p=%014p\n", mappingb, reloc->r_offset, mappingb+reloc->r_offset);
-                    printf("reloc->r_addend = %014p+%014p=%014p\n", mappingb, reloc->r_addend, ((char*)mappingb + reloc->r_addend) );
+
+                    if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) printf("\n\n\nR_X86_64_IRELATIVE                 calculation: (indirect) B + A (base address + r_addend)\n");
+                    if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) printf("mappingb    = %014p\n", mappingb);
+                    if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) printf("reloc->r_offset = %014p+%014p=%014p\n", mappingb, reloc->r_offset, mappingb+reloc->r_offset);
+                    if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) printf("reloc->r_addend = %014p+%014p=%014p\n", mappingb, reloc->r_addend, ((char*)mappingb + reloc->r_addend) );
+                    ElfW(Addr) value;
+//                     // changed, somehow this may cause a seg fault, dont use
+//                     value = ((char*)mappingb + reloc->r_addend);
+//                     value = ((ElfW(Addr) (*) (void)) value) ();
+//                     *((char**)((char*)mappingb + reloc->r_offset)) = value;
+                    // original
                     *((char**)((char*)mappingb + reloc->r_offset)) = ((char*)mappingb + reloc->r_addend);
+                    //
                     char ** addr = reloc->r_offset + mappingb;
-                    printf("%014p = %014p\n", addr, *addr);
-                    printf("((char*)mappingb + reloc->r_offset)            = %014p\n", ((char*)mappingb + reloc->r_offset));
+                    if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) printf("%014p = %014p\n", addr, *addr);
+                    if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) printf("((char*)mappingb + reloc->r_offset)            = %014p\n", ((char*)mappingb + reloc->r_offset));
+                    _R_X86_64_IRELATIVE++;
                     break;
                 }
                 case R_X86_64_RELATIVE64:
                 {
-                    printf("\n\n\nR_X86_64_RELATIVE64                 calculation: B + A (base address + r_addend)\n");
-                    printf("mappingb    = %014p\n", mappingb);
-                    printf("reloc->r_offset = %014p+%014p=%014p\n", mappingb, reloc->r_offset, mappingb+reloc->r_offset);
-                    printf("reloc->r_addend = %014p+%014p=%014p\n", mappingb, reloc->r_addend, ((char*)mappingb + reloc->r_addend) );
+                    if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) printf("\n\n\nR_X86_64_RELATIVE64                 calculation: B + A (base address + r_addend)\n");
+                    if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) printf("mappingb    = %014p\n", mappingb);
+                    if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) printf("reloc->r_offset = %014p+%014p=%014p\n", mappingb, reloc->r_offset, mappingb+reloc->r_offset);
+                    if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) printf("reloc->r_addend = %014p+%014p=%014p\n", mappingb, reloc->r_addend, ((char*)mappingb + reloc->r_addend) );
                     *((char**)((char*)mappingb + reloc->r_offset)) = ((char*)mappingb + reloc->r_addend);
                     char ** addr = reloc->r_offset + mappingb;
-                    printf("%014p = %014p\n", addr, *addr);
-                    printf("((char*)mappingb + reloc->r_offset)            = %014p\n", ((char*)mappingb + reloc->r_offset));
+                    if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) printf("%014p = %014p\n", addr, *addr);
+                    if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) printf("((char*)mappingb + reloc->r_offset)            = %014p\n", ((char*)mappingb + reloc->r_offset));
+                    _R_X86_64_RELATIVE64++;
                     break;
                 }
                 case R_X86_64_GOTPCRELX:
                 {
-                    printf("\n\n\nR_X86_64_GOTPCRELX           calculation: (_GOTPC: GOT + A - P (address of global offset table + r_addend - (P: This means the place (section offset or address) of the storage unit being relocated (computed using r_offset ).)))\n");
+                    if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) printf("\n\n\nR_X86_64_GOTPCRELX           calculation: (_GOTPC: GOT + A - P (address of global offset table + r_addend - (P: This means the place (section offset or address) of the storage unit being relocated (computed using r_offset ).)))\n");
+                    Elf64_Addr * GOT = lookup_symbol_by_name(array, _elf_header, "_GLOBAL_OFFSET_TABLE_");
+                    _R_X86_64_GOTPCRELX++;
                     break;
                 }
                 case R_X86_64_REX_GOTPCRELX:
                 {
-                    printf("\n\n\nR_X86_64_REX_GOTPCRELX       calculation: (_GOTPC: GOT + A - P (address of global offset table + r_addend - (P: This means the place (section offset or address) of the storage unit being relocated (computed using r_offset ).)))\n");
+                    if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) printf("\n\n\nR_X86_64_REX_GOTPCRELX       calculation: (_GOTPC: GOT + A - P (address of global offset table + r_addend - (P: This means the place (section offset or address) of the storage unit being relocated (computed using r_offset ).)))\n");
+                    Elf64_Addr * GOT = lookup_symbol_by_name(array, _elf_header, "_GLOBAL_OFFSET_TABLE_");
+                    _R_X86_64_REX_GOTPCRELX++;
                     break;
                 }
                 case R_X86_64_NUM:
                 {
-                    printf("\n\n\nR_X86_64_NUM\n");
+                    if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) printf("\n\n\nR_X86_64_NUM\n");
+                    _R_X86_64_NUM++;
                     break;
                 }
                 #endif
                 default:
-                    printf("unknown type, got %d\n", reloc_type);
+                    if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) printf("unknown type, got %d\n", reloc_type);
+                    _R_X86_64_UNKNOWN++;
                     break;
             }
         }
     }
-    nl();
-    nl();
-    nl();
+    if (bytecmpq(global_quiet, "no") == 0) nl();
+    if (bytecmpq(global_quiet, "no") == 0) nl();
+    if (bytecmpq(global_quiet, "no") == 0) nl();
+}
+
+int r_summary() {
+    if (bytecmpq(global_quiet, "no") == 0) printf( "relocation summary:\n \
+    _R_X86_64_NONE              = %d\n \
+    _R_X86_64_64                = %d\n \
+    _R_X86_64_PC32              = %d\n \
+    _R_X86_64_GOT32             = %d\n \
+    _R_X86_64_PLT32             = %d\n \
+    _R_X86_64_COPY              = %d\n \
+    _R_X86_64_GLOB_DAT          = %d\n \
+    _R_X86_64_JUMP_SLOT         = %d\n \
+    _R_X86_64_RELATIVE          = %d\n \
+    _R_X86_64_GOTPCREL          = %d\n \
+    _R_X86_64_32                = %d\n \
+    _R_X86_64_32S               = %d\n \
+    _R_X86_64_16                = %d\n \
+    _R_X86_64_PC16              = %d\n \
+    _R_X86_64_8                 = %d\n \
+    _R_X86_64_PC8               = %d\n \
+    _R_X86_64_DTPMOD64          = %d\n \
+    _R_X86_64_DTPOFF64          = %d\n \
+    _R_X86_64_TPOFF64           = %d\n \
+    _R_X86_64_TLSGD             = %d\n \
+    _R_X86_64_TLSLD             = %d\n \
+    _R_X86_64_DTPOFF32          = %d\n \
+    _R_X86_64_GOTTPOFF          = %d\n \
+    _R_X86_64_TPOFF32           = %d\n \
+    _R_X86_64_PC64              = %d\n \
+    _R_X86_64_GOTOFF64          = %d\n \
+    _R_X86_64_GOTPC32           = %d\n \
+    _R_X86_64_GOT64             = %d\n \
+    _R_X86_64_GOTPCREL64        = %d\n \
+    _R_X86_64_GOTPC64           = %d\n \
+    _Deprecated1                = %d\n \
+    _R_X86_64_PLTOFF64          = %d\n \
+    _R_X86_64_SIZE32            = %d\n \
+    _R_X86_64_SIZE64            = %d\n \
+    _R_X86_64_GOTPC32_TLSDESC   = %d\n \
+    _R_X86_64_TLSDESC_CALL      = %d\n \
+    _R_X86_64_TLSDESC           = %d\n \
+    _R_X86_64_IRELATIVE         = %d\n \
+    _R_X86_64_RELATIVE64        = %d\n \
+    _Deprecated2                = %d\n \
+    _Deprecated3                = %d\n \
+    _R_X86_64_GOTPLT64          = %d\n \
+    _R_X86_64_GOTPCRELX         = %d\n \
+    _R_X86_64_REX_GOTPCRELX     = %d\n \
+    _R_X86_64_NUM               = %d\n \
+    _R_X86_64_UNKNOWN           = %d\n \
+    total                       = %d\n", _R_X86_64_NONE, _R_X86_64_64, _R_X86_64_PC32, _R_X86_64_GOT32, _R_X86_64_PLT32, _R_X86_64_COPY, _R_X86_64_GLOB_DAT, _R_X86_64_JUMP_SLOT, _R_X86_64_RELATIVE, _R_X86_64_GOTPCREL, _R_X86_64_32, _R_X86_64_32S, _R_X86_64_16, _R_X86_64_PC16, _R_X86_64_8, _R_X86_64_PC8, _R_X86_64_DTPMOD64, _R_X86_64_DTPOFF64, _R_X86_64_TPOFF64, _R_X86_64_TLSGD, _R_X86_64_TLSLD, _R_X86_64_DTPOFF32, _R_X86_64_GOTTPOFF, _R_X86_64_TPOFF32, _R_X86_64_PC64, _R_X86_64_GOTOFF64, _R_X86_64_GOTPC32, _R_X86_64_GOT64, _R_X86_64_GOTPCREL64, _R_X86_64_GOTPC64, _Deprecated1, _R_X86_64_PLTOFF64, _R_X86_64_SIZE32, _R_X86_64_SIZE64, _R_X86_64_GOTPC32_TLSDESC, _R_X86_64_TLSDESC_CALL, _R_X86_64_TLSDESC, _R_X86_64_IRELATIVE, _R_X86_64_RELATIVE64, _Deprecated2, _Deprecated3, _R_X86_64_GOTPLT64, _R_X86_64_GOTPCRELX, _R_X86_64_REX_GOTPCRELX, _R_X86_64_NUM, _R_X86_64_UNKNOWN, _R_X86_64_NONE + _R_X86_64_64 + _R_X86_64_PC32 + _R_X86_64_GOT32 + _R_X86_64_PLT32 + _R_X86_64_COPY + _R_X86_64_GLOB_DAT + _R_X86_64_JUMP_SLOT + _R_X86_64_RELATIVE + _R_X86_64_GOTPCREL + _R_X86_64_32 + _R_X86_64_32S + _R_X86_64_16 + _R_X86_64_PC16 + _R_X86_64_8 + _R_X86_64_PC8 + _R_X86_64_DTPMOD64 + _R_X86_64_DTPOFF64 + _R_X86_64_TPOFF64 + _R_X86_64_TLSGD + _R_X86_64_TLSLD + _R_X86_64_DTPOFF32 + _R_X86_64_GOTTPOFF + _R_X86_64_TPOFF32 + _R_X86_64_PC64 + _R_X86_64_GOTOFF64 + _R_X86_64_GOTPC32 + _R_X86_64_GOT64 + _R_X86_64_GOTPCREL64 + _R_X86_64_GOTPC64 + _Deprecated1 + _R_X86_64_PLTOFF64 + _R_X86_64_SIZE32 + _R_X86_64_SIZE64 + _R_X86_64_GOTPC32_TLSDESC + _R_X86_64_TLSDESC_CALL + _R_X86_64_TLSDESC + _R_X86_64_IRELATIVE + _R_X86_64_RELATIVE64 + _Deprecated2 + _Deprecated3 + _R_X86_64_GOTPLT64 + _R_X86_64_GOTPCRELX + _R_X86_64_REX_GOTPCRELX + _R_X86_64_NUM + _R_X86_64_UNKNOWN);
 }
 
 int
@@ -2273,8 +2492,10 @@ init_(const char * filename) {
         }
         if (PT_DYNAMIC_ != 0) {
             ElfW(Dyn) * dynamic = tmp99D;
-            r(mappingb + get_dynamic_entry(dynamic, DT_RELA), get_dynamic_entry(dynamic, DT_RELASZ));
-            r(mappingb + get_dynamic_entry(dynamic, DT_JMPREL), RELA_PLT_SIZE);
+            r_init();
+            r(mappingb + get_dynamic_entry(dynamic, DT_RELA), get_dynamic_entry(dynamic, DT_RELASZ), relocation_quiet);
+            r(mappingb + get_dynamic_entry(dynamic, DT_JMPREL), RELA_PLT_SIZE, relocation_quiet);
+            r_summary();
         }
     }
     else return -1;
@@ -2290,226 +2511,226 @@ initv_(const char * filename) {
     read_section_header_table_(array, _elf_header, &_elf_symbol_table);
     obtain_rela_plt_size(array, _elf_header, _elf_symbol_table);
     if(!strncmp((char*)_elf_header->e_ident, "\177ELF", 4)) {
-        printf("Name:\t\t %s\n", filename);
-        printf("ELF Identifier\t %s\n", _elf_header->e_ident);
+        if (bytecmpq(global_quiet, "no") == 0) printf("Name:\t\t %s\n", filename);
+        if (bytecmpq(global_quiet, "no") == 0) printf("ELF Identifier\t %s\n", _elf_header->e_ident);
 
-        printf("Architecture\t ");
+        if (bytecmpq(global_quiet, "no") == 0) printf("Architecture\t ");
         switch(_elf_header->e_ident[EI_CLASS])
         {
             case ELFCLASSNONE:
-                printf("None\n");
+                if (bytecmpq(global_quiet, "no") == 0) printf("None\n");
                 break;
 
             case ELFCLASS32:
-                printf("32-bit\n");
+                if (bytecmpq(global_quiet, "no") == 0) printf("32-bit\n");
                 break;
 
             case ELFCLASS64:
-                printf("64-bit\n");
+                if (bytecmpq(global_quiet, "no") == 0) printf("64-bit\n");
                 break;
                 
             case ELFCLASSNUM:
-                printf("NUM ( unspecified )\n");
+                if (bytecmpq(global_quiet, "no") == 0) printf("NUM ( unspecified )\n");
                 break;
 
             default:
-                printf("Unknown CLASS\n");
+                if (bytecmpq(global_quiet, "no") == 0) printf("Unknown CLASS\n");
                 break;
         }
 
-        printf("Data Type\t ");
+        if (bytecmpq(global_quiet, "no") == 0) printf("Data Type\t ");
         switch(_elf_header->e_ident[EI_DATA])
         {
             case ELFDATANONE:
-                printf("None\n");
+                if (bytecmpq(global_quiet, "no") == 0) printf("None\n");
                 break;
 
             case ELFDATA2LSB:
-                printf("2's complement, little endian\n");
+                if (bytecmpq(global_quiet, "no") == 0) printf("2's complement, little endian\n");
                 break;
 
             case ELFDATA2MSB:
-                printf("2's complement, big endian\n");
+                if (bytecmpq(global_quiet, "no") == 0) printf("2's complement, big endian\n");
                 break;
                 
             case ELFDATANUM:
-                printf("NUM ( unspecified )\n");
+                if (bytecmpq(global_quiet, "no") == 0) printf("NUM ( unspecified )\n");
                 break;
 
             default:
-                printf("Unknown \n");
+                if (bytecmpq(global_quiet, "no") == 0) printf("Unknown \n");
                 break;
         }
 
-        printf("Version\t\t ");
+        if (bytecmpq(global_quiet, "no") == 0) printf("Version\t\t ");
         switch(_elf_header->e_ident[EI_VERSION])
         {
             case EV_NONE:
-                printf("None\n");
+                if (bytecmpq(global_quiet, "no") == 0) printf("None\n");
                 break;
 
             case EV_CURRENT:
-                printf("Current\n");
+                if (bytecmpq(global_quiet, "no") == 0) printf("Current\n");
                 break;
 
             case EV_NUM:
-                printf("NUM ( Unspecified )\n");
+                if (bytecmpq(global_quiet, "no") == 0) printf("NUM ( Unspecified )\n");
                 break;
 
             default:
-                printf("Unknown \n");
+                if (bytecmpq(global_quiet, "no") == 0) printf("Unknown \n");
                 break;
         }
 
-        printf("OS ABI\t\t ");
+        if (bytecmpq(global_quiet, "no") == 0) printf("OS ABI\t\t ");
         switch(_elf_header->e_ident[EI_OSABI])
         {
             case ELFOSABI_NONE:
-                printf("UNIX System V ABI\n");
+                if (bytecmpq(global_quiet, "no") == 0) printf("UNIX System V ABI\n");
                 break;
 
 //                     case ELFOSABI_SYSV:
-//                         printf("SYSV\n");
+//                         if (bytecmpq(global_quiet, "no") == 0) printf("SYSV\n");
 //                         break;
 // 
             case ELFOSABI_HPUX:
-                printf("HP-UX\n");
+                if (bytecmpq(global_quiet, "no") == 0) printf("HP-UX\n");
                 break;
 
             case ELFOSABI_NETBSD:
-                printf("NetBSD\n");
+                if (bytecmpq(global_quiet, "no") == 0) printf("NetBSD\n");
                 break;
 
             case ELFOSABI_GNU:
-                printf("GNU\n");
+                if (bytecmpq(global_quiet, "no") == 0) printf("GNU\n");
                 break;
 
 //                     case ELFOSABI_LINUX:
-//                         printf("Linux\n");
+//                         if (bytecmpq(global_quiet, "no") == 0) printf("Linux\n");
 //                         break;
 // 
             case ELFOSABI_SOLARIS:
-                printf("Sun Solaris\n");
+                if (bytecmpq(global_quiet, "no") == 0) printf("Sun Solaris\n");
                 break;
 
             case ELFOSABI_AIX:
-                printf("ABM AIX\n");
+                if (bytecmpq(global_quiet, "no") == 0) printf("ABM AIX\n");
                 break;
 
             case ELFOSABI_FREEBSD:
-                printf("FreeBSD\n");
+                if (bytecmpq(global_quiet, "no") == 0) printf("FreeBSD\n");
                 break;
 
             case ELFOSABI_TRU64:
-                printf("Compaq Tru64\n");
+                if (bytecmpq(global_quiet, "no") == 0) printf("Compaq Tru64\n");
                 break;
 
             case ELFOSABI_MODESTO:
-                printf("Novell Modesto\n");
+                if (bytecmpq(global_quiet, "no") == 0) printf("Novell Modesto\n");
                 break;
 
             case ELFOSABI_OPENBSD:
-                printf("OpenBSD\n");
+                if (bytecmpq(global_quiet, "no") == 0) printf("OpenBSD\n");
                 break;
 
-            case ELFOSABI_ARM_AEABI:
-                printf("ARM EABI\n");
-                break;
-
-            case ELFOSABI_ARM:
-                printf("ARM\n");
-                break;
+//             case ELFOSABI_ARM_AEABI: // not in musl
+//                 if (bytecmpq(global_quiet, "no") == 0) printf("ARM EABI\n");
+//                 break;
+// 
+//             case ELFOSABI_ARM: // not in musl
+//                 if (bytecmpq(global_quiet, "no") == 0) printf("ARM\n");
+//                 break;
 
             case ELFOSABI_STANDALONE:
-                printf("Standalone (embedded) application\n");
+                if (bytecmpq(global_quiet, "no") == 0) printf("Standalone (embedded) application\n");
                 break;
 
             default:
-                printf("Unknown \n");
+                if (bytecmpq(global_quiet, "no") == 0) printf("Unknown \n");
                 break;
         }
 
-        printf("File Type\t ");
+        if (bytecmpq(global_quiet, "no") == 0) printf("File Type\t ");
         switch(_elf_header->e_type)
         {
             case ET_NONE:
-                printf("None\n");
+                if (bytecmpq(global_quiet, "no") == 0) printf("None\n");
                 break;
 
             case ET_REL:
-                printf("Relocatable file\n");
+                if (bytecmpq(global_quiet, "no") == 0) printf("Relocatable file\n");
                 break;
 
             case ET_EXEC:
-                printf("Executable file\n");
+                if (bytecmpq(global_quiet, "no") == 0) printf("Executable file\n");
                 break;
 
             case ET_DYN:
-                printf("Shared object file\n");
+                if (bytecmpq(global_quiet, "no") == 0) printf("Shared object file\n");
                 break;
 
             case ET_CORE:
-                printf("Core file\n");
+                if (bytecmpq(global_quiet, "no") == 0) printf("Core file\n");
                 break;
 
             case ET_NUM:
-                printf("Number of defined types\n");
+                if (bytecmpq(global_quiet, "no") == 0) printf("Number of defined types\n");
                 break;
 
             case ET_LOOS:
-                printf("OS-specific range start\n");
+                if (bytecmpq(global_quiet, "no") == 0) printf("OS-specific range start\n");
                 break;
 
             case ET_HIOS:
-                printf("OS-specific range end\n");
+                if (bytecmpq(global_quiet, "no") == 0) printf("OS-specific range end\n");
                 break;
 
             case ET_LOPROC:
-                printf("Processor-specific range start\n");
+                if (bytecmpq(global_quiet, "no") == 0) printf("Processor-specific range start\n");
                 break;
 
             case ET_HIPROC:
-                printf("Processor-specific range end\n");
+                if (bytecmpq(global_quiet, "no") == 0) printf("Processor-specific range end\n");
                 break;
 
             default:
-                printf("Unknown \n");
+                if (bytecmpq(global_quiet, "no") == 0) printf("Unknown \n");
                 break;
         }
 
-        printf("Machine\t\t ");
+        if (bytecmpq(global_quiet, "no") == 0) printf("Machine\t\t ");
         switch(_elf_header->e_machine)
         {
             case EM_NONE:
-                printf("None\n");
+                if (bytecmpq(global_quiet, "no") == 0) printf("None\n");
                 break;
 
             case EM_386:
-                    printf("INTEL x86\n");
+                    if (bytecmpq(global_quiet, "no") == 0) printf("INTEL x86\n");
                     break;
 
             case EM_X86_64:
-                    printf("AMD x86-64 architecture\n");
+                    if (bytecmpq(global_quiet, "no") == 0) printf("AMD x86-64 architecture\n");
                     break;
 
             case EM_ARM:
-                    printf("ARM\n");
+                    if (bytecmpq(global_quiet, "no") == 0) printf("ARM\n");
                     break;
             default:
-                    printf("Unknown\n");
+                    if (bytecmpq(global_quiet, "no") == 0) printf("Unknown\n");
             break;
         }
         
         /* Entry point */
         int entry=_elf_header->e_entry;
-        printf("Entry point\t %014p\n", _elf_header->e_entry);
+        if (bytecmpq(global_quiet, "no") == 0) printf("Entry point\t %014p\n", _elf_header->e_entry);
         
 
         /* ELF header size in bytes */
-        printf("ELF header size\t %014p\n", _elf_header->e_ehsize);
+        if (bytecmpq(global_quiet, "no") == 0) printf("ELF header size\t %014p\n", _elf_header->e_ehsize);
 
         /* Program Header */
-        printf("Program Header\t %014p (%d entries with a total of %d bytes)\n",
+        if (bytecmpq(global_quiet, "no") == 0) printf("Program Header\t %014p (%d entries with a total of %d bytes)\n",
         _elf_header->e_phoff,
         _elf_header->e_phnum,
         _elf_header->e_phentsize
@@ -2517,84 +2738,84 @@ initv_(const char * filename) {
         map();
         for (int i = 0; i < _elf_header->e_phnum; ++i) {
             char * section_;
-            printf("p_type:\t\t\t/* Segment type */\t\t= ");
+            if (bytecmpq(global_quiet, "no") == 0) printf("p_type:\t\t\t/* Segment type */\t\t= ");
             switch(_elf_program_header[i].p_type)
             {
                 case PT_NULL:
-                    printf("PT_NULL\t\t/* Program header table entry unused */\n");
+                    if (bytecmpq(global_quiet, "no") == 0) printf("PT_NULL\t\t/* Program header table entry unused */\n");
                     section_="PT_NULL";
                     break;
                 case PT_LOAD:
-                    printf("PT_LOAD\t\t/* Loadable program segment */\n");
+                    if (bytecmpq(global_quiet, "no") == 0) printf("PT_LOAD\t\t/* Loadable program segment */\n");
                     section_="PT_LOAD";
                     break;
                 case PT_DYNAMIC:
-                    printf("PT_DYNAMIC\t\t/* Dynamic linking information */\n");
+                    if (bytecmpq(global_quiet, "no") == 0) printf("PT_DYNAMIC\t\t/* Dynamic linking information */\n");
                     section_="PT_DYNAMIC";
                     PT_DYNAMIC_=i;
                     break;
                 case PT_INTERP:
-                    printf("PT_INTERP\t\t/* Program interpreter */\n");
+                    if (bytecmpq(global_quiet, "no") == 0) printf("PT_INTERP\t\t/* Program interpreter */\n");
                     section_="PT_INTERP";
                     break;
                 case PT_NOTE:
-                    printf("PT_NOTE\t\t/* Auxiliary information */\n");
+                    if (bytecmpq(global_quiet, "no") == 0) printf("PT_NOTE\t\t/* Auxiliary information */\n");
                     section_="PT_NOTE";
                     break;
                 case PT_SHLIB:
-                    printf("PT_SHLIB\t\t/* Reserved */\n");
+                    if (bytecmpq(global_quiet, "no") == 0) printf("PT_SHLIB\t\t/* Reserved */\n");
                     section_="PT_SHLIB";
                     break;
                 case PT_PHDR:
-                    printf("PT_PHDR\t\t/* Entry for header table itself */\n");
+                    if (bytecmpq(global_quiet, "no") == 0) printf("PT_PHDR\t\t/* Entry for header table itself */\n");
                     section_="PT_PHDR";
                     break;
                 case PT_TLS:
-                    printf("PT_TLS\t\t/* Thread-local storage segment */\n");
+                    if (bytecmpq(global_quiet, "no") == 0) printf("PT_TLS\t\t/* Thread-local storage segment */\n");
                     section_="PT_TLS";
                     break;
                 case PT_NUM:
-                    printf("PT_NUM\t\t/* Number of defined types */\n");
+                    if (bytecmpq(global_quiet, "no") == 0) printf("PT_NUM\t\t/* Number of defined types */\n");
                     section_="PT_NUM";
                     break;
                 case PT_LOOS:
-                    printf("PT_LOOS\t\t/* Start of OS-specific */\n");
+                    if (bytecmpq(global_quiet, "no") == 0) printf("PT_LOOS\t\t/* Start of OS-specific */\n");
                     section_="PT_LOOS";
                     break;
                 case PT_GNU_EH_FRAME:
-                    printf("PT_GNU_EH_FRAME\t/* GCC .eh_frame_hdr segment */\n");
+                    if (bytecmpq(global_quiet, "no") == 0) printf("PT_GNU_EH_FRAME\t/* GCC .eh_frame_hdr segment */\n");
                     section_="PT_GNU_EH_FRAME";
                     break;
                 case PT_GNU_STACK:
-                    printf("PT_GNU_STACK\t\t/* Indicates stack executability */\n");
+                    if (bytecmpq(global_quiet, "no") == 0) printf("PT_GNU_STACK\t\t/* Indicates stack executability */\n");
                     section_="PT_GNU_STACK";
                     break;
                 case PT_GNU_RELRO:
-                    printf("PT_GNU_RELRO\t\t/* Read-only after relocation */\n");
+                    if (bytecmpq(global_quiet, "no") == 0) printf("PT_GNU_RELRO\t\t/* Read-only after relocation */\n");
                     section_="PT_GNU_RELRO";
                     break;
                 case PT_SUNWBSS:
-                    printf("PT_SUNWBSS\t\t/* Sun Specific segment */\n");
+                    if (bytecmpq(global_quiet, "no") == 0) printf("PT_SUNWBSS\t\t/* Sun Specific segment */\n");
                     section_="PT_SUNWBSS";
                     break;
                 case PT_SUNWSTACK:
-                    printf("PT_SUNWSTACK\t\t/* Stack segment */\n");
+                    if (bytecmpq(global_quiet, "no") == 0) printf("PT_SUNWSTACK\t\t/* Stack segment */\n");
                     section_="PT_SUNWSTACK";
                     break;
                 case PT_HIOS:
-                    printf("PT_HIOS\t\t/* End of OS-specific */\n");
+                    if (bytecmpq(global_quiet, "no") == 0) printf("PT_HIOS\t\t/* End of OS-specific */\n");
                     section_="PT_HIOS";
                     break;
                 case PT_LOPROC:
-                    printf("PT_LOPROC\t\t/* Start of processor-specific */\n");
+                    if (bytecmpq(global_quiet, "no") == 0) printf("PT_LOPROC\t\t/* Start of processor-specific */\n");
                     section_="PT_LOPROC";
                     break;
                 case PT_HIPROC:
-                    printf("PT_HIPROC\t\t/* End of processor-specific */\n");
+                    if (bytecmpq(global_quiet, "no") == 0) printf("PT_HIPROC\t\t/* End of processor-specific */\n");
                     section_="PT_HIPROC";
                     break;
                 default:
-                    printf("Unknown\n");
+                    if (bytecmpq(global_quiet, "no") == 0) printf("Unknown\n");
                     section_="Unknown";
                     break;
             }
@@ -2604,15 +2825,15 @@ initv_(const char * filename) {
                 read_fast_verify(array, len, &tmp99D, (_elf_program_header[i].p_memsz + _elf_program_header[i].p_offset));
                 __lseek_string__(&tmp99D, _elf_program_header[i].p_memsz, _elf_program_header[i].p_offset);
             }
-            printf("p_flags:\t\t/* Segment flags */\t\t= %014p\np_offset:\t\t/* Segment file offset */\t= %014p\np_vaddr:\t\t/* Segment virtual address */\t= %014p\np_paddr:\t\t/* Segment physical address */\t= %014p\np_filesz:\t\t/* Segment size in file */\t= %014p\np_memsz:\t\t/* Segment size in memory */\t= %014p\np_align:\t\t/* Segment alignment */\t\t= %014p\n\n\n", _elf_program_header[i].p_flags, _elf_program_header[i].p_offset, _elf_program_header[i].p_vaddr+mappingb, _elf_program_header[i].p_paddr, _elf_program_header[i].p_filesz, _elf_program_header[i].p_memsz, _elf_program_header[i].p_align);
+            if (bytecmpq(global_quiet, "no") == 0) printf("p_flags:\t\t/* Segment flags */\t\t= %014p\np_offset:\t\t/* Segment file offset */\t= %014p\np_vaddr:\t\t/* Segment virtual address */\t= %014p\np_paddr:\t\t/* Segment physical address */\t= %014p\np_filesz:\t\t/* Segment size in file */\t= %014p\np_memsz:\t\t/* Segment size in memory */\t= %014p\np_align:\t\t/* Segment alignment */\t\t= %014p\n\n\n", _elf_program_header[i].p_flags, _elf_program_header[i].p_offset, _elf_program_header[i].p_vaddr+mappingb, _elf_program_header[i].p_paddr, _elf_program_header[i].p_filesz, _elf_program_header[i].p_memsz, _elf_program_header[i].p_align);
             nl();
-            printf("\t\tp_flags: %014p", _elf_program_header[i].p_flags);
-            printf(" p_offset: %014p", _elf_program_header[i].p_offset);
-            printf(" p_vaddr:  %014p", _elf_program_header[i].p_vaddr+mappingb);
-            printf(" p_paddr: %014p", _elf_program_header[i].p_paddr);
-            printf(" p_filesz: %014p", _elf_program_header[i].p_filesz);
-            printf(" p_memsz: %014p", _elf_program_header[i].p_memsz);
-            printf(" p_align: %014p\n", _elf_program_header[i].p_align);
+            if (bytecmpq(global_quiet, "no") == 0) printf("\t\tp_flags: %014p", _elf_program_header[i].p_flags);
+            if (bytecmpq(global_quiet, "no") == 0) printf(" p_offset: %014p", _elf_program_header[i].p_offset);
+            if (bytecmpq(global_quiet, "no") == 0) printf(" p_vaddr:  %014p", _elf_program_header[i].p_vaddr+mappingb);
+            if (bytecmpq(global_quiet, "no") == 0) printf(" p_paddr: %014p", _elf_program_header[i].p_paddr);
+            if (bytecmpq(global_quiet, "no") == 0) printf(" p_filesz: %014p", _elf_program_header[i].p_filesz);
+            if (bytecmpq(global_quiet, "no") == 0) printf(" p_memsz: %014p", _elf_program_header[i].p_memsz);
+            if (bytecmpq(global_quiet, "no") == 0) printf(" p_align: %014p\n", _elf_program_header[i].p_align);
         }
 
         if (PT_DYNAMIC_ != 0) {
@@ -2626,27 +2847,29 @@ initv_(const char * filename) {
 // data reside at the end of the segment, thereby making p_memsz larger than p_filesz.
 // 
 
-            printf("PT_LOAD 1 = \n");
-            printf("p_flags:\t\t/* Segment flags */\t\t= %014p\np_offset:\t\t/* Segment file offset */\t= %014p\np_vaddr:\t\t/* Segment virtual address */\t= %014p\np_paddr:\t\t/* Segment physical address */\t= %014p\np_filesz:\t\t/* Segment size in file */\t= %014p\np_memsz:\t\t/* Segment size in memory */\t= %014p\np_align:\t\t/* Segment alignment */\t\t= %014p\n\n\n", _elf_program_header[First_Load_Header_index].p_flags, _elf_program_header[First_Load_Header_index].p_offset, _elf_program_header[First_Load_Header_index].p_vaddr+mappingb, _elf_program_header[First_Load_Header_index].p_paddr, _elf_program_header[First_Load_Header_index].p_filesz, _elf_program_header[First_Load_Header_index].p_memsz, _elf_program_header[First_Load_Header_index].p_align);
-            printf("PT_LOAD 2 = \n");
-            printf("p_flags:\t\t/* Segment flags */\t\t= %014p\np_offset:\t\t/* Segment file offset */\t= %014p\np_vaddr:\t\t/* Segment virtual address */\t= %014p\np_paddr:\t\t/* Segment physical address */\t= %014p\np_filesz:\t\t/* Segment size in file */\t= %014p\np_memsz:\t\t/* Segment size in memory */\t= %014p\np_align:\t\t/* Segment alignment */\t\t= %014p\n\n\n", _elf_program_header[Last_Load_Header_index].p_flags, _elf_program_header[Last_Load_Header_index].p_offset, _elf_program_header[Last_Load_Header_index].p_vaddr+mappingb, _elf_program_header[Last_Load_Header_index].p_paddr, _elf_program_header[Last_Load_Header_index].p_filesz, _elf_program_header[Last_Load_Header_index].p_memsz, _elf_program_header[Last_Load_Header_index].p_align);
-            printf("first PT_LOAD _elf_program_header[%d]->p_paddr = \n%014p\n", First_Load_Header_index, _elf_program_header[First_Load_Header_index].p_paddr+mappingb);
-            printf("Second PT_LOAD _elf_program_header[%d]->p_paddr = \n%014p\n", Last_Load_Header_index, _elf_program_header[Last_Load_Header_index].p_paddr+mappingb);
+            if (bytecmpq(global_quiet, "no") == 0) printf("PT_LOAD 1 = \n");
+            if (bytecmpq(global_quiet, "no") == 0) printf("p_flags:\t\t/* Segment flags */\t\t= %014p\np_offset:\t\t/* Segment file offset */\t= %014p\np_vaddr:\t\t/* Segment virtual address */\t= %014p\np_paddr:\t\t/* Segment physical address */\t= %014p\np_filesz:\t\t/* Segment size in file */\t= %014p\np_memsz:\t\t/* Segment size in memory */\t= %014p\np_align:\t\t/* Segment alignment */\t\t= %014p\n\n\n", _elf_program_header[First_Load_Header_index].p_flags, _elf_program_header[First_Load_Header_index].p_offset, _elf_program_header[First_Load_Header_index].p_vaddr+mappingb, _elf_program_header[First_Load_Header_index].p_paddr, _elf_program_header[First_Load_Header_index].p_filesz, _elf_program_header[First_Load_Header_index].p_memsz, _elf_program_header[First_Load_Header_index].p_align);
+            if (bytecmpq(global_quiet, "no") == 0) printf("PT_LOAD 2 = \n");
+            if (bytecmpq(global_quiet, "no") == 0) printf("p_flags:\t\t/* Segment flags */\t\t= %014p\np_offset:\t\t/* Segment file offset */\t= %014p\np_vaddr:\t\t/* Segment virtual address */\t= %014p\np_paddr:\t\t/* Segment physical address */\t= %014p\np_filesz:\t\t/* Segment size in file */\t= %014p\np_memsz:\t\t/* Segment size in memory */\t= %014p\np_align:\t\t/* Segment alignment */\t\t= %014p\n\n\n", _elf_program_header[Last_Load_Header_index].p_flags, _elf_program_header[Last_Load_Header_index].p_offset, _elf_program_header[Last_Load_Header_index].p_vaddr+mappingb, _elf_program_header[Last_Load_Header_index].p_paddr, _elf_program_header[Last_Load_Header_index].p_filesz, _elf_program_header[Last_Load_Header_index].p_memsz, _elf_program_header[Last_Load_Header_index].p_align);
+            if (bytecmpq(global_quiet, "no") == 0) printf("first PT_LOAD _elf_program_header[%d]->p_paddr = \n%014p\n", First_Load_Header_index, _elf_program_header[First_Load_Header_index].p_paddr+mappingb);
+            if (bytecmpq(global_quiet, "no") == 0) printf("Second PT_LOAD _elf_program_header[%d]->p_paddr = \n%014p\n", Last_Load_Header_index, _elf_program_header[Last_Load_Header_index].p_paddr+mappingb);
             ElfW(Dyn) * dynamic = tmp99D;
 
-//                 printf("printing symbol data\n");
+//                 if (bytecmpq(global_quiet, "no") == 0) printf("printing symbol data\n");
 //                 Elf64_Sym *syms = mappingb + get_dynamic_entry(dynamic, DT_SYMTAB);
 //                 symbol1(array, syms, 0);
-            printf("examining current entries:\n");
+            if (bytecmpq(global_quiet, "no") == 0) printf("examining current entries:\n");
             get_dynamic_entry(dynamic, -1);
-            printf("printing relocation data\n");
+            if (bytecmpq(global_quiet, "no") == 0) printf("printing relocation data\n");
             // needs to be the address of the mapping itself, not the base address
-            r(mappingb + get_dynamic_entry(dynamic, DT_RELA), get_dynamic_entry(dynamic, DT_RELASZ));
-            r(mappingb + get_dynamic_entry(dynamic, DT_JMPREL), RELA_PLT_SIZE);
+            r_init();
+            r(mappingb + get_dynamic_entry(dynamic, DT_RELA), get_dynamic_entry(dynamic, DT_RELASZ), relocation_quiet);
+            r(mappingb + get_dynamic_entry(dynamic, DT_JMPREL), RELA_PLT_SIZE, relocation_quiet);
+            r_summary();
         }
 //             nl();
         
-        printf("Section Header\t \
+        if (bytecmpq(global_quiet, "no") == 0) printf("Section Header\t \
 _elf_header->e_shstrndx %014p (\
 _elf_header->e_shnum = %d entries with a total of \
 _elf_header->e_shentsize = %d (should match %d) bytes, offset is \
