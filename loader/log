@@ -1,17 +1,17 @@
------------------------------------------------------------------------>called init_aux() at line 140 from libstring.c
------------------------------------------------------------------------>called init_env() at line 119 from libstring.c
------------------------------------------------------------------------>called init_argX() at line 128 from libstring.c
------------------------------------------------------------------------>called currentaux() at line 638 from libstring.c
-AT_SYSINFO_EHDR = 0x7ffcc31ba000
+----------------------------------------------------------------------->called init_aux() at line 141 from libstring.c
+----------------------------------------------------------------------->called init_env() at line 120 from libstring.c
+----------------------------------------------------------------------->called init_argX() at line 129 from libstring.c
+----------------------------------------------------------------------->called currentaux() at line 639 from libstring.c
+AT_SYSINFO_EHDR = 0x7fff4598c000
 AT_HWCAP = 0x178bfbff
 AT_PAGESZ = 4096
 AT_CLKTCK = 100
-AT_PHDR = 0x55cca3c41040
+AT_PHDR = 0x55c5784ea040
 AT_PHENT = 56
 AT_PHNUM = 9
-AT_BASE = 0x7f7aa1077000
+AT_BASE = 0x7f94e5e1b000
 AT_FLAGS = (nil)
-AT_ENTRY = 0x55cca3c41750
+AT_ENTRY = 0x55c5784ea6f0
 AT_UID = 1000
 AT_EUID = 1000
 AT_GID = 1001
@@ -20,198 +20,469 @@ AT_SECURE = 0
 AT_HWCAP2 = (nil)
 AT_EXECFN = ./files/loader
 AT_PLATFORM = x86_64
-Test exported functions >
+dlopen: adding ./files/test_lib.so to index 1
+dlopen: adding /lib/libc.so.6 to index 2
+dlopen: adding /lib/ld-musl-x86_64.so.1 to index 3
+dlopen: adding /usr/lib/zsh/5.4.2/zsh/newuser.so to index 4
+WARNING: index 0 is (null)
+dlsym: adding  from (null)
 current index 0 holds "NULL"
 searching indexes for "./files/test_lib.so" incase it has already been loaded
 current index 0 holds "NULL"
 attempting to save to index 0
 called round_up
-returning 0x7f7aa0000000
-memmove: round_up(0x7f7a90472010, 0x000010000000)+0x000000200000 = 0x7f7aa0200000
+returning 0x7f94e0000000
+memmove: round_up(0x7f94d5213010, 0x000010000000)+0x000000200000 = 0x7f94e0200000
 called round_up
-returning 0x7f7aa0000000
-dest = 0x7f7aa0200000
-dest = 0x7f7aa0000000
+returning 0x7f94e0000000
+dest = 0x7f94e0200000
+dest = 0x7f94e0000000
 called round_down
 returning 0x000000200000
 called round_up
 returning 0x000000200000
 called round_down
 returning          (nil)
-55cca3c41000-55cca3c43000 r-xp 00000000 fe:00 2392139                    /chakra/home/universalpackagemanager/chroot/arch-chroot/arch-pkg-build/packages/glibc/repos/core-x86_64/min-dl/loader/files/loader
-55cca3e42000-55cca3e43000 r--p 00001000 fe:00 2392139                    /chakra/home/universalpackagemanager/chroot/arch-chroot/arch-pkg-build/packages/glibc/repos/core-x86_64/min-dl/loader/files/loader
-55cca3e43000-55cca3e44000 rw-p 00002000 fe:00 2392139                    /chakra/home/universalpackagemanager/chroot/arch-chroot/arch-pkg-build/packages/glibc/repos/core-x86_64/min-dl/loader/files/loader
-55cca403a000-55cca405b000 rw-p 00000000 00:00 0                          [heap]
-7f7a90472000-7f7aa0000000 rw-p 00000000 00:00 0 
-7f7aa0000000-7f7aa0200000 r-xp 00000000 00:00 0 
-7f7aa0200000-7f7aa0874000 rw-p 00000000 00:00 0 
-7f7aa0874000-7f7aa0a20000 r-xp 00000000 08:03 1593900                    /usr/lib/libc-2.26.so
-7f7aa0a20000-7f7aa0c20000 ---p 001ac000 08:03 1593900                    /usr/lib/libc-2.26.so
-7f7aa0c20000-7f7aa0c24000 r--p 001ac000 08:03 1593900                    /usr/lib/libc-2.26.so
-7f7aa0c24000-7f7aa0c26000 rw-p 001b0000 08:03 1593900                    /usr/lib/libc-2.26.so
-7f7aa0c26000-7f7aa0c2a000 rw-p 00000000 00:00 0 
-7f7aa0c2a000-7f7aa0c36000 r-xp 00000000 fe:00 2392135                    /chakra/home/universalpackagemanager/chroot/arch-chroot/arch-pkg-build/packages/glibc/repos/core-x86_64/min-dl/loader/files/libstring.so
-7f7aa0c36000-7f7aa0e35000 ---p 0000c000 fe:00 2392135                    /chakra/home/universalpackagemanager/chroot/arch-chroot/arch-pkg-build/packages/glibc/repos/core-x86_64/min-dl/loader/files/libstring.so
-7f7aa0e35000-7f7aa0e36000 r--p 0000b000 fe:00 2392135                    /chakra/home/universalpackagemanager/chroot/arch-chroot/arch-pkg-build/packages/glibc/repos/core-x86_64/min-dl/loader/files/libstring.so
-7f7aa0e36000-7f7aa0e37000 rw-p 0000c000 fe:00 2392135                    /chakra/home/universalpackagemanager/chroot/arch-chroot/arch-pkg-build/packages/glibc/repos/core-x86_64/min-dl/loader/files/libstring.so
-7f7aa0e37000-7f7aa0e3a000 rw-p 00000000 00:00 0 
-7f7aa0e3a000-7f7aa0e74000 r-xp 00000000 fe:00 2392137                    /chakra/home/universalpackagemanager/chroot/arch-chroot/arch-pkg-build/packages/glibc/repos/core-x86_64/min-dl/loader/files/readelf_.so
-7f7aa0e74000-7f7aa1074000 ---p 0003a000 fe:00 2392137                    /chakra/home/universalpackagemanager/chroot/arch-chroot/arch-pkg-build/packages/glibc/repos/core-x86_64/min-dl/loader/files/readelf_.so
-7f7aa1074000-7f7aa1076000 r--p 0003a000 fe:00 2392137                    /chakra/home/universalpackagemanager/chroot/arch-chroot/arch-pkg-build/packages/glibc/repos/core-x86_64/min-dl/loader/files/readelf_.so
-7f7aa1076000-7f7aa1077000 rw-p 0003c000 fe:00 2392137                    /chakra/home/universalpackagemanager/chroot/arch-chroot/arch-pkg-build/packages/glibc/repos/core-x86_64/min-dl/loader/files/readelf_.so
-7f7aa1077000-7f7aa109c000 r-xp 00000000 08:03 1594062                    /usr/lib/ld-2.26.so
-7f7aa1263000-7f7aa1266000 rw-p 00000000 00:00 0 
-7f7aa1290000-7f7aa1299000 r--p 00000000 fe:00 2392138                    /chakra/home/universalpackagemanager/chroot/arch-chroot/arch-pkg-build/packages/glibc/repos/core-x86_64/min-dl/loader/files/test_lib.so
-7f7aa1299000-7f7aa129b000 rw-p 00000000 00:00 0 
-7f7aa129b000-7f7aa129c000 r--p 00024000 08:03 1594062                    /usr/lib/ld-2.26.so
-7f7aa129c000-7f7aa129d000 rw-p 00025000 08:03 1594062                    /usr/lib/ld-2.26.so
-7f7aa129d000-7f7aa129e000 rw-p 00000000 00:00 0 
-7ffcc318d000-7ffcc31ae000 rw-p 00000000 00:00 0                          [stack]
-7ffcc31b7000-7ffcc31ba000 r--p 00000000 00:00 0                          [vvar]
-7ffcc31ba000-7ffcc31bc000 r-xp 00000000 00:00 0                          [vdso]
+55c5784ea000-55c5784ec000 r-xp 00000000 fe:00 2396161                    /chakra/home/universalpackagemanager/chroot/arch-chroot/arch-pkg-build/packages/glibc/repos/core-x86_64/min-dl/loader/files/loader
+55c5786eb000-55c5786ec000 r--p 00001000 fe:00 2396161                    /chakra/home/universalpackagemanager/chroot/arch-chroot/arch-pkg-build/packages/glibc/repos/core-x86_64/min-dl/loader/files/loader
+55c5786ec000-55c5786ed000 rw-p 00002000 fe:00 2396161                    /chakra/home/universalpackagemanager/chroot/arch-chroot/arch-pkg-build/packages/glibc/repos/core-x86_64/min-dl/loader/files/loader
+55c578c32000-55c578c53000 rw-p 00000000 00:00 0                          [heap]
+7f94d5213000-7f94e0000000 rw-p 00000000 00:00 0 
+7f94e0000000-7f94e0200000 r-xp 00000000 00:00 0 
+7f94e0200000-7f94e5615000 rw-p 00000000 00:00 0 
+7f94e5615000-7f94e57c1000 r-xp 00000000 08:03 1593900                    /usr/lib/libc-2.26.so
+7f94e57c1000-7f94e59c1000 ---p 001ac000 08:03 1593900                    /usr/lib/libc-2.26.so
+7f94e59c1000-7f94e59c5000 r--p 001ac000 08:03 1593900                    /usr/lib/libc-2.26.so
+7f94e59c5000-7f94e59c7000 rw-p 001b0000 08:03 1593900                    /usr/lib/libc-2.26.so
+7f94e59c7000-7f94e59cb000 rw-p 00000000 00:00 0 
+7f94e59cb000-7f94e59d7000 r-xp 00000000 fe:00 2392138                    /chakra/home/universalpackagemanager/chroot/arch-chroot/arch-pkg-build/packages/glibc/repos/core-x86_64/min-dl/loader/files/libstring.so
+7f94e59d7000-7f94e5bd6000 ---p 0000c000 fe:00 2392138                    /chakra/home/universalpackagemanager/chroot/arch-chroot/arch-pkg-build/packages/glibc/repos/core-x86_64/min-dl/loader/files/libstring.so
+7f94e5bd6000-7f94e5bd7000 r--p 0000b000 fe:00 2392138                    /chakra/home/universalpackagemanager/chroot/arch-chroot/arch-pkg-build/packages/glibc/repos/core-x86_64/min-dl/loader/files/libstring.so
+7f94e5bd7000-7f94e5bd8000 rw-p 0000c000 fe:00 2392138                    /chakra/home/universalpackagemanager/chroot/arch-chroot/arch-pkg-build/packages/glibc/repos/core-x86_64/min-dl/loader/files/libstring.so
+7f94e5bd8000-7f94e5bdb000 rw-p 00000000 00:00 0 
+7f94e5bdb000-7f94e5c18000 r-xp 00000000 fe:00 2396159                    /chakra/home/universalpackagemanager/chroot/arch-chroot/arch-pkg-build/packages/glibc/repos/core-x86_64/min-dl/loader/files/readelf_.so
+7f94e5c18000-7f94e5e18000 ---p 0003d000 fe:00 2396159                    /chakra/home/universalpackagemanager/chroot/arch-chroot/arch-pkg-build/packages/glibc/repos/core-x86_64/min-dl/loader/files/readelf_.so
+7f94e5e18000-7f94e5e1a000 r--p 0003d000 fe:00 2396159                    /chakra/home/universalpackagemanager/chroot/arch-chroot/arch-pkg-build/packages/glibc/repos/core-x86_64/min-dl/loader/files/readelf_.so
+7f94e5e1a000-7f94e5e1b000 rw-p 0003f000 fe:00 2396159                    /chakra/home/universalpackagemanager/chroot/arch-chroot/arch-pkg-build/packages/glibc/repos/core-x86_64/min-dl/loader/files/readelf_.so
+7f94e5e1b000-7f94e5e40000 r-xp 00000000 08:03 1594062                    /usr/lib/ld-2.26.so
+7f94e6007000-7f94e600a000 rw-p 00000000 00:00 0 
+7f94e6034000-7f94e603d000 r--p 00000000 fe:00 2396160                    /chakra/home/universalpackagemanager/chroot/arch-chroot/arch-pkg-build/packages/glibc/repos/core-x86_64/min-dl/loader/files/test_lib.so
+7f94e603d000-7f94e603f000 rw-p 00000000 00:00 0 
+7f94e603f000-7f94e6040000 r--p 00024000 08:03 1594062                    /usr/lib/ld-2.26.so
+7f94e6040000-7f94e6041000 rw-p 00025000 08:03 1594062                    /usr/lib/ld-2.26.so
+7f94e6041000-7f94e6042000 rw-p 00000000 00:00 0 
+7fff45817000-7fff45838000 rw-p 00000000 00:00 0                          [stack]
+7fff45989000-7fff4598c000 r--p 00000000 00:00 0                          [vvar]
+7fff4598c000-7fff4598e000 r-xp 00000000 00:00 0                          [vdso]
 ffffffffff600000-ffffffffff601000 r-xp 00000000 00:00 0                  [vsyscall]
 called round_up
 returning 0x000000200000
 called round_down
 returning 0x000000200000
-55cca3c41000-55cca3c43000 r-xp 00000000 fe:00 2392139                    /chakra/home/universalpackagemanager/chroot/arch-chroot/arch-pkg-build/packages/glibc/repos/core-x86_64/min-dl/loader/files/loader
-55cca3e42000-55cca3e43000 r--p 00001000 fe:00 2392139                    /chakra/home/universalpackagemanager/chroot/arch-chroot/arch-pkg-build/packages/glibc/repos/core-x86_64/min-dl/loader/files/loader
-55cca3e43000-55cca3e44000 rw-p 00002000 fe:00 2392139                    /chakra/home/universalpackagemanager/chroot/arch-chroot/arch-pkg-build/packages/glibc/repos/core-x86_64/min-dl/loader/files/loader
-55cca403a000-55cca405b000 rw-p 00000000 00:00 0                          [heap]
-7f7a90472000-7f7aa0000000 rw-p 00000000 00:00 0 
-7f7aa0000000-7f7aa0200000 r-xp 00000000 00:00 0 
-7f7aa0200000-7f7aa0400000 -wxp 00000000 00:00 0 
-7f7aa0400000-7f7aa0874000 rw-p 00000000 00:00 0 
-7f7aa0874000-7f7aa0a20000 r-xp 00000000 08:03 1593900                    /usr/lib/libc-2.26.so
-7f7aa0a20000-7f7aa0c20000 ---p 001ac000 08:03 1593900                    /usr/lib/libc-2.26.so
-7f7aa0c20000-7f7aa0c24000 r--p 001ac000 08:03 1593900                    /usr/lib/libc-2.26.so
-7f7aa0c24000-7f7aa0c26000 rw-p 001b0000 08:03 1593900                    /usr/lib/libc-2.26.so
-7f7aa0c26000-7f7aa0c2a000 rw-p 00000000 00:00 0 
-7f7aa0c2a000-7f7aa0c36000 r-xp 00000000 fe:00 2392135                    /chakra/home/universalpackagemanager/chroot/arch-chroot/arch-pkg-build/packages/glibc/repos/core-x86_64/min-dl/loader/files/libstring.so
-7f7aa0c36000-7f7aa0e35000 ---p 0000c000 fe:00 2392135                    /chakra/home/universalpackagemanager/chroot/arch-chroot/arch-pkg-build/packages/glibc/repos/core-x86_64/min-dl/loader/files/libstring.so
-7f7aa0e35000-7f7aa0e36000 r--p 0000b000 fe:00 2392135                    /chakra/home/universalpackagemanager/chroot/arch-chroot/arch-pkg-build/packages/glibc/repos/core-x86_64/min-dl/loader/files/libstring.so
-7f7aa0e36000-7f7aa0e37000 rw-p 0000c000 fe:00 2392135                    /chakra/home/universalpackagemanager/chroot/arch-chroot/arch-pkg-build/packages/glibc/repos/core-x86_64/min-dl/loader/files/libstring.so
-7f7aa0e37000-7f7aa0e3a000 rw-p 00000000 00:00 0 
-7f7aa0e3a000-7f7aa0e74000 r-xp 00000000 fe:00 2392137                    /chakra/home/universalpackagemanager/chroot/arch-chroot/arch-pkg-build/packages/glibc/repos/core-x86_64/min-dl/loader/files/readelf_.so
-7f7aa0e74000-7f7aa1074000 ---p 0003a000 fe:00 2392137                    /chakra/home/universalpackagemanager/chroot/arch-chroot/arch-pkg-build/packages/glibc/repos/core-x86_64/min-dl/loader/files/readelf_.so
-7f7aa1074000-7f7aa1076000 r--p 0003a000 fe:00 2392137                    /chakra/home/universalpackagemanager/chroot/arch-chroot/arch-pkg-build/packages/glibc/repos/core-x86_64/min-dl/loader/files/readelf_.so
-7f7aa1076000-7f7aa1077000 rw-p 0003c000 fe:00 2392137                    /chakra/home/universalpackagemanager/chroot/arch-chroot/arch-pkg-build/packages/glibc/repos/core-x86_64/min-dl/loader/files/readelf_.so
-7f7aa1077000-7f7aa109c000 r-xp 00000000 08:03 1594062                    /usr/lib/ld-2.26.so
-7f7aa1263000-7f7aa1266000 rw-p 00000000 00:00 0 
-7f7aa1290000-7f7aa1299000 r--p 00000000 fe:00 2392138                    /chakra/home/universalpackagemanager/chroot/arch-chroot/arch-pkg-build/packages/glibc/repos/core-x86_64/min-dl/loader/files/test_lib.so
-7f7aa1299000-7f7aa129b000 rw-p 00000000 00:00 0 
-7f7aa129b000-7f7aa129c000 r--p 00024000 08:03 1594062                    /usr/lib/ld-2.26.so
-7f7aa129c000-7f7aa129d000 rw-p 00025000 08:03 1594062                    /usr/lib/ld-2.26.so
-7f7aa129d000-7f7aa129e000 rw-p 00000000 00:00 0 
-7ffcc318d000-7ffcc31ae000 rw-p 00000000 00:00 0                          [stack]
-7ffcc31b7000-7ffcc31ba000 r--p 00000000 00:00 0                          [vvar]
-7ffcc31ba000-7ffcc31bc000 r-xp 00000000 00:00 0                          [vdso]
+55c5784ea000-55c5784ec000 r-xp 00000000 fe:00 2396161                    /chakra/home/universalpackagemanager/chroot/arch-chroot/arch-pkg-build/packages/glibc/repos/core-x86_64/min-dl/loader/files/loader
+55c5786eb000-55c5786ec000 r--p 00001000 fe:00 2396161                    /chakra/home/universalpackagemanager/chroot/arch-chroot/arch-pkg-build/packages/glibc/repos/core-x86_64/min-dl/loader/files/loader
+55c5786ec000-55c5786ed000 rw-p 00002000 fe:00 2396161                    /chakra/home/universalpackagemanager/chroot/arch-chroot/arch-pkg-build/packages/glibc/repos/core-x86_64/min-dl/loader/files/loader
+55c578c32000-55c578c53000 rw-p 00000000 00:00 0                          [heap]
+7f94d5213000-7f94e0000000 rw-p 00000000 00:00 0 
+7f94e0000000-7f94e0200000 r-xp 00000000 00:00 0 
+7f94e0200000-7f94e0400000 -wxp 00000000 00:00 0 
+7f94e0400000-7f94e5615000 rw-p 00000000 00:00 0 
+7f94e5615000-7f94e57c1000 r-xp 00000000 08:03 1593900                    /usr/lib/libc-2.26.so
+7f94e57c1000-7f94e59c1000 ---p 001ac000 08:03 1593900                    /usr/lib/libc-2.26.so
+7f94e59c1000-7f94e59c5000 r--p 001ac000 08:03 1593900                    /usr/lib/libc-2.26.so
+7f94e59c5000-7f94e59c7000 rw-p 001b0000 08:03 1593900                    /usr/lib/libc-2.26.so
+7f94e59c7000-7f94e59cb000 rw-p 00000000 00:00 0 
+7f94e59cb000-7f94e59d7000 r-xp 00000000 fe:00 2392138                    /chakra/home/universalpackagemanager/chroot/arch-chroot/arch-pkg-build/packages/glibc/repos/core-x86_64/min-dl/loader/files/libstring.so
+7f94e59d7000-7f94e5bd6000 ---p 0000c000 fe:00 2392138                    /chakra/home/universalpackagemanager/chroot/arch-chroot/arch-pkg-build/packages/glibc/repos/core-x86_64/min-dl/loader/files/libstring.so
+7f94e5bd6000-7f94e5bd7000 r--p 0000b000 fe:00 2392138                    /chakra/home/universalpackagemanager/chroot/arch-chroot/arch-pkg-build/packages/glibc/repos/core-x86_64/min-dl/loader/files/libstring.so
+7f94e5bd7000-7f94e5bd8000 rw-p 0000c000 fe:00 2392138                    /chakra/home/universalpackagemanager/chroot/arch-chroot/arch-pkg-build/packages/glibc/repos/core-x86_64/min-dl/loader/files/libstring.so
+7f94e5bd8000-7f94e5bdb000 rw-p 00000000 00:00 0 
+7f94e5bdb000-7f94e5c18000 r-xp 00000000 fe:00 2396159                    /chakra/home/universalpackagemanager/chroot/arch-chroot/arch-pkg-build/packages/glibc/repos/core-x86_64/min-dl/loader/files/readelf_.so
+7f94e5c18000-7f94e5e18000 ---p 0003d000 fe:00 2396159                    /chakra/home/universalpackagemanager/chroot/arch-chroot/arch-pkg-build/packages/glibc/repos/core-x86_64/min-dl/loader/files/readelf_.so
+7f94e5e18000-7f94e5e1a000 r--p 0003d000 fe:00 2396159                    /chakra/home/universalpackagemanager/chroot/arch-chroot/arch-pkg-build/packages/glibc/repos/core-x86_64/min-dl/loader/files/readelf_.so
+7f94e5e1a000-7f94e5e1b000 rw-p 0003f000 fe:00 2396159                    /chakra/home/universalpackagemanager/chroot/arch-chroot/arch-pkg-build/packages/glibc/repos/core-x86_64/min-dl/loader/files/readelf_.so
+7f94e5e1b000-7f94e5e40000 r-xp 00000000 08:03 1594062                    /usr/lib/ld-2.26.so
+7f94e6007000-7f94e600a000 rw-p 00000000 00:00 0 
+7f94e6034000-7f94e603d000 r--p 00000000 fe:00 2396160                    /chakra/home/universalpackagemanager/chroot/arch-chroot/arch-pkg-build/packages/glibc/repos/core-x86_64/min-dl/loader/files/test_lib.so
+7f94e603d000-7f94e603f000 rw-p 00000000 00:00 0 
+7f94e603f000-7f94e6040000 r--p 00024000 08:03 1594062                    /usr/lib/ld-2.26.so
+7f94e6040000-7f94e6041000 rw-p 00025000 08:03 1594062                    /usr/lib/ld-2.26.so
+7f94e6041000-7f94e6042000 rw-p 00000000 00:00 0 
+7fff45817000-7fff45838000 rw-p 00000000 00:00 0                          [stack]
+7fff45989000-7fff4598c000 r--p 00000000 00:00 0                          [vvar]
+7fff4598c000-7fff4598e000 r-xp 00000000 00:00 0                          [vdso]
 ffffffffff600000-ffffffffff601000 r-xp 00000000 00:00 0                  [vsyscall]
 called round_up
-returning 0x55cca403b000
-func = foo
-OK!
-Test musl libc functions >
-current index 0 holds "./files/test_lib.so"
-searching indexes for "/lib/ld-musl-x86_64.so.1" incase it has already been loaded
+returning 0x55c578c33000
 current index 0 holds "./files/test_lib.so"
 WARNING: index 1 is (null)
+dlsym: adding  from ./files/test_lib.so
+current index 1 holds "NULL"
+searching indexes for "/lib/libc.so.6" incase it has already been loaded
+current index 0 holds "./files/test_lib.so"
+current index 1 holds "NULL"
+attempting to save to index 1
 called round_up
-returning 0x7f7a80000000
-memmove: round_up(0x7f7a7ffda010, 0x000010000000)+0x000000200000 = 0x7f7a80200000
+returning 0x7f94d0000000
+memmove: round_up(0x7f94c4a65010, 0x000010000000)+0x000000200000 = 0x7f94d0200000
 called round_up
-returning 0x7f7a80000000
-dest = 0x7f7a80200000
-dest = 0x7f7a80000000
+returning 0x7f94d0000000
+dest = 0x7f94d0200000
+dest = 0x7f94d0000000
+called round_down
+returning 0x0000003ac000
+called round_up
+returning 0x000000200000
+called round_down
+returning          (nil)
+55c5784ea000-55c5784ec000 r-xp 00000000 fe:00 2396161                    /chakra/home/universalpackagemanager/chroot/arch-chroot/arch-pkg-build/packages/glibc/repos/core-x86_64/min-dl/loader/files/loader
+55c5786eb000-55c5786ec000 r--p 00001000 fe:00 2396161                    /chakra/home/universalpackagemanager/chroot/arch-chroot/arch-pkg-build/packages/glibc/repos/core-x86_64/min-dl/loader/files/loader
+55c5786ec000-55c5786ed000 rw-p 00002000 fe:00 2396161                    /chakra/home/universalpackagemanager/chroot/arch-chroot/arch-pkg-build/packages/glibc/repos/core-x86_64/min-dl/loader/files/loader
+55c578c32000-55c578c53000 rw-p 00000000 00:00 0                          [heap]
+7f94c4a65000-7f94d0000000 rw-p 00000000 00:00 0 
+7f94d0000000-7f94d0200000 r-xp 00000000 00:00 0 
+7f94d0200000-7f94d501b000 rw-p 00000000 00:00 0 
+7f94d501b000-7f94d5213000 r--p 00000000 08:03 1593900                    /usr/lib/libc-2.26.so
+7f94d5213000-7f94e0000000 rw-p 00000000 00:00 0 
+7f94e0000000-7f94e0200000 r-xp 00000000 00:00 0 
+7f94e0200000-7f94e0400000 -wxp 00000000 00:00 0 
+7f94e0400000-7f94e5615000 rw-p 00000000 00:00 0 
+7f94e5615000-7f94e57c1000 r-xp 00000000 08:03 1593900                    /usr/lib/libc-2.26.so
+7f94e57c1000-7f94e59c1000 ---p 001ac000 08:03 1593900                    /usr/lib/libc-2.26.so
+7f94e59c1000-7f94e59c5000 r--p 001ac000 08:03 1593900                    /usr/lib/libc-2.26.so
+7f94e59c5000-7f94e59c7000 rw-p 001b0000 08:03 1593900                    /usr/lib/libc-2.26.so
+7f94e59c7000-7f94e59cb000 rw-p 00000000 00:00 0 
+7f94e59cb000-7f94e59d7000 r-xp 00000000 fe:00 2392138                    /chakra/home/universalpackagemanager/chroot/arch-chroot/arch-pkg-build/packages/glibc/repos/core-x86_64/min-dl/loader/files/libstring.so
+7f94e59d7000-7f94e5bd6000 ---p 0000c000 fe:00 2392138                    /chakra/home/universalpackagemanager/chroot/arch-chroot/arch-pkg-build/packages/glibc/repos/core-x86_64/min-dl/loader/files/libstring.so
+7f94e5bd6000-7f94e5bd7000 r--p 0000b000 fe:00 2392138                    /chakra/home/universalpackagemanager/chroot/arch-chroot/arch-pkg-build/packages/glibc/repos/core-x86_64/min-dl/loader/files/libstring.so
+7f94e5bd7000-7f94e5bd8000 rw-p 0000c000 fe:00 2392138                    /chakra/home/universalpackagemanager/chroot/arch-chroot/arch-pkg-build/packages/glibc/repos/core-x86_64/min-dl/loader/files/libstring.so
+7f94e5bd8000-7f94e5bdb000 rw-p 00000000 00:00 0 
+7f94e5bdb000-7f94e5c18000 r-xp 00000000 fe:00 2396159                    /chakra/home/universalpackagemanager/chroot/arch-chroot/arch-pkg-build/packages/glibc/repos/core-x86_64/min-dl/loader/files/readelf_.so
+7f94e5c18000-7f94e5e18000 ---p 0003d000 fe:00 2396159                    /chakra/home/universalpackagemanager/chroot/arch-chroot/arch-pkg-build/packages/glibc/repos/core-x86_64/min-dl/loader/files/readelf_.so
+7f94e5e18000-7f94e5e1a000 r--p 0003d000 fe:00 2396159                    /chakra/home/universalpackagemanager/chroot/arch-chroot/arch-pkg-build/packages/glibc/repos/core-x86_64/min-dl/loader/files/readelf_.so
+7f94e5e1a000-7f94e5e1b000 rw-p 0003f000 fe:00 2396159                    /chakra/home/universalpackagemanager/chroot/arch-chroot/arch-pkg-build/packages/glibc/repos/core-x86_64/min-dl/loader/files/readelf_.so
+7f94e5e1b000-7f94e5e40000 r-xp 00000000 08:03 1594062                    /usr/lib/ld-2.26.so
+7f94e6007000-7f94e600a000 rw-p 00000000 00:00 0 
+7f94e6034000-7f94e603d000 r--p 00000000 fe:00 2396160                    /chakra/home/universalpackagemanager/chroot/arch-chroot/arch-pkg-build/packages/glibc/repos/core-x86_64/min-dl/loader/files/test_lib.so
+7f94e603d000-7f94e603f000 rw-p 00000000 00:00 0 
+7f94e603f000-7f94e6040000 r--p 00024000 08:03 1594062                    /usr/lib/ld-2.26.so
+7f94e6040000-7f94e6041000 rw-p 00025000 08:03 1594062                    /usr/lib/ld-2.26.so
+7f94e6041000-7f94e6042000 rw-p 00000000 00:00 0 
+7fff45817000-7fff45838000 rw-p 00000000 00:00 0                          [stack]
+7fff45989000-7fff4598c000 r--p 00000000 00:00 0                          [vvar]
+7fff4598c000-7fff4598e000 r-xp 00000000 00:00 0                          [vdso]
+ffffffffff600000-ffffffffff601000 r-xp 00000000 00:00 0                  [vsyscall]
+called round_up
+returning 0x000000200000
+called round_down
+returning 0x000000200000
+55c5784ea000-55c5784ec000 r-xp 00000000 fe:00 2396161                    /chakra/home/universalpackagemanager/chroot/arch-chroot/arch-pkg-build/packages/glibc/repos/core-x86_64/min-dl/loader/files/loader
+55c5786eb000-55c5786ec000 r--p 00001000 fe:00 2396161                    /chakra/home/universalpackagemanager/chroot/arch-chroot/arch-pkg-build/packages/glibc/repos/core-x86_64/min-dl/loader/files/loader
+55c5786ec000-55c5786ed000 rw-p 00002000 fe:00 2396161                    /chakra/home/universalpackagemanager/chroot/arch-chroot/arch-pkg-build/packages/glibc/repos/core-x86_64/min-dl/loader/files/loader
+55c578c32000-55c578c53000 rw-p 00000000 00:00 0                          [heap]
+7f94c4a65000-7f94d0000000 rw-p 00000000 00:00 0 
+7f94d0000000-7f94d0200000 r-xp 00000000 00:00 0 
+7f94d0200000-7f94d0400000 -wxp 00000000 00:00 0 
+7f94d0400000-7f94d501b000 rw-p 00000000 00:00 0 
+7f94d501b000-7f94d5213000 r--p 00000000 08:03 1593900                    /usr/lib/libc-2.26.so
+7f94d5213000-7f94e0000000 rw-p 00000000 00:00 0 
+7f94e0000000-7f94e0200000 r-xp 00000000 00:00 0 
+7f94e0200000-7f94e0400000 -wxp 00000000 00:00 0 
+7f94e0400000-7f94e5615000 rw-p 00000000 00:00 0 
+7f94e5615000-7f94e57c1000 r-xp 00000000 08:03 1593900                    /usr/lib/libc-2.26.so
+7f94e57c1000-7f94e59c1000 ---p 001ac000 08:03 1593900                    /usr/lib/libc-2.26.so
+7f94e59c1000-7f94e59c5000 r--p 001ac000 08:03 1593900                    /usr/lib/libc-2.26.so
+7f94e59c5000-7f94e59c7000 rw-p 001b0000 08:03 1593900                    /usr/lib/libc-2.26.so
+7f94e59c7000-7f94e59cb000 rw-p 00000000 00:00 0 
+7f94e59cb000-7f94e59d7000 r-xp 00000000 fe:00 2392138                    /chakra/home/universalpackagemanager/chroot/arch-chroot/arch-pkg-build/packages/glibc/repos/core-x86_64/min-dl/loader/files/libstring.so
+7f94e59d7000-7f94e5bd6000 ---p 0000c000 fe:00 2392138                    /chakra/home/universalpackagemanager/chroot/arch-chroot/arch-pkg-build/packages/glibc/repos/core-x86_64/min-dl/loader/files/libstring.so
+7f94e5bd6000-7f94e5bd7000 r--p 0000b000 fe:00 2392138                    /chakra/home/universalpackagemanager/chroot/arch-chroot/arch-pkg-build/packages/glibc/repos/core-x86_64/min-dl/loader/files/libstring.so
+7f94e5bd7000-7f94e5bd8000 rw-p 0000c000 fe:00 2392138                    /chakra/home/universalpackagemanager/chroot/arch-chroot/arch-pkg-build/packages/glibc/repos/core-x86_64/min-dl/loader/files/libstring.so
+7f94e5bd8000-7f94e5bdb000 rw-p 00000000 00:00 0 
+7f94e5bdb000-7f94e5c18000 r-xp 00000000 fe:00 2396159                    /chakra/home/universalpackagemanager/chroot/arch-chroot/arch-pkg-build/packages/glibc/repos/core-x86_64/min-dl/loader/files/readelf_.so
+7f94e5c18000-7f94e5e18000 ---p 0003d000 fe:00 2396159                    /chakra/home/universalpackagemanager/chroot/arch-chroot/arch-pkg-build/packages/glibc/repos/core-x86_64/min-dl/loader/files/readelf_.so
+7f94e5e18000-7f94e5e1a000 r--p 0003d000 fe:00 2396159                    /chakra/home/universalpackagemanager/chroot/arch-chroot/arch-pkg-build/packages/glibc/repos/core-x86_64/min-dl/loader/files/readelf_.so
+7f94e5e1a000-7f94e5e1b000 rw-p 0003f000 fe:00 2396159                    /chakra/home/universalpackagemanager/chroot/arch-chroot/arch-pkg-build/packages/glibc/repos/core-x86_64/min-dl/loader/files/readelf_.so
+7f94e5e1b000-7f94e5e40000 r-xp 00000000 08:03 1594062                    /usr/lib/ld-2.26.so
+7f94e6007000-7f94e600a000 rw-p 00000000 00:00 0 
+7f94e6034000-7f94e603d000 r--p 00000000 fe:00 2396160                    /chakra/home/universalpackagemanager/chroot/arch-chroot/arch-pkg-build/packages/glibc/repos/core-x86_64/min-dl/loader/files/test_lib.so
+7f94e603d000-7f94e603f000 rw-p 00000000 00:00 0 
+7f94e603f000-7f94e6040000 r--p 00024000 08:03 1594062                    /usr/lib/ld-2.26.so
+7f94e6040000-7f94e6041000 rw-p 00025000 08:03 1594062                    /usr/lib/ld-2.26.so
+7f94e6041000-7f94e6042000 rw-p 00000000 00:00 0 
+7fff45817000-7fff45838000 rw-p 00000000 00:00 0                          [stack]
+7fff45989000-7fff4598c000 r--p 00000000 00:00 0                          [vvar]
+7fff4598c000-7fff4598e000 r-xp 00000000 00:00 0                          [vdso]
+ffffffffff600000-ffffffffff601000 r-xp 00000000 00:00 0                  [vsyscall]
+called round_up
+returning 0x7f94e5e57000
+current index 0 holds "./files/test_lib.so"
+current index 1 holds "/lib/libc.so.6"
+WARNING: index 2 is (null)
+dlsym: adding  from /lib/libc.so.6
+current index 2 holds "NULL"
+searching indexes for "/lib/ld-musl-x86_64.so.1" incase it has already been loaded
+current index 0 holds "./files/test_lib.so"
+current index 1 holds "/lib/libc.so.6"
+current index 2 holds "NULL"
+attempting to save to index 2
+called round_up
+returning 0x7f94c0000000
+memmove: round_up(0x7f94b4519010, 0x000010000000)+0x000000200000 = 0x7f94c0200000
+called round_up
+returning 0x7f94c0000000
+dest = 0x7f94c0200000
+dest = 0x7f94c0000000
 called round_down
 returning 0x000000293000
 called round_up
 returning 0x000000200000
 called round_down
 returning          (nil)
-55cca3c41000-55cca3c43000 r-xp 00000000 fe:00 2392139                    /chakra/home/universalpackagemanager/chroot/arch-chroot/arch-pkg-build/packages/glibc/repos/core-x86_64/min-dl/loader/files/loader
-55cca3e42000-55cca3e43000 r--p 00001000 fe:00 2392139                    /chakra/home/universalpackagemanager/chroot/arch-chroot/arch-pkg-build/packages/glibc/repos/core-x86_64/min-dl/loader/files/loader
-55cca3e43000-55cca3e44000 rw-p 00002000 fe:00 2392139                    /chakra/home/universalpackagemanager/chroot/arch-chroot/arch-pkg-build/packages/glibc/repos/core-x86_64/min-dl/loader/files/loader
-55cca403a000-55cca405b000 rw-p 00000000 00:00 0                          [heap]
-7f7a7ffda000-7f7a80000000 rw-p 00000000 00:00 0 
-7f7a80000000-7f7a80200000 r-xp 00000000 00:00 0 
-7f7a80200000-7f7aa0000000 rw-p 00000000 00:00 0 
-7f7aa0000000-7f7aa0200000 r-xp 00000000 00:00 0 
-7f7aa0200000-7f7aa0400000 -wxp 00000000 00:00 0 
-7f7aa0400000-7f7aa0874000 rw-p 00000000 00:00 0 
-7f7aa0874000-7f7aa0a20000 r-xp 00000000 08:03 1593900                    /usr/lib/libc-2.26.so
-7f7aa0a20000-7f7aa0c20000 ---p 001ac000 08:03 1593900                    /usr/lib/libc-2.26.so
-7f7aa0c20000-7f7aa0c24000 r--p 001ac000 08:03 1593900                    /usr/lib/libc-2.26.so
-7f7aa0c24000-7f7aa0c26000 rw-p 001b0000 08:03 1593900                    /usr/lib/libc-2.26.so
-7f7aa0c26000-7f7aa0c2a000 rw-p 00000000 00:00 0 
-7f7aa0c2a000-7f7aa0c36000 r-xp 00000000 fe:00 2392135                    /chakra/home/universalpackagemanager/chroot/arch-chroot/arch-pkg-build/packages/glibc/repos/core-x86_64/min-dl/loader/files/libstring.so
-7f7aa0c36000-7f7aa0e35000 ---p 0000c000 fe:00 2392135                    /chakra/home/universalpackagemanager/chroot/arch-chroot/arch-pkg-build/packages/glibc/repos/core-x86_64/min-dl/loader/files/libstring.so
-7f7aa0e35000-7f7aa0e36000 r--p 0000b000 fe:00 2392135                    /chakra/home/universalpackagemanager/chroot/arch-chroot/arch-pkg-build/packages/glibc/repos/core-x86_64/min-dl/loader/files/libstring.so
-7f7aa0e36000-7f7aa0e37000 rw-p 0000c000 fe:00 2392135                    /chakra/home/universalpackagemanager/chroot/arch-chroot/arch-pkg-build/packages/glibc/repos/core-x86_64/min-dl/loader/files/libstring.so
-7f7aa0e37000-7f7aa0e3a000 rw-p 00000000 00:00 0 
-7f7aa0e3a000-7f7aa0e74000 r-xp 00000000 fe:00 2392137                    /chakra/home/universalpackagemanager/chroot/arch-chroot/arch-pkg-build/packages/glibc/repos/core-x86_64/min-dl/loader/files/readelf_.so
-7f7aa0e74000-7f7aa1074000 ---p 0003a000 fe:00 2392137                    /chakra/home/universalpackagemanager/chroot/arch-chroot/arch-pkg-build/packages/glibc/repos/core-x86_64/min-dl/loader/files/readelf_.so
-7f7aa1074000-7f7aa1076000 r--p 0003a000 fe:00 2392137                    /chakra/home/universalpackagemanager/chroot/arch-chroot/arch-pkg-build/packages/glibc/repos/core-x86_64/min-dl/loader/files/readelf_.so
-7f7aa1076000-7f7aa1077000 rw-p 0003c000 fe:00 2392137                    /chakra/home/universalpackagemanager/chroot/arch-chroot/arch-pkg-build/packages/glibc/repos/core-x86_64/min-dl/loader/files/readelf_.so
-7f7aa1077000-7f7aa109c000 r-xp 00000000 08:03 1594062                    /usr/lib/ld-2.26.so
-7f7aa11af000-7f7aa1263000 r--p 00000000 fe:00 2396120                    /chakra/home/universalpackagemanager/chroot/arch-chroot/arch-pkg-build/packages/glibc/repos/core-x86_64/min-dl/loader/musl/lib/libc.so
-7f7aa1263000-7f7aa1266000 rw-p 00000000 00:00 0 
-7f7aa1290000-7f7aa1299000 r--p 00000000 fe:00 2392138                    /chakra/home/universalpackagemanager/chroot/arch-chroot/arch-pkg-build/packages/glibc/repos/core-x86_64/min-dl/loader/files/test_lib.so
-7f7aa1299000-7f7aa129b000 rw-p 00000000 00:00 0 
-7f7aa129b000-7f7aa129c000 r--p 00024000 08:03 1594062                    /usr/lib/ld-2.26.so
-7f7aa129c000-7f7aa129d000 rw-p 00025000 08:03 1594062                    /usr/lib/ld-2.26.so
-7f7aa129d000-7f7aa129e000 rw-p 00000000 00:00 0 
-7ffcc318d000-7ffcc31ae000 rw-p 00000000 00:00 0                          [stack]
-7ffcc31b7000-7ffcc31ba000 r--p 00000000 00:00 0                          [vvar]
-7ffcc31ba000-7ffcc31bc000 r-xp 00000000 00:00 0                          [vdso]
+55c5784ea000-55c5784ec000 r-xp 00000000 fe:00 2396161                    /chakra/home/universalpackagemanager/chroot/arch-chroot/arch-pkg-build/packages/glibc/repos/core-x86_64/min-dl/loader/files/loader
+55c5786eb000-55c5786ec000 r--p 00001000 fe:00 2396161                    /chakra/home/universalpackagemanager/chroot/arch-chroot/arch-pkg-build/packages/glibc/repos/core-x86_64/min-dl/loader/files/loader
+55c5786ec000-55c5786ed000 rw-p 00002000 fe:00 2396161                    /chakra/home/universalpackagemanager/chroot/arch-chroot/arch-pkg-build/packages/glibc/repos/core-x86_64/min-dl/loader/files/loader
+55c578c32000-55c578c53000 rw-p 00000000 00:00 0                          [heap]
+7f94b4519000-7f94c0000000 rw-p 00000000 00:00 0 
+7f94c0000000-7f94c0200000 r-xp 00000000 00:00 0 
+7f94c0200000-7f94c49b1000 rw-p 00000000 00:00 0 
+7f94c49b1000-7f94c4a65000 r--p 00000000 fe:00 2396120                    /chakra/home/universalpackagemanager/chroot/arch-chroot/arch-pkg-build/packages/glibc/repos/core-x86_64/min-dl/loader/musl/lib/libc.so
+7f94c4a65000-7f94d0000000 rw-p 00000000 00:00 0 
+7f94d0000000-7f94d0200000 r-xp 00000000 00:00 0 
+7f94d0200000-7f94d0400000 -wxp 00000000 00:00 0 
+7f94d0400000-7f94d501b000 rw-p 00000000 00:00 0 
+7f94d501b000-7f94d5213000 r--p 00000000 08:03 1593900                    /usr/lib/libc-2.26.so
+7f94d5213000-7f94e0000000 rw-p 00000000 00:00 0 
+7f94e0000000-7f94e0200000 r-xp 00000000 00:00 0 
+7f94e0200000-7f94e0400000 -wxp 00000000 00:00 0 
+7f94e0400000-7f94e5615000 rw-p 00000000 00:00 0 
+7f94e5615000-7f94e57c1000 r-xp 00000000 08:03 1593900                    /usr/lib/libc-2.26.so
+7f94e57c1000-7f94e59c1000 ---p 001ac000 08:03 1593900                    /usr/lib/libc-2.26.so
+7f94e59c1000-7f94e59c5000 r--p 001ac000 08:03 1593900                    /usr/lib/libc-2.26.so
+7f94e59c5000-7f94e59c7000 rw-p 001b0000 08:03 1593900                    /usr/lib/libc-2.26.so
+7f94e59c7000-7f94e59cb000 rw-p 00000000 00:00 0 
+7f94e59cb000-7f94e59d7000 r-xp 00000000 fe:00 2392138                    /chakra/home/universalpackagemanager/chroot/arch-chroot/arch-pkg-build/packages/glibc/repos/core-x86_64/min-dl/loader/files/libstring.so
+7f94e59d7000-7f94e5bd6000 ---p 0000c000 fe:00 2392138                    /chakra/home/universalpackagemanager/chroot/arch-chroot/arch-pkg-build/packages/glibc/repos/core-x86_64/min-dl/loader/files/libstring.so
+7f94e5bd6000-7f94e5bd7000 r--p 0000b000 fe:00 2392138                    /chakra/home/universalpackagemanager/chroot/arch-chroot/arch-pkg-build/packages/glibc/repos/core-x86_64/min-dl/loader/files/libstring.so
+7f94e5bd7000-7f94e5bd8000 rw-p 0000c000 fe:00 2392138                    /chakra/home/universalpackagemanager/chroot/arch-chroot/arch-pkg-build/packages/glibc/repos/core-x86_64/min-dl/loader/files/libstring.so
+7f94e5bd8000-7f94e5bdb000 rw-p 00000000 00:00 0 
+7f94e5bdb000-7f94e5c18000 r-xp 00000000 fe:00 2396159                    /chakra/home/universalpackagemanager/chroot/arch-chroot/arch-pkg-build/packages/glibc/repos/core-x86_64/min-dl/loader/files/readelf_.so
+7f94e5c18000-7f94e5e18000 ---p 0003d000 fe:00 2396159                    /chakra/home/universalpackagemanager/chroot/arch-chroot/arch-pkg-build/packages/glibc/repos/core-x86_64/min-dl/loader/files/readelf_.so
+7f94e5e18000-7f94e5e1a000 r--p 0003d000 fe:00 2396159                    /chakra/home/universalpackagemanager/chroot/arch-chroot/arch-pkg-build/packages/glibc/repos/core-x86_64/min-dl/loader/files/readelf_.so
+7f94e5e1a000-7f94e5e1b000 rw-p 0003f000 fe:00 2396159                    /chakra/home/universalpackagemanager/chroot/arch-chroot/arch-pkg-build/packages/glibc/repos/core-x86_64/min-dl/loader/files/readelf_.so
+7f94e5e1b000-7f94e5e40000 r-xp 00000000 08:03 1594062                    /usr/lib/ld-2.26.so
+7f94e5e56000-7f94e600a000 rw-p 00000000 00:00 0 
+7f94e6034000-7f94e603d000 r--p 00000000 fe:00 2396160                    /chakra/home/universalpackagemanager/chroot/arch-chroot/arch-pkg-build/packages/glibc/repos/core-x86_64/min-dl/loader/files/test_lib.so
+7f94e603d000-7f94e603f000 rw-p 00000000 00:00 0 
+7f94e603f000-7f94e6040000 r--p 00024000 08:03 1594062                    /usr/lib/ld-2.26.so
+7f94e6040000-7f94e6041000 rw-p 00025000 08:03 1594062                    /usr/lib/ld-2.26.so
+7f94e6041000-7f94e6042000 rw-p 00000000 00:00 0 
+7fff45817000-7fff45838000 rw-p 00000000 00:00 0                          [stack]
+7fff45989000-7fff4598c000 r--p 00000000 00:00 0                          [vvar]
+7fff4598c000-7fff4598e000 r-xp 00000000 00:00 0                          [vdso]
 ffffffffff600000-ffffffffff601000 r-xp 00000000 00:00 0                  [vsyscall]
 called round_up
 returning 0x000000200000
 called round_down
 returning 0x000000200000
-55cca3c41000-55cca3c43000 r-xp 00000000 fe:00 2392139                    /chakra/home/universalpackagemanager/chroot/arch-chroot/arch-pkg-build/packages/glibc/repos/core-x86_64/min-dl/loader/files/loader
-55cca3e42000-55cca3e43000 r--p 00001000 fe:00 2392139                    /chakra/home/universalpackagemanager/chroot/arch-chroot/arch-pkg-build/packages/glibc/repos/core-x86_64/min-dl/loader/files/loader
-55cca3e43000-55cca3e44000 rw-p 00002000 fe:00 2392139                    /chakra/home/universalpackagemanager/chroot/arch-chroot/arch-pkg-build/packages/glibc/repos/core-x86_64/min-dl/loader/files/loader
-55cca403a000-55cca405b000 rw-p 00000000 00:00 0                          [heap]
-7f7a7ffda000-7f7a80000000 rw-p 00000000 00:00 0 
-7f7a80000000-7f7a80200000 r-xp 00000000 00:00 0 
-7f7a80200000-7f7a80400000 -wxp 00000000 00:00 0 
-7f7a80400000-7f7aa0000000 rw-p 00000000 00:00 0 
-7f7aa0000000-7f7aa0200000 r-xp 00000000 00:00 0 
-7f7aa0200000-7f7aa0400000 -wxp 00000000 00:00 0 
-7f7aa0400000-7f7aa0874000 rw-p 00000000 00:00 0 
-7f7aa0874000-7f7aa0a20000 r-xp 00000000 08:03 1593900                    /usr/lib/libc-2.26.so
-7f7aa0a20000-7f7aa0c20000 ---p 001ac000 08:03 1593900                    /usr/lib/libc-2.26.so
-7f7aa0c20000-7f7aa0c24000 r--p 001ac000 08:03 1593900                    /usr/lib/libc-2.26.so
-7f7aa0c24000-7f7aa0c26000 rw-p 001b0000 08:03 1593900                    /usr/lib/libc-2.26.so
-7f7aa0c26000-7f7aa0c2a000 rw-p 00000000 00:00 0 
-7f7aa0c2a000-7f7aa0c36000 r-xp 00000000 fe:00 2392135                    /chakra/home/universalpackagemanager/chroot/arch-chroot/arch-pkg-build/packages/glibc/repos/core-x86_64/min-dl/loader/files/libstring.so
-7f7aa0c36000-7f7aa0e35000 ---p 0000c000 fe:00 2392135                    /chakra/home/universalpackagemanager/chroot/arch-chroot/arch-pkg-build/packages/glibc/repos/core-x86_64/min-dl/loader/files/libstring.so
-7f7aa0e35000-7f7aa0e36000 r--p 0000b000 fe:00 2392135                    /chakra/home/universalpackagemanager/chroot/arch-chroot/arch-pkg-build/packages/glibc/repos/core-x86_64/min-dl/loader/files/libstring.so
-7f7aa0e36000-7f7aa0e37000 rw-p 0000c000 fe:00 2392135                    /chakra/home/universalpackagemanager/chroot/arch-chroot/arch-pkg-build/packages/glibc/repos/core-x86_64/min-dl/loader/files/libstring.so
-7f7aa0e37000-7f7aa0e3a000 rw-p 00000000 00:00 0 
-7f7aa0e3a000-7f7aa0e74000 r-xp 00000000 fe:00 2392137                    /chakra/home/universalpackagemanager/chroot/arch-chroot/arch-pkg-build/packages/glibc/repos/core-x86_64/min-dl/loader/files/readelf_.so
-7f7aa0e74000-7f7aa1074000 ---p 0003a000 fe:00 2392137                    /chakra/home/universalpackagemanager/chroot/arch-chroot/arch-pkg-build/packages/glibc/repos/core-x86_64/min-dl/loader/files/readelf_.so
-7f7aa1074000-7f7aa1076000 r--p 0003a000 fe:00 2392137                    /chakra/home/universalpackagemanager/chroot/arch-chroot/arch-pkg-build/packages/glibc/repos/core-x86_64/min-dl/loader/files/readelf_.so
-7f7aa1076000-7f7aa1077000 rw-p 0003c000 fe:00 2392137                    /chakra/home/universalpackagemanager/chroot/arch-chroot/arch-pkg-build/packages/glibc/repos/core-x86_64/min-dl/loader/files/readelf_.so
-7f7aa1077000-7f7aa109c000 r-xp 00000000 08:03 1594062                    /usr/lib/ld-2.26.so
-7f7aa11af000-7f7aa1263000 r--p 00000000 fe:00 2396120                    /chakra/home/universalpackagemanager/chroot/arch-chroot/arch-pkg-build/packages/glibc/repos/core-x86_64/min-dl/loader/musl/lib/libc.so
-7f7aa1263000-7f7aa1266000 rw-p 00000000 00:00 0 
-7f7aa1290000-7f7aa1299000 r--p 00000000 fe:00 2392138                    /chakra/home/universalpackagemanager/chroot/arch-chroot/arch-pkg-build/packages/glibc/repos/core-x86_64/min-dl/loader/files/test_lib.so
-7f7aa1299000-7f7aa129b000 rw-p 00000000 00:00 0 
-7f7aa129b000-7f7aa129c000 r--p 00024000 08:03 1594062                    /usr/lib/ld-2.26.so
-7f7aa129c000-7f7aa129d000 rw-p 00025000 08:03 1594062                    /usr/lib/ld-2.26.so
-7f7aa129d000-7f7aa129e000 rw-p 00000000 00:00 0 
-7ffcc318d000-7ffcc31ae000 rw-p 00000000 00:00 0                          [stack]
-7ffcc31b7000-7ffcc31ba000 r--p 00000000 00:00 0                          [vvar]
-7ffcc31ba000-7ffcc31bc000 r-xp 00000000 00:00 0                          [vdso]
+55c5784ea000-55c5784ec000 r-xp 00000000 fe:00 2396161                    /chakra/home/universalpackagemanager/chroot/arch-chroot/arch-pkg-build/packages/glibc/repos/core-x86_64/min-dl/loader/files/loader
+55c5786eb000-55c5786ec000 r--p 00001000 fe:00 2396161                    /chakra/home/universalpackagemanager/chroot/arch-chroot/arch-pkg-build/packages/glibc/repos/core-x86_64/min-dl/loader/files/loader
+55c5786ec000-55c5786ed000 rw-p 00002000 fe:00 2396161                    /chakra/home/universalpackagemanager/chroot/arch-chroot/arch-pkg-build/packages/glibc/repos/core-x86_64/min-dl/loader/files/loader
+55c578c32000-55c578c53000 rw-p 00000000 00:00 0                          [heap]
+7f94b4519000-7f94c0000000 rw-p 00000000 00:00 0 
+7f94c0000000-7f94c0200000 r-xp 00000000 00:00 0 
+7f94c0200000-7f94c0400000 -wxp 00000000 00:00 0 
+7f94c0400000-7f94c49b1000 rw-p 00000000 00:00 0 
+7f94c49b1000-7f94c4a65000 r--p 00000000 fe:00 2396120                    /chakra/home/universalpackagemanager/chroot/arch-chroot/arch-pkg-build/packages/glibc/repos/core-x86_64/min-dl/loader/musl/lib/libc.so
+7f94c4a65000-7f94d0000000 rw-p 00000000 00:00 0 
+7f94d0000000-7f94d0200000 r-xp 00000000 00:00 0 
+7f94d0200000-7f94d0400000 -wxp 00000000 00:00 0 
+7f94d0400000-7f94d501b000 rw-p 00000000 00:00 0 
+7f94d501b000-7f94d5213000 r--p 00000000 08:03 1593900                    /usr/lib/libc-2.26.so
+7f94d5213000-7f94e0000000 rw-p 00000000 00:00 0 
+7f94e0000000-7f94e0200000 r-xp 00000000 00:00 0 
+7f94e0200000-7f94e0400000 -wxp 00000000 00:00 0 
+7f94e0400000-7f94e5615000 rw-p 00000000 00:00 0 
+7f94e5615000-7f94e57c1000 r-xp 00000000 08:03 1593900                    /usr/lib/libc-2.26.so
+7f94e57c1000-7f94e59c1000 ---p 001ac000 08:03 1593900                    /usr/lib/libc-2.26.so
+7f94e59c1000-7f94e59c5000 r--p 001ac000 08:03 1593900                    /usr/lib/libc-2.26.so
+7f94e59c5000-7f94e59c7000 rw-p 001b0000 08:03 1593900                    /usr/lib/libc-2.26.so
+7f94e59c7000-7f94e59cb000 rw-p 00000000 00:00 0 
+7f94e59cb000-7f94e59d7000 r-xp 00000000 fe:00 2392138                    /chakra/home/universalpackagemanager/chroot/arch-chroot/arch-pkg-build/packages/glibc/repos/core-x86_64/min-dl/loader/files/libstring.so
+7f94e59d7000-7f94e5bd6000 ---p 0000c000 fe:00 2392138                    /chakra/home/universalpackagemanager/chroot/arch-chroot/arch-pkg-build/packages/glibc/repos/core-x86_64/min-dl/loader/files/libstring.so
+7f94e5bd6000-7f94e5bd7000 r--p 0000b000 fe:00 2392138                    /chakra/home/universalpackagemanager/chroot/arch-chroot/arch-pkg-build/packages/glibc/repos/core-x86_64/min-dl/loader/files/libstring.so
+7f94e5bd7000-7f94e5bd8000 rw-p 0000c000 fe:00 2392138                    /chakra/home/universalpackagemanager/chroot/arch-chroot/arch-pkg-build/packages/glibc/repos/core-x86_64/min-dl/loader/files/libstring.so
+7f94e5bd8000-7f94e5bdb000 rw-p 00000000 00:00 0 
+7f94e5bdb000-7f94e5c18000 r-xp 00000000 fe:00 2396159                    /chakra/home/universalpackagemanager/chroot/arch-chroot/arch-pkg-build/packages/glibc/repos/core-x86_64/min-dl/loader/files/readelf_.so
+7f94e5c18000-7f94e5e18000 ---p 0003d000 fe:00 2396159                    /chakra/home/universalpackagemanager/chroot/arch-chroot/arch-pkg-build/packages/glibc/repos/core-x86_64/min-dl/loader/files/readelf_.so
+7f94e5e18000-7f94e5e1a000 r--p 0003d000 fe:00 2396159                    /chakra/home/universalpackagemanager/chroot/arch-chroot/arch-pkg-build/packages/glibc/repos/core-x86_64/min-dl/loader/files/readelf_.so
+7f94e5e1a000-7f94e5e1b000 rw-p 0003f000 fe:00 2396159                    /chakra/home/universalpackagemanager/chroot/arch-chroot/arch-pkg-build/packages/glibc/repos/core-x86_64/min-dl/loader/files/readelf_.so
+7f94e5e1b000-7f94e5e40000 r-xp 00000000 08:03 1594062                    /usr/lib/ld-2.26.so
+7f94e5e56000-7f94e600a000 rw-p 00000000 00:00 0 
+7f94e6034000-7f94e603d000 r--p 00000000 fe:00 2396160                    /chakra/home/universalpackagemanager/chroot/arch-chroot/arch-pkg-build/packages/glibc/repos/core-x86_64/min-dl/loader/files/test_lib.so
+7f94e603d000-7f94e603f000 rw-p 00000000 00:00 0 
+7f94e603f000-7f94e6040000 r--p 00024000 08:03 1594062                    /usr/lib/ld-2.26.so
+7f94e6040000-7f94e6041000 rw-p 00025000 08:03 1594062                    /usr/lib/ld-2.26.so
+7f94e6041000-7f94e6042000 rw-p 00000000 00:00 0 
+7fff45817000-7fff45838000 rw-p 00000000 00:00 0                          [stack]
+7fff45989000-7fff4598c000 r--p 00000000 00:00 0                          [vvar]
+7fff4598c000-7fff4598e000 r-xp 00000000 00:00 0                          [vdso]
 ffffffffff600000-ffffffffff601000 r-xp 00000000 00:00 0                  [vsyscall]
 called round_up
-returning 0x7f7aa111b000
+returning 0x7f94b4485000
+current index 0 holds "./files/test_lib.so"
+current index 1 holds "/lib/libc.so.6"
+current index 2 holds "/lib/ld-musl-x86_64.so.1"
+WARNING: index 3 is (null)
+dlsym: adding  from /lib/ld-musl-x86_64.so.1
+current index 3 holds "NULL"
+searching indexes for "/usr/lib/zsh/5.4.2/zsh/newuser.so" incase it has already been loaded
+current index 0 holds "./files/test_lib.so"
+current index 1 holds "/lib/libc.so.6"
+current index 2 holds "/lib/ld-musl-x86_64.so.1"
+current index 3 holds "NULL"
+attempting to save to index 3
+called round_up
+returning 0x7f94b0000000
+memmove: round_up(0x7f94a4082010, 0x000010000000)+0x000000200000 = 0x7f94b0200000
+called round_up
+returning 0x7f94b0000000
+dest = 0x7f94b0200000
+dest = 0x7f94b0000000
+called round_down
+returning 0x000000200000
+called round_up
+returning 0x000000200000
+called round_down
+returning          (nil)
+55c5784ea000-55c5784ec000 r-xp 00000000 fe:00 2396161                    /chakra/home/universalpackagemanager/chroot/arch-chroot/arch-pkg-build/packages/glibc/repos/core-x86_64/min-dl/loader/files/loader
+55c5786eb000-55c5786ec000 r--p 00001000 fe:00 2396161                    /chakra/home/universalpackagemanager/chroot/arch-chroot/arch-pkg-build/packages/glibc/repos/core-x86_64/min-dl/loader/files/loader
+55c5786ec000-55c5786ed000 rw-p 00002000 fe:00 2396161                    /chakra/home/universalpackagemanager/chroot/arch-chroot/arch-pkg-build/packages/glibc/repos/core-x86_64/min-dl/loader/files/loader
+55c578c32000-55c578c53000 rw-p 00000000 00:00 0                          [heap]
+7f94a4082000-7f94b0000000 rw-p 00000000 00:00 0 
+7f94b0000000-7f94b0200000 r-xp 00000000 00:00 0 
+7f94b0200000-7f94c0000000 rw-p 00000000 00:00 0 
+7f94c0000000-7f94c0200000 r-xp 00000000 00:00 0 
+7f94c0200000-7f94c0400000 -wxp 00000000 00:00 0 
+7f94c0400000-7f94c49b1000 rw-p 00000000 00:00 0 
+7f94c49b1000-7f94c4a65000 r--p 00000000 fe:00 2396120                    /chakra/home/universalpackagemanager/chroot/arch-chroot/arch-pkg-build/packages/glibc/repos/core-x86_64/min-dl/loader/musl/lib/libc.so
+7f94c4a65000-7f94d0000000 rw-p 00000000 00:00 0 
+7f94d0000000-7f94d0200000 r-xp 00000000 00:00 0 
+7f94d0200000-7f94d0400000 -wxp 00000000 00:00 0 
+7f94d0400000-7f94d501b000 rw-p 00000000 00:00 0 
+7f94d501b000-7f94d5213000 r--p 00000000 08:03 1593900                    /usr/lib/libc-2.26.so
+7f94d5213000-7f94e0000000 rw-p 00000000 00:00 0 
+7f94e0000000-7f94e0200000 r-xp 00000000 00:00 0 
+7f94e0200000-7f94e0400000 -wxp 00000000 00:00 0 
+7f94e0400000-7f94e5615000 rw-p 00000000 00:00 0 
+7f94e5615000-7f94e57c1000 r-xp 00000000 08:03 1593900                    /usr/lib/libc-2.26.so
+7f94e57c1000-7f94e59c1000 ---p 001ac000 08:03 1593900                    /usr/lib/libc-2.26.so
+7f94e59c1000-7f94e59c5000 r--p 001ac000 08:03 1593900                    /usr/lib/libc-2.26.so
+7f94e59c5000-7f94e59c7000 rw-p 001b0000 08:03 1593900                    /usr/lib/libc-2.26.so
+7f94e59c7000-7f94e59cb000 rw-p 00000000 00:00 0 
+7f94e59cb000-7f94e59d7000 r-xp 00000000 fe:00 2392138                    /chakra/home/universalpackagemanager/chroot/arch-chroot/arch-pkg-build/packages/glibc/repos/core-x86_64/min-dl/loader/files/libstring.so
+7f94e59d7000-7f94e5bd6000 ---p 0000c000 fe:00 2392138                    /chakra/home/universalpackagemanager/chroot/arch-chroot/arch-pkg-build/packages/glibc/repos/core-x86_64/min-dl/loader/files/libstring.so
+7f94e5bd6000-7f94e5bd7000 r--p 0000b000 fe:00 2392138                    /chakra/home/universalpackagemanager/chroot/arch-chroot/arch-pkg-build/packages/glibc/repos/core-x86_64/min-dl/loader/files/libstring.so
+7f94e5bd7000-7f94e5bd8000 rw-p 0000c000 fe:00 2392138                    /chakra/home/universalpackagemanager/chroot/arch-chroot/arch-pkg-build/packages/glibc/repos/core-x86_64/min-dl/loader/files/libstring.so
+7f94e5bd8000-7f94e5bdb000 rw-p 00000000 00:00 0 
+7f94e5bdb000-7f94e5c18000 r-xp 00000000 fe:00 2396159                    /chakra/home/universalpackagemanager/chroot/arch-chroot/arch-pkg-build/packages/glibc/repos/core-x86_64/min-dl/loader/files/readelf_.so
+7f94e5c18000-7f94e5e18000 ---p 0003d000 fe:00 2396159                    /chakra/home/universalpackagemanager/chroot/arch-chroot/arch-pkg-build/packages/glibc/repos/core-x86_64/min-dl/loader/files/readelf_.so
+7f94e5e18000-7f94e5e1a000 r--p 0003d000 fe:00 2396159                    /chakra/home/universalpackagemanager/chroot/arch-chroot/arch-pkg-build/packages/glibc/repos/core-x86_64/min-dl/loader/files/readelf_.so
+7f94e5e1a000-7f94e5e1b000 rw-p 0003f000 fe:00 2396159                    /chakra/home/universalpackagemanager/chroot/arch-chroot/arch-pkg-build/packages/glibc/repos/core-x86_64/min-dl/loader/files/readelf_.so
+7f94e5e1b000-7f94e5e40000 r-xp 00000000 08:03 1594062                    /usr/lib/ld-2.26.so
+7f94e5e56000-7f94e600a000 rw-p 00000000 00:00 0 
+7f94e6032000-7f94e6034000 r--p 00000000 08:03 1845947                    /usr/lib/zsh/5.4.2/zsh/newuser.so
+7f94e6034000-7f94e603d000 r--p 00000000 fe:00 2396160                    /chakra/home/universalpackagemanager/chroot/arch-chroot/arch-pkg-build/packages/glibc/repos/core-x86_64/min-dl/loader/files/test_lib.so
+7f94e603d000-7f94e603f000 rw-p 00000000 00:00 0 
+7f94e603f000-7f94e6040000 r--p 00024000 08:03 1594062                    /usr/lib/ld-2.26.so
+7f94e6040000-7f94e6041000 rw-p 00025000 08:03 1594062                    /usr/lib/ld-2.26.so
+7f94e6041000-7f94e6042000 rw-p 00000000 00:00 0 
+7fff45817000-7fff45838000 rw-p 00000000 00:00 0                          [stack]
+7fff45989000-7fff4598c000 r--p 00000000 00:00 0                          [vvar]
+7fff4598c000-7fff4598e000 r-xp 00000000 00:00 0                          [vdso]
+ffffffffff600000-ffffffffff601000 r-xp 00000000 00:00 0                  [vsyscall]
+called round_up
+returning 0x000000200000
+called round_down
+returning 0x000000200000
+55c5784ea000-55c5784ec000 r-xp 00000000 fe:00 2396161                    /chakra/home/universalpackagemanager/chroot/arch-chroot/arch-pkg-build/packages/glibc/repos/core-x86_64/min-dl/loader/files/loader
+55c5786eb000-55c5786ec000 r--p 00001000 fe:00 2396161                    /chakra/home/universalpackagemanager/chroot/arch-chroot/arch-pkg-build/packages/glibc/repos/core-x86_64/min-dl/loader/files/loader
+55c5786ec000-55c5786ed000 rw-p 00002000 fe:00 2396161                    /chakra/home/universalpackagemanager/chroot/arch-chroot/arch-pkg-build/packages/glibc/repos/core-x86_64/min-dl/loader/files/loader
+55c578c32000-55c578c53000 rw-p 00000000 00:00 0                          [heap]
+7f94a4082000-7f94b0000000 rw-p 00000000 00:00 0 
+7f94b0000000-7f94b0200000 r-xp 00000000 00:00 0 
+7f94b0200000-7f94b0400000 -wxp 00000000 00:00 0 
+7f94b0400000-7f94c0000000 rw-p 00000000 00:00 0 
+7f94c0000000-7f94c0200000 r-xp 00000000 00:00 0 
+7f94c0200000-7f94c0400000 -wxp 00000000 00:00 0 
+7f94c0400000-7f94c49b1000 rw-p 00000000 00:00 0 
+7f94c49b1000-7f94c4a65000 r--p 00000000 fe:00 2396120                    /chakra/home/universalpackagemanager/chroot/arch-chroot/arch-pkg-build/packages/glibc/repos/core-x86_64/min-dl/loader/musl/lib/libc.so
+7f94c4a65000-7f94d0000000 rw-p 00000000 00:00 0 
+7f94d0000000-7f94d0200000 r-xp 00000000 00:00 0 
+7f94d0200000-7f94d0400000 -wxp 00000000 00:00 0 
+7f94d0400000-7f94d501b000 rw-p 00000000 00:00 0 
+7f94d501b000-7f94d5213000 r--p 00000000 08:03 1593900                    /usr/lib/libc-2.26.so
+7f94d5213000-7f94e0000000 rw-p 00000000 00:00 0 
+7f94e0000000-7f94e0200000 r-xp 00000000 00:00 0 
+7f94e0200000-7f94e0400000 -wxp 00000000 00:00 0 
+7f94e0400000-7f94e5615000 rw-p 00000000 00:00 0 
+7f94e5615000-7f94e57c1000 r-xp 00000000 08:03 1593900                    /usr/lib/libc-2.26.so
+7f94e57c1000-7f94e59c1000 ---p 001ac000 08:03 1593900                    /usr/lib/libc-2.26.so
+7f94e59c1000-7f94e59c5000 r--p 001ac000 08:03 1593900                    /usr/lib/libc-2.26.so
+7f94e59c5000-7f94e59c7000 rw-p 001b0000 08:03 1593900                    /usr/lib/libc-2.26.so
+7f94e59c7000-7f94e59cb000 rw-p 00000000 00:00 0 
+7f94e59cb000-7f94e59d7000 r-xp 00000000 fe:00 2392138                    /chakra/home/universalpackagemanager/chroot/arch-chroot/arch-pkg-build/packages/glibc/repos/core-x86_64/min-dl/loader/files/libstring.so
+7f94e59d7000-7f94e5bd6000 ---p 0000c000 fe:00 2392138                    /chakra/home/universalpackagemanager/chroot/arch-chroot/arch-pkg-build/packages/glibc/repos/core-x86_64/min-dl/loader/files/libstring.so
+7f94e5bd6000-7f94e5bd7000 r--p 0000b000 fe:00 2392138                    /chakra/home/universalpackagemanager/chroot/arch-chroot/arch-pkg-build/packages/glibc/repos/core-x86_64/min-dl/loader/files/libstring.so
+7f94e5bd7000-7f94e5bd8000 rw-p 0000c000 fe:00 2392138                    /chakra/home/universalpackagemanager/chroot/arch-chroot/arch-pkg-build/packages/glibc/repos/core-x86_64/min-dl/loader/files/libstring.so
+7f94e5bd8000-7f94e5bdb000 rw-p 00000000 00:00 0 
+7f94e5bdb000-7f94e5c18000 r-xp 00000000 fe:00 2396159                    /chakra/home/universalpackagemanager/chroot/arch-chroot/arch-pkg-build/packages/glibc/repos/core-x86_64/min-dl/loader/files/readelf_.so
+7f94e5c18000-7f94e5e18000 ---p 0003d000 fe:00 2396159                    /chakra/home/universalpackagemanager/chroot/arch-chroot/arch-pkg-build/packages/glibc/repos/core-x86_64/min-dl/loader/files/readelf_.so
+7f94e5e18000-7f94e5e1a000 r--p 0003d000 fe:00 2396159                    /chakra/home/universalpackagemanager/chroot/arch-chroot/arch-pkg-build/packages/glibc/repos/core-x86_64/min-dl/loader/files/readelf_.so
+7f94e5e1a000-7f94e5e1b000 rw-p 0003f000 fe:00 2396159                    /chakra/home/universalpackagemanager/chroot/arch-chroot/arch-pkg-build/packages/glibc/repos/core-x86_64/min-dl/loader/files/readelf_.so
+7f94e5e1b000-7f94e5e40000 r-xp 00000000 08:03 1594062                    /usr/lib/ld-2.26.so
+7f94e5e56000-7f94e600a000 rw-p 00000000 00:00 0 
+7f94e6032000-7f94e6034000 r--p 00000000 08:03 1845947                    /usr/lib/zsh/5.4.2/zsh/newuser.so
+7f94e6034000-7f94e603d000 r--p 00000000 fe:00 2396160                    /chakra/home/universalpackagemanager/chroot/arch-chroot/arch-pkg-build/packages/glibc/repos/core-x86_64/min-dl/loader/files/test_lib.so
+7f94e603d000-7f94e603f000 rw-p 00000000 00:00 0 
+7f94e603f000-7f94e6040000 r--p 00024000 08:03 1594062                    /usr/lib/ld-2.26.so
+7f94e6040000-7f94e6041000 rw-p 00025000 08:03 1594062                    /usr/lib/ld-2.26.so
+7f94e6041000-7f94e6042000 rw-p 00000000 00:00 0 
+7fff45817000-7fff45838000 rw-p 00000000 00:00 0                          [stack]
+7fff45989000-7fff4598c000 r--p 00000000 00:00 0                          [vvar]
+7fff4598c000-7fff4598e000 r-xp 00000000 00:00 0                          [vdso]
+ffffffffff600000-ffffffffff601000 r-xp 00000000 00:00 0                  [vsyscall]
+called round_up
+returning 0x55c578c35000
+Test exported functions >
+current index 0 holds "./files/test_lib.so"
+index 0 holds desired library "./files/test_lib.so"
+dlsym: adding foo from (null)
+current index 0 holds "./files/test_lib.so"
+searching indexes for "./files/test_lib.so" incase it has already been loaded
+current index 0 holds "./files/test_lib.so"
+index 0 holds desired library "./files/test_lib.so"
+func = foo
+OK!
+Test musl libc functions >
+current index 0 holds "./files/test_lib.so"
+current index 1 holds "/lib/libc.so.6"
+current index 2 holds "/lib/ld-musl-x86_64.so.1"
+index 2 holds desired library "/lib/ld-musl-x86_64.so.1"
+dlsym: adding write from /lib/libc.so.6
+current index 2 holds "/lib/ld-musl-x86_64.so.1"
+searching indexes for "/lib/ld-musl-x86_64.so.1" incase it has already been loaded
+current index 0 holds "./files/test_lib.so"
+current index 1 holds "/lib/libc.so.6"
+current index 2 holds "/lib/ld-musl-x86_64.so.1"
+index 2 holds desired library "/lib/ld-musl-x86_64.so.1"
 write
 OK!
 Test functions that call external libc functions >
-current index 1 holds "NULL"
+current index 0 holds "./files/test_lib.so"
+index 0 holds desired library "./files/test_lib.so"
+dlsym: adding test_strlen from (null)
+current index 0 holds "./files/test_lib.so"
 searching indexes for "./files/test_lib.so" incase it has already been loaded
 current index 0 holds "./files/test_lib.so"
 index 0 holds desired library "./files/test_lib.so"
@@ -219,122 +490,35 @@ func_int = 46
 OK!
 Test gnu libc functions >
 current index 0 holds "./files/test_lib.so"
+current index 1 holds "/lib/libc.so.6"
+index 1 holds desired library "/lib/libc.so.6"
+dlsym: adding strlen from ./files/test_lib.so
+current index 1 holds "/lib/libc.so.6"
 searching indexes for "/lib/libc.so.6" incase it has already been loaded
 current index 0 holds "./files/test_lib.so"
-current index 1 holds "NULL"
-attempting to save to index 1
-called round_up
-returning 0x7f7a70000000
-memmove: round_up(0x7f7a6fb42010, 0x000010000000)+0x000000200000 = 0x7f7a70200000
-called round_up
-returning 0x7f7a70000000
-dest = 0x7f7a70200000
-dest = 0x7f7a70000000
-called round_down
-returning 0x000000293000
-called round_up
-returning 0x000000200000
-called round_down
-returning          (nil)
-55cca3c41000-55cca3c43000 r-xp 00000000 fe:00 2392139                    /chakra/home/universalpackagemanager/chroot/arch-chroot/arch-pkg-build/packages/glibc/repos/core-x86_64/min-dl/loader/files/loader
-55cca3e42000-55cca3e43000 r--p 00001000 fe:00 2392139                    /chakra/home/universalpackagemanager/chroot/arch-chroot/arch-pkg-build/packages/glibc/repos/core-x86_64/min-dl/loader/files/loader
-55cca3e43000-55cca3e44000 rw-p 00002000 fe:00 2392139                    /chakra/home/universalpackagemanager/chroot/arch-chroot/arch-pkg-build/packages/glibc/repos/core-x86_64/min-dl/loader/files/loader
-55cca403a000-55cca405b000 rw-p 00000000 00:00 0                          [heap]
-7f7a6fb42000-7f7a70000000 rw-p 00000000 00:00 0 
-7f7a70000000-7f7a70200000 r-xp 00000000 00:00 0 
-7f7a70200000-7f7a80000000 rw-p 00000000 00:00 0 
-7f7a80000000-7f7a80200000 r-xp 00000000 00:00 0 
-7f7a80200000-7f7a80400000 -wxp 00000000 00:00 0 
-7f7a80400000-7f7aa0000000 rw-p 00000000 00:00 0 
-7f7aa0000000-7f7aa0200000 r-xp 00000000 00:00 0 
-7f7aa0200000-7f7aa0400000 -wxp 00000000 00:00 0 
-7f7aa0400000-7f7aa0874000 rw-p 00000000 00:00 0 
-7f7aa0874000-7f7aa0a20000 r-xp 00000000 08:03 1593900                    /usr/lib/libc-2.26.so
-7f7aa0a20000-7f7aa0c20000 ---p 001ac000 08:03 1593900                    /usr/lib/libc-2.26.so
-7f7aa0c20000-7f7aa0c24000 r--p 001ac000 08:03 1593900                    /usr/lib/libc-2.26.so
-7f7aa0c24000-7f7aa0c26000 rw-p 001b0000 08:03 1593900                    /usr/lib/libc-2.26.so
-7f7aa0c26000-7f7aa0c2a000 rw-p 00000000 00:00 0 
-7f7aa0c2a000-7f7aa0c36000 r-xp 00000000 fe:00 2392135                    /chakra/home/universalpackagemanager/chroot/arch-chroot/arch-pkg-build/packages/glibc/repos/core-x86_64/min-dl/loader/files/libstring.so
-7f7aa0c36000-7f7aa0e35000 ---p 0000c000 fe:00 2392135                    /chakra/home/universalpackagemanager/chroot/arch-chroot/arch-pkg-build/packages/glibc/repos/core-x86_64/min-dl/loader/files/libstring.so
-7f7aa0e35000-7f7aa0e36000 r--p 0000b000 fe:00 2392135                    /chakra/home/universalpackagemanager/chroot/arch-chroot/arch-pkg-build/packages/glibc/repos/core-x86_64/min-dl/loader/files/libstring.so
-7f7aa0e36000-7f7aa0e37000 rw-p 0000c000 fe:00 2392135                    /chakra/home/universalpackagemanager/chroot/arch-chroot/arch-pkg-build/packages/glibc/repos/core-x86_64/min-dl/loader/files/libstring.so
-7f7aa0e37000-7f7aa0e3a000 rw-p 00000000 00:00 0 
-7f7aa0e3a000-7f7aa0e74000 r-xp 00000000 fe:00 2392137                    /chakra/home/universalpackagemanager/chroot/arch-chroot/arch-pkg-build/packages/glibc/repos/core-x86_64/min-dl/loader/files/readelf_.so
-7f7aa0e74000-7f7aa1074000 ---p 0003a000 fe:00 2392137                    /chakra/home/universalpackagemanager/chroot/arch-chroot/arch-pkg-build/packages/glibc/repos/core-x86_64/min-dl/loader/files/readelf_.so
-7f7aa1074000-7f7aa1076000 r--p 0003a000 fe:00 2392137                    /chakra/home/universalpackagemanager/chroot/arch-chroot/arch-pkg-build/packages/glibc/repos/core-x86_64/min-dl/loader/files/readelf_.so
-7f7aa1076000-7f7aa1077000 rw-p 0003c000 fe:00 2392137                    /chakra/home/universalpackagemanager/chroot/arch-chroot/arch-pkg-build/packages/glibc/repos/core-x86_64/min-dl/loader/files/readelf_.so
-7f7aa1077000-7f7aa109c000 r-xp 00000000 08:03 1594062                    /usr/lib/ld-2.26.so
-7f7aa111a000-7f7aa11af000 rw-p 00000000 00:00 0 
-7f7aa11af000-7f7aa1263000 r--p 00000000 fe:00 2396120                    /chakra/home/universalpackagemanager/chroot/arch-chroot/arch-pkg-build/packages/glibc/repos/core-x86_64/min-dl/loader/musl/lib/libc.so
-7f7aa1263000-7f7aa1266000 rw-p 00000000 00:00 0 
-7f7aa1290000-7f7aa1299000 r--p 00000000 fe:00 2392138                    /chakra/home/universalpackagemanager/chroot/arch-chroot/arch-pkg-build/packages/glibc/repos/core-x86_64/min-dl/loader/files/test_lib.so
-7f7aa1299000-7f7aa129b000 rw-p 00000000 00:00 0 
-7f7aa129b000-7f7aa129c000 r--p 00024000 08:03 1594062                    /usr/lib/ld-2.26.so
-7f7aa129c000-7f7aa129d000 rw-p 00025000 08:03 1594062                    /usr/lib/ld-2.26.so
-7f7aa129d000-7f7aa129e000 rw-p 00000000 00:00 0 
-7ffcc318d000-7ffcc31ae000 rw-p 00000000 00:00 0                          [stack]
-7ffcc31b7000-7ffcc31ba000 r--p 00000000 00:00 0                          [vvar]
-7ffcc31ba000-7ffcc31bc000 r-xp 00000000 00:00 0                          [vdso]
-ffffffffff600000-ffffffffff601000 r-xp 00000000 00:00 0                  [vsyscall]
-called round_up
-returning 0x000000200000
-called round_down
-returning 0x000000200000
-55cca3c41000-55cca3c43000 r-xp 00000000 fe:00 2392139                    /chakra/home/universalpackagemanager/chroot/arch-chroot/arch-pkg-build/packages/glibc/repos/core-x86_64/min-dl/loader/files/loader
-55cca3e42000-55cca3e43000 r--p 00001000 fe:00 2392139                    /chakra/home/universalpackagemanager/chroot/arch-chroot/arch-pkg-build/packages/glibc/repos/core-x86_64/min-dl/loader/files/loader
-55cca3e43000-55cca3e44000 rw-p 00002000 fe:00 2392139                    /chakra/home/universalpackagemanager/chroot/arch-chroot/arch-pkg-build/packages/glibc/repos/core-x86_64/min-dl/loader/files/loader
-55cca403a000-55cca405b000 rw-p 00000000 00:00 0                          [heap]
-7f7a6fb42000-7f7a70000000 rw-p 00000000 00:00 0 
-7f7a70000000-7f7a70200000 r-xp 00000000 00:00 0 
-7f7a70200000-7f7a70400000 -wxp 00000000 00:00 0 
-7f7a70400000-7f7a80000000 rw-p 00000000 00:00 0 
-7f7a80000000-7f7a80200000 r-xp 00000000 00:00 0 
-7f7a80200000-7f7a80400000 -wxp 00000000 00:00 0 
-7f7a80400000-7f7aa0000000 rw-p 00000000 00:00 0 
-7f7aa0000000-7f7aa0200000 r-xp 00000000 00:00 0 
-7f7aa0200000-7f7aa0400000 -wxp 00000000 00:00 0 
-7f7aa0400000-7f7aa0874000 rw-p 00000000 00:00 0 
-7f7aa0874000-7f7aa0a20000 r-xp 00000000 08:03 1593900                    /usr/lib/libc-2.26.so
-7f7aa0a20000-7f7aa0c20000 ---p 001ac000 08:03 1593900                    /usr/lib/libc-2.26.so
-7f7aa0c20000-7f7aa0c24000 r--p 001ac000 08:03 1593900                    /usr/lib/libc-2.26.so
-7f7aa0c24000-7f7aa0c26000 rw-p 001b0000 08:03 1593900                    /usr/lib/libc-2.26.so
-7f7aa0c26000-7f7aa0c2a000 rw-p 00000000 00:00 0 
-7f7aa0c2a000-7f7aa0c36000 r-xp 00000000 fe:00 2392135                    /chakra/home/universalpackagemanager/chroot/arch-chroot/arch-pkg-build/packages/glibc/repos/core-x86_64/min-dl/loader/files/libstring.so
-7f7aa0c36000-7f7aa0e35000 ---p 0000c000 fe:00 2392135                    /chakra/home/universalpackagemanager/chroot/arch-chroot/arch-pkg-build/packages/glibc/repos/core-x86_64/min-dl/loader/files/libstring.so
-7f7aa0e35000-7f7aa0e36000 r--p 0000b000 fe:00 2392135                    /chakra/home/universalpackagemanager/chroot/arch-chroot/arch-pkg-build/packages/glibc/repos/core-x86_64/min-dl/loader/files/libstring.so
-7f7aa0e36000-7f7aa0e37000 rw-p 0000c000 fe:00 2392135                    /chakra/home/universalpackagemanager/chroot/arch-chroot/arch-pkg-build/packages/glibc/repos/core-x86_64/min-dl/loader/files/libstring.so
-7f7aa0e37000-7f7aa0e3a000 rw-p 00000000 00:00 0 
-7f7aa0e3a000-7f7aa0e74000 r-xp 00000000 fe:00 2392137                    /chakra/home/universalpackagemanager/chroot/arch-chroot/arch-pkg-build/packages/glibc/repos/core-x86_64/min-dl/loader/files/readelf_.so
-7f7aa0e74000-7f7aa1074000 ---p 0003a000 fe:00 2392137                    /chakra/home/universalpackagemanager/chroot/arch-chroot/arch-pkg-build/packages/glibc/repos/core-x86_64/min-dl/loader/files/readelf_.so
-7f7aa1074000-7f7aa1076000 r--p 0003a000 fe:00 2392137                    /chakra/home/universalpackagemanager/chroot/arch-chroot/arch-pkg-build/packages/glibc/repos/core-x86_64/min-dl/loader/files/readelf_.so
-7f7aa1076000-7f7aa1077000 rw-p 0003c000 fe:00 2392137                    /chakra/home/universalpackagemanager/chroot/arch-chroot/arch-pkg-build/packages/glibc/repos/core-x86_64/min-dl/loader/files/readelf_.so
-7f7aa1077000-7f7aa109c000 r-xp 00000000 08:03 1594062                    /usr/lib/ld-2.26.so
-7f7aa111a000-7f7aa11af000 rw-p 00000000 00:00 0 
-7f7aa11af000-7f7aa1263000 r--p 00000000 fe:00 2396120                    /chakra/home/universalpackagemanager/chroot/arch-chroot/arch-pkg-build/packages/glibc/repos/core-x86_64/min-dl/loader/musl/lib/libc.so
-7f7aa1263000-7f7aa1266000 rw-p 00000000 00:00 0 
-7f7aa1290000-7f7aa1299000 r--p 00000000 fe:00 2392138                    /chakra/home/universalpackagemanager/chroot/arch-chroot/arch-pkg-build/packages/glibc/repos/core-x86_64/min-dl/loader/files/test_lib.so
-7f7aa1299000-7f7aa129b000 rw-p 00000000 00:00 0 
-7f7aa129b000-7f7aa129c000 r--p 00024000 08:03 1594062                    /usr/lib/ld-2.26.so
-7f7aa129c000-7f7aa129d000 rw-p 00025000 08:03 1594062                    /usr/lib/ld-2.26.so
-7f7aa129d000-7f7aa129e000 rw-p 00000000 00:00 0 
-7ffcc318d000-7ffcc31ae000 rw-p 00000000 00:00 0                          [stack]
-7ffcc31b7000-7ffcc31ba000 r--p 00000000 00:00 0                          [vvar]
-7ffcc31ba000-7ffcc31bc000 r-xp 00000000 00:00 0                          [vdso]
-ffffffffff600000-ffffffffff601000 r-xp 00000000 00:00 0                  [vsyscall]
-called round_up
-returning 0x7f7a6faae000
-func_int_strlen_gnu("test string\n") = 12
-OK!
 current index 1 holds "/lib/libc.so.6"
+index 1 holds desired library "/lib/libc.so.6"
+func_int_strlen_gnu("test string\n") = -804693936
+OK!
+current index 0 holds "./files/test_lib.so"
+index 0 holds desired library "./files/test_lib.so"
+dlsym: adding bar_int from (null)
+current index 0 holds "./files/test_lib.so"
 searching indexes for "./files/test_lib.so" incase it has already been loaded
 current index 0 holds "./files/test_lib.so"
 index 0 holds desired library "./files/test_lib.so"
 func_int = 1239
 current index 0 holds "./files/test_lib.so"
+index 0 holds desired library "./files/test_lib.so"
+dlsym: adding bar from (null)
+current index 0 holds "./files/test_lib.so"
 searching indexes for "./files/test_lib.so" incase it has already been loaded
 current index 0 holds "./files/test_lib.so"
 index 0 holds desired library "./files/test_lib.so"
 func_char = bar_
+current index 0 holds "./files/test_lib.so"
+index 0 holds desired library "./files/test_lib.so"
+dlsym: adding bar2 from (null)
 current index 0 holds "./files/test_lib.so"
 searching indexes for "./files/test_lib.so" incase it has already been loaded
 current index 0 holds "./files/test_lib.so"
@@ -343,6 +527,9 @@ func_char = bar
 OK!
 Test nested functions >
 current index 0 holds "./files/test_lib.so"
+index 0 holds desired library "./files/test_lib.so"
+dlsym: adding test from (null)
+current index 0 holds "./files/test_lib.so"
 searching indexes for "./files/test_lib.so" incase it has already been loaded
 current index 0 holds "./files/test_lib.so"
 index 0 holds desired library "./files/test_lib.so"
@@ -350,273 +537,75 @@ test = 1334611
 OK!
 Test musl libc functions >
 current index 0 holds "./files/test_lib.so"
+current index 1 holds "/lib/libc.so.6"
+current index 2 holds "/lib/ld-musl-x86_64.so.1"
+index 2 holds desired library "/lib/ld-musl-x86_64.so.1"
+dlsym: adding puts from /lib/libc.so.6
+current index 2 holds "/lib/ld-musl-x86_64.so.1"
 searching indexes for "/lib/ld-musl-x86_64.so.1" incase it has already been loaded
 current index 0 holds "./files/test_lib.so"
 current index 1 holds "/lib/libc.so.6"
-WARNING: index 2 is (null)
-called round_up
-returning 0x7f7a60000000
-memmove: round_up(0x7f7a5f561010, 0x000010000000)+0x000000200000 = 0x7f7a60200000
-called round_up
-returning 0x7f7a60000000
-dest = 0x7f7a60200000
-dest = 0x7f7a60000000
-called round_down
-returning 0x000000293000
-called round_up
-returning 0x000000200000
-called round_down
-returning          (nil)
-55cca3c41000-55cca3c43000 r-xp 00000000 fe:00 2392139                    /chakra/home/universalpackagemanager/chroot/arch-chroot/arch-pkg-build/packages/glibc/repos/core-x86_64/min-dl/loader/files/loader
-55cca3e42000-55cca3e43000 r--p 00001000 fe:00 2392139                    /chakra/home/universalpackagemanager/chroot/arch-chroot/arch-pkg-build/packages/glibc/repos/core-x86_64/min-dl/loader/files/loader
-55cca3e43000-55cca3e44000 rw-p 00002000 fe:00 2392139                    /chakra/home/universalpackagemanager/chroot/arch-chroot/arch-pkg-build/packages/glibc/repos/core-x86_64/min-dl/loader/files/loader
-55cca403a000-55cca405b000 rw-p 00000000 00:00 0                          [heap]
-7f7a5f561000-7f7a60000000 rw-p 00000000 00:00 0 
-7f7a60000000-7f7a60200000 r-xp 00000000 00:00 0 
-7f7a60200000-7f7a6f9f9000 rw-p 00000000 00:00 0 
-7f7a6f9f9000-7f7a6faad000 r--p 00000000 fe:00 2396120                    /chakra/home/universalpackagemanager/chroot/arch-chroot/arch-pkg-build/packages/glibc/repos/core-x86_64/min-dl/loader/musl/lib/libc.so
-7f7a6faad000-7f7a70000000 rw-p 00000000 00:00 0 
-7f7a70000000-7f7a70200000 r-xp 00000000 00:00 0 
-7f7a70200000-7f7a70400000 -wxp 00000000 00:00 0 
-7f7a70400000-7f7a80000000 rw-p 00000000 00:00 0 
-7f7a80000000-7f7a80200000 r-xp 00000000 00:00 0 
-7f7a80200000-7f7a80400000 -wxp 00000000 00:00 0 
-7f7a80400000-7f7aa0000000 rw-p 00000000 00:00 0 
-7f7aa0000000-7f7aa0200000 r-xp 00000000 00:00 0 
-7f7aa0200000-7f7aa0400000 -wxp 00000000 00:00 0 
-7f7aa0400000-7f7aa0874000 rw-p 00000000 00:00 0 
-7f7aa0874000-7f7aa0a20000 r-xp 00000000 08:03 1593900                    /usr/lib/libc-2.26.so
-7f7aa0a20000-7f7aa0c20000 ---p 001ac000 08:03 1593900                    /usr/lib/libc-2.26.so
-7f7aa0c20000-7f7aa0c24000 r--p 001ac000 08:03 1593900                    /usr/lib/libc-2.26.so
-7f7aa0c24000-7f7aa0c26000 rw-p 001b0000 08:03 1593900                    /usr/lib/libc-2.26.so
-7f7aa0c26000-7f7aa0c2a000 rw-p 00000000 00:00 0 
-7f7aa0c2a000-7f7aa0c36000 r-xp 00000000 fe:00 2392135                    /chakra/home/universalpackagemanager/chroot/arch-chroot/arch-pkg-build/packages/glibc/repos/core-x86_64/min-dl/loader/files/libstring.so
-7f7aa0c36000-7f7aa0e35000 ---p 0000c000 fe:00 2392135                    /chakra/home/universalpackagemanager/chroot/arch-chroot/arch-pkg-build/packages/glibc/repos/core-x86_64/min-dl/loader/files/libstring.so
-7f7aa0e35000-7f7aa0e36000 r--p 0000b000 fe:00 2392135                    /chakra/home/universalpackagemanager/chroot/arch-chroot/arch-pkg-build/packages/glibc/repos/core-x86_64/min-dl/loader/files/libstring.so
-7f7aa0e36000-7f7aa0e37000 rw-p 0000c000 fe:00 2392135                    /chakra/home/universalpackagemanager/chroot/arch-chroot/arch-pkg-build/packages/glibc/repos/core-x86_64/min-dl/loader/files/libstring.so
-7f7aa0e37000-7f7aa0e3a000 rw-p 00000000 00:00 0 
-7f7aa0e3a000-7f7aa0e74000 r-xp 00000000 fe:00 2392137                    /chakra/home/universalpackagemanager/chroot/arch-chroot/arch-pkg-build/packages/glibc/repos/core-x86_64/min-dl/loader/files/readelf_.so
-7f7aa0e74000-7f7aa1074000 ---p 0003a000 fe:00 2392137                    /chakra/home/universalpackagemanager/chroot/arch-chroot/arch-pkg-build/packages/glibc/repos/core-x86_64/min-dl/loader/files/readelf_.so
-7f7aa1074000-7f7aa1076000 r--p 0003a000 fe:00 2392137                    /chakra/home/universalpackagemanager/chroot/arch-chroot/arch-pkg-build/packages/glibc/repos/core-x86_64/min-dl/loader/files/readelf_.so
-7f7aa1076000-7f7aa1077000 rw-p 0003c000 fe:00 2392137                    /chakra/home/universalpackagemanager/chroot/arch-chroot/arch-pkg-build/packages/glibc/repos/core-x86_64/min-dl/loader/files/readelf_.so
-7f7aa1077000-7f7aa109c000 r-xp 00000000 08:03 1594062                    /usr/lib/ld-2.26.so
-7f7aa111a000-7f7aa11af000 rw-p 00000000 00:00 0 
-7f7aa11af000-7f7aa1263000 r--p 00000000 fe:00 2396120                    /chakra/home/universalpackagemanager/chroot/arch-chroot/arch-pkg-build/packages/glibc/repos/core-x86_64/min-dl/loader/musl/lib/libc.so
-7f7aa1263000-7f7aa1266000 rw-p 00000000 00:00 0 
-7f7aa1290000-7f7aa1299000 r--p 00000000 fe:00 2392138                    /chakra/home/universalpackagemanager/chroot/arch-chroot/arch-pkg-build/packages/glibc/repos/core-x86_64/min-dl/loader/files/test_lib.so
-7f7aa1299000-7f7aa129b000 rw-p 00000000 00:00 0 
-7f7aa129b000-7f7aa129c000 r--p 00024000 08:03 1594062                    /usr/lib/ld-2.26.so
-7f7aa129c000-7f7aa129d000 rw-p 00025000 08:03 1594062                    /usr/lib/ld-2.26.so
-7f7aa129d000-7f7aa129e000 rw-p 00000000 00:00 0 
-7ffcc318d000-7ffcc31ae000 rw-p 00000000 00:00 0                          [stack]
-7ffcc31b7000-7ffcc31ba000 r--p 00000000 00:00 0                          [vvar]
-7ffcc31ba000-7ffcc31bc000 r-xp 00000000 00:00 0                          [vdso]
-ffffffffff600000-ffffffffff601000 r-xp 00000000 00:00 0                  [vsyscall]
-called round_up
-returning 0x000000200000
-called round_down
-returning 0x000000200000
-55cca3c41000-55cca3c43000 r-xp 00000000 fe:00 2392139                    /chakra/home/universalpackagemanager/chroot/arch-chroot/arch-pkg-build/packages/glibc/repos/core-x86_64/min-dl/loader/files/loader
-55cca3e42000-55cca3e43000 r--p 00001000 fe:00 2392139                    /chakra/home/universalpackagemanager/chroot/arch-chroot/arch-pkg-build/packages/glibc/repos/core-x86_64/min-dl/loader/files/loader
-55cca3e43000-55cca3e44000 rw-p 00002000 fe:00 2392139                    /chakra/home/universalpackagemanager/chroot/arch-chroot/arch-pkg-build/packages/glibc/repos/core-x86_64/min-dl/loader/files/loader
-55cca403a000-55cca405b000 rw-p 00000000 00:00 0                          [heap]
-7f7a5f561000-7f7a60000000 rw-p 00000000 00:00 0 
-7f7a60000000-7f7a60200000 r-xp 00000000 00:00 0 
-7f7a60200000-7f7a60400000 -wxp 00000000 00:00 0 
-7f7a60400000-7f7a6f9f9000 rw-p 00000000 00:00 0 
-7f7a6f9f9000-7f7a6faad000 r--p 00000000 fe:00 2396120                    /chakra/home/universalpackagemanager/chroot/arch-chroot/arch-pkg-build/packages/glibc/repos/core-x86_64/min-dl/loader/musl/lib/libc.so
-7f7a6faad000-7f7a70000000 rw-p 00000000 00:00 0 
-7f7a70000000-7f7a70200000 r-xp 00000000 00:00 0 
-7f7a70200000-7f7a70400000 -wxp 00000000 00:00 0 
-7f7a70400000-7f7a80000000 rw-p 00000000 00:00 0 
-7f7a80000000-7f7a80200000 r-xp 00000000 00:00 0 
-7f7a80200000-7f7a80400000 -wxp 00000000 00:00 0 
-7f7a80400000-7f7aa0000000 rw-p 00000000 00:00 0 
-7f7aa0000000-7f7aa0200000 r-xp 00000000 00:00 0 
-7f7aa0200000-7f7aa0400000 -wxp 00000000 00:00 0 
-7f7aa0400000-7f7aa0874000 rw-p 00000000 00:00 0 
-7f7aa0874000-7f7aa0a20000 r-xp 00000000 08:03 1593900                    /usr/lib/libc-2.26.so
-7f7aa0a20000-7f7aa0c20000 ---p 001ac000 08:03 1593900                    /usr/lib/libc-2.26.so
-7f7aa0c20000-7f7aa0c24000 r--p 001ac000 08:03 1593900                    /usr/lib/libc-2.26.so
-7f7aa0c24000-7f7aa0c26000 rw-p 001b0000 08:03 1593900                    /usr/lib/libc-2.26.so
-7f7aa0c26000-7f7aa0c2a000 rw-p 00000000 00:00 0 
-7f7aa0c2a000-7f7aa0c36000 r-xp 00000000 fe:00 2392135                    /chakra/home/universalpackagemanager/chroot/arch-chroot/arch-pkg-build/packages/glibc/repos/core-x86_64/min-dl/loader/files/libstring.so
-7f7aa0c36000-7f7aa0e35000 ---p 0000c000 fe:00 2392135                    /chakra/home/universalpackagemanager/chroot/arch-chroot/arch-pkg-build/packages/glibc/repos/core-x86_64/min-dl/loader/files/libstring.so
-7f7aa0e35000-7f7aa0e36000 r--p 0000b000 fe:00 2392135                    /chakra/home/universalpackagemanager/chroot/arch-chroot/arch-pkg-build/packages/glibc/repos/core-x86_64/min-dl/loader/files/libstring.so
-7f7aa0e36000-7f7aa0e37000 rw-p 0000c000 fe:00 2392135                    /chakra/home/universalpackagemanager/chroot/arch-chroot/arch-pkg-build/packages/glibc/repos/core-x86_64/min-dl/loader/files/libstring.so
-7f7aa0e37000-7f7aa0e3a000 rw-p 00000000 00:00 0 
-7f7aa0e3a000-7f7aa0e74000 r-xp 00000000 fe:00 2392137                    /chakra/home/universalpackagemanager/chroot/arch-chroot/arch-pkg-build/packages/glibc/repos/core-x86_64/min-dl/loader/files/readelf_.so
-7f7aa0e74000-7f7aa1074000 ---p 0003a000 fe:00 2392137                    /chakra/home/universalpackagemanager/chroot/arch-chroot/arch-pkg-build/packages/glibc/repos/core-x86_64/min-dl/loader/files/readelf_.so
-7f7aa1074000-7f7aa1076000 r--p 0003a000 fe:00 2392137                    /chakra/home/universalpackagemanager/chroot/arch-chroot/arch-pkg-build/packages/glibc/repos/core-x86_64/min-dl/loader/files/readelf_.so
-7f7aa1076000-7f7aa1077000 rw-p 0003c000 fe:00 2392137                    /chakra/home/universalpackagemanager/chroot/arch-chroot/arch-pkg-build/packages/glibc/repos/core-x86_64/min-dl/loader/files/readelf_.so
-7f7aa1077000-7f7aa109c000 r-xp 00000000 08:03 1594062                    /usr/lib/ld-2.26.so
-7f7aa111a000-7f7aa11af000 rw-p 00000000 00:00 0 
-7f7aa11af000-7f7aa1263000 r--p 00000000 fe:00 2396120                    /chakra/home/universalpackagemanager/chroot/arch-chroot/arch-pkg-build/packages/glibc/repos/core-x86_64/min-dl/loader/musl/lib/libc.so
-7f7aa1263000-7f7aa1266000 rw-p 00000000 00:00 0 
-7f7aa1290000-7f7aa1299000 r--p 00000000 fe:00 2392138                    /chakra/home/universalpackagemanager/chroot/arch-chroot/arch-pkg-build/packages/glibc/repos/core-x86_64/min-dl/loader/files/test_lib.so
-7f7aa1299000-7f7aa129b000 rw-p 00000000 00:00 0 
-7f7aa129b000-7f7aa129c000 r--p 00024000 08:03 1594062                    /usr/lib/ld-2.26.so
-7f7aa129c000-7f7aa129d000 rw-p 00025000 08:03 1594062                    /usr/lib/ld-2.26.so
-7f7aa129d000-7f7aa129e000 rw-p 00000000 00:00 0 
-7ffcc318d000-7ffcc31ae000 rw-p 00000000 00:00 0                          [stack]
-7ffcc31b7000-7ffcc31ba000 r--p 00000000 00:00 0                          [vvar]
-7ffcc31ba000-7ffcc31bc000 r-xp 00000000 00:00 0                          [vdso]
-ffffffffff600000-ffffffffff601000 r-xp 00000000 00:00 0                  [vsyscall]
-called round_up
-returning 0x7f7a5f4cd000
+current index 2 holds "/lib/ld-musl-x86_64.so.1"
+index 2 holds desired library "/lib/ld-musl-x86_64.so.1"
 func_int_strlen_gnu("test string\n")
 
-current index 2 holds "NULL"
+current index 0 holds "./files/test_lib.so"
+current index 1 holds "/lib/libc.so.6"
+current index 2 holds "/lib/ld-musl-x86_64.so.1"
+index 2 holds desired library "/lib/ld-musl-x86_64.so.1"
+dlsym: adding printf from /lib/libc.so.6
+current index 2 holds "/lib/ld-musl-x86_64.so.1"
 searching indexes for "/lib/ld-musl-x86_64.so.1" incase it has already been loaded
 current index 0 holds "./files/test_lib.so"
 current index 1 holds "/lib/libc.so.6"
-current index 2 holds "NULL"
-attempting to save to index 2
-called round_up
-returning 0x7f7a50000000
-memmove: round_up(0x7f7a4f034010, 0x000010000000)+0x000000200000 = 0x7f7a50200000
-called round_up
-returning 0x7f7a50000000
-dest = 0x7f7a50200000
-dest = 0x7f7a50000000
-called round_down
-returning 0x000000293000
-called round_up
-returning 0x000000200000
-called round_down
-returning          (nil)
-55cca3c41000-55cca3c43000 r-xp 00000000 fe:00 2392139                    /chakra/home/universalpackagemanager/chroot/arch-chroot/arch-pkg-build/packages/glibc/repos/core-x86_64/min-dl/loader/files/loader
-55cca3e42000-55cca3e43000 r--p 00001000 fe:00 2392139                    /chakra/home/universalpackagemanager/chroot/arch-chroot/arch-pkg-build/packages/glibc/repos/core-x86_64/min-dl/loader/files/loader
-55cca3e43000-55cca3e44000 rw-p 00002000 fe:00 2392139                    /chakra/home/universalpackagemanager/chroot/arch-chroot/arch-pkg-build/packages/glibc/repos/core-x86_64/min-dl/loader/files/loader
-55cca403a000-55cca405b000 rw-p 00000000 00:00 0                          [heap]
-7f7a4f034000-7f7a50000000 rw-p 00000000 00:00 0 
-7f7a50000000-7f7a50200000 r-xp 00000000 00:00 0 
-7f7a50200000-7f7a60000000 rw-p 00000000 00:00 0 
-7f7a60000000-7f7a60200000 r-xp 00000000 00:00 0 
-7f7a60200000-7f7a60400000 -wxp 00000000 00:00 0 
-7f7a60400000-7f7a6f9f9000 rw-p 00000000 00:00 0 
-7f7a6f9f9000-7f7a6faad000 r--p 00000000 fe:00 2396120                    /chakra/home/universalpackagemanager/chroot/arch-chroot/arch-pkg-build/packages/glibc/repos/core-x86_64/min-dl/loader/musl/lib/libc.so
-7f7a6faad000-7f7a70000000 rw-p 00000000 00:00 0 
-7f7a70000000-7f7a70200000 r-xp 00000000 00:00 0 
-7f7a70200000-7f7a70400000 -wxp 00000000 00:00 0 
-7f7a70400000-7f7a80000000 rw-p 00000000 00:00 0 
-7f7a80000000-7f7a80200000 r-xp 00000000 00:00 0 
-7f7a80200000-7f7a80400000 -wxp 00000000 00:00 0 
-7f7a80400000-7f7aa0000000 rw-p 00000000 00:00 0 
-7f7aa0000000-7f7aa0200000 r-xp 00000000 00:00 0 
-7f7aa0200000-7f7aa0400000 -wxp 00000000 00:00 0 
-7f7aa0400000-7f7aa0874000 rw-p 00000000 00:00 0 
-7f7aa0874000-7f7aa0a20000 r-xp 00000000 08:03 1593900                    /usr/lib/libc-2.26.so
-7f7aa0a20000-7f7aa0c20000 ---p 001ac000 08:03 1593900                    /usr/lib/libc-2.26.so
-7f7aa0c20000-7f7aa0c24000 r--p 001ac000 08:03 1593900                    /usr/lib/libc-2.26.so
-7f7aa0c24000-7f7aa0c26000 rw-p 001b0000 08:03 1593900                    /usr/lib/libc-2.26.so
-7f7aa0c26000-7f7aa0c2a000 rw-p 00000000 00:00 0 
-7f7aa0c2a000-7f7aa0c36000 r-xp 00000000 fe:00 2392135                    /chakra/home/universalpackagemanager/chroot/arch-chroot/arch-pkg-build/packages/glibc/repos/core-x86_64/min-dl/loader/files/libstring.so
-7f7aa0c36000-7f7aa0e35000 ---p 0000c000 fe:00 2392135                    /chakra/home/universalpackagemanager/chroot/arch-chroot/arch-pkg-build/packages/glibc/repos/core-x86_64/min-dl/loader/files/libstring.so
-7f7aa0e35000-7f7aa0e36000 r--p 0000b000 fe:00 2392135                    /chakra/home/universalpackagemanager/chroot/arch-chroot/arch-pkg-build/packages/glibc/repos/core-x86_64/min-dl/loader/files/libstring.so
-7f7aa0e36000-7f7aa0e37000 rw-p 0000c000 fe:00 2392135                    /chakra/home/universalpackagemanager/chroot/arch-chroot/arch-pkg-build/packages/glibc/repos/core-x86_64/min-dl/loader/files/libstring.so
-7f7aa0e37000-7f7aa0e3a000 rw-p 00000000 00:00 0 
-7f7aa0e3a000-7f7aa0e74000 r-xp 00000000 fe:00 2392137                    /chakra/home/universalpackagemanager/chroot/arch-chroot/arch-pkg-build/packages/glibc/repos/core-x86_64/min-dl/loader/files/readelf_.so
-7f7aa0e74000-7f7aa1074000 ---p 0003a000 fe:00 2392137                    /chakra/home/universalpackagemanager/chroot/arch-chroot/arch-pkg-build/packages/glibc/repos/core-x86_64/min-dl/loader/files/readelf_.so
-7f7aa1074000-7f7aa1076000 r--p 0003a000 fe:00 2392137                    /chakra/home/universalpackagemanager/chroot/arch-chroot/arch-pkg-build/packages/glibc/repos/core-x86_64/min-dl/loader/files/readelf_.so
-7f7aa1076000-7f7aa1077000 rw-p 0003c000 fe:00 2392137                    /chakra/home/universalpackagemanager/chroot/arch-chroot/arch-pkg-build/packages/glibc/repos/core-x86_64/min-dl/loader/files/readelf_.so
-7f7aa1077000-7f7aa109c000 r-xp 00000000 08:03 1594062                    /usr/lib/ld-2.26.so
-7f7aa111a000-7f7aa11af000 rw-p 00000000 00:00 0 
-7f7aa11af000-7f7aa1263000 r--p 00000000 fe:00 2396120                    /chakra/home/universalpackagemanager/chroot/arch-chroot/arch-pkg-build/packages/glibc/repos/core-x86_64/min-dl/loader/musl/lib/libc.so
-7f7aa1263000-7f7aa1266000 rw-p 00000000 00:00 0 
-7f7aa1290000-7f7aa1299000 r--p 00000000 fe:00 2392138                    /chakra/home/universalpackagemanager/chroot/arch-chroot/arch-pkg-build/packages/glibc/repos/core-x86_64/min-dl/loader/files/test_lib.so
-7f7aa1299000-7f7aa129b000 rw-p 00000000 00:00 0 
-7f7aa129b000-7f7aa129c000 r--p 00024000 08:03 1594062                    /usr/lib/ld-2.26.so
-7f7aa129c000-7f7aa129d000 rw-p 00025000 08:03 1594062                    /usr/lib/ld-2.26.so
-7f7aa129d000-7f7aa129e000 rw-p 00000000 00:00 0 
-7ffcc318d000-7ffcc31ae000 rw-p 00000000 00:00 0                          [stack]
-7ffcc31b7000-7ffcc31ba000 r--p 00000000 00:00 0                          [vvar]
-7ffcc31ba000-7ffcc31bc000 r-xp 00000000 00:00 0                          [vdso]
-ffffffffff600000-ffffffffff601000 r-xp 00000000 00:00 0                  [vsyscall]
-called round_up
-returning 0x000000200000
-called round_down
-returning 0x000000200000
-55cca3c41000-55cca3c43000 r-xp 00000000 fe:00 2392139                    /chakra/home/universalpackagemanager/chroot/arch-chroot/arch-pkg-build/packages/glibc/repos/core-x86_64/min-dl/loader/files/loader
-55cca3e42000-55cca3e43000 r--p 00001000 fe:00 2392139                    /chakra/home/universalpackagemanager/chroot/arch-chroot/arch-pkg-build/packages/glibc/repos/core-x86_64/min-dl/loader/files/loader
-55cca3e43000-55cca3e44000 rw-p 00002000 fe:00 2392139                    /chakra/home/universalpackagemanager/chroot/arch-chroot/arch-pkg-build/packages/glibc/repos/core-x86_64/min-dl/loader/files/loader
-55cca403a000-55cca405b000 rw-p 00000000 00:00 0                          [heap]
-7f7a4f034000-7f7a50000000 rw-p 00000000 00:00 0 
-7f7a50000000-7f7a50200000 r-xp 00000000 00:00 0 
-7f7a50200000-7f7a50400000 -wxp 00000000 00:00 0 
-7f7a50400000-7f7a60000000 rw-p 00000000 00:00 0 
-7f7a60000000-7f7a60200000 r-xp 00000000 00:00 0 
-7f7a60200000-7f7a60400000 -wxp 00000000 00:00 0 
-7f7a60400000-7f7a6f9f9000 rw-p 00000000 00:00 0 
-7f7a6f9f9000-7f7a6faad000 r--p 00000000 fe:00 2396120                    /chakra/home/universalpackagemanager/chroot/arch-chroot/arch-pkg-build/packages/glibc/repos/core-x86_64/min-dl/loader/musl/lib/libc.so
-7f7a6faad000-7f7a70000000 rw-p 00000000 00:00 0 
-7f7a70000000-7f7a70200000 r-xp 00000000 00:00 0 
-7f7a70200000-7f7a70400000 -wxp 00000000 00:00 0 
-7f7a70400000-7f7a80000000 rw-p 00000000 00:00 0 
-7f7a80000000-7f7a80200000 r-xp 00000000 00:00 0 
-7f7a80200000-7f7a80400000 -wxp 00000000 00:00 0 
-7f7a80400000-7f7aa0000000 rw-p 00000000 00:00 0 
-7f7aa0000000-7f7aa0200000 r-xp 00000000 00:00 0 
-7f7aa0200000-7f7aa0400000 -wxp 00000000 00:00 0 
-7f7aa0400000-7f7aa0874000 rw-p 00000000 00:00 0 
-7f7aa0874000-7f7aa0a20000 r-xp 00000000 08:03 1593900                    /usr/lib/libc-2.26.so
-7f7aa0a20000-7f7aa0c20000 ---p 001ac000 08:03 1593900                    /usr/lib/libc-2.26.so
-7f7aa0c20000-7f7aa0c24000 r--p 001ac000 08:03 1593900                    /usr/lib/libc-2.26.so
-7f7aa0c24000-7f7aa0c26000 rw-p 001b0000 08:03 1593900                    /usr/lib/libc-2.26.so
-7f7aa0c26000-7f7aa0c2a000 rw-p 00000000 00:00 0 
-7f7aa0c2a000-7f7aa0c36000 r-xp 00000000 fe:00 2392135                    /chakra/home/universalpackagemanager/chroot/arch-chroot/arch-pkg-build/packages/glibc/repos/core-x86_64/min-dl/loader/files/libstring.so
-7f7aa0c36000-7f7aa0e35000 ---p 0000c000 fe:00 2392135                    /chakra/home/universalpackagemanager/chroot/arch-chroot/arch-pkg-build/packages/glibc/repos/core-x86_64/min-dl/loader/files/libstring.so
-7f7aa0e35000-7f7aa0e36000 r--p 0000b000 fe:00 2392135                    /chakra/home/universalpackagemanager/chroot/arch-chroot/arch-pkg-build/packages/glibc/repos/core-x86_64/min-dl/loader/files/libstring.so
-7f7aa0e36000-7f7aa0e37000 rw-p 0000c000 fe:00 2392135                    /chakra/home/universalpackagemanager/chroot/arch-chroot/arch-pkg-build/packages/glibc/repos/core-x86_64/min-dl/loader/files/libstring.so
-7f7aa0e37000-7f7aa0e3a000 rw-p 00000000 00:00 0 
-7f7aa0e3a000-7f7aa0e74000 r-xp 00000000 fe:00 2392137                    /chakra/home/universalpackagemanager/chroot/arch-chroot/arch-pkg-build/packages/glibc/repos/core-x86_64/min-dl/loader/files/readelf_.so
-7f7aa0e74000-7f7aa1074000 ---p 0003a000 fe:00 2392137                    /chakra/home/universalpackagemanager/chroot/arch-chroot/arch-pkg-build/packages/glibc/repos/core-x86_64/min-dl/loader/files/readelf_.so
-7f7aa1074000-7f7aa1076000 r--p 0003a000 fe:00 2392137                    /chakra/home/universalpackagemanager/chroot/arch-chroot/arch-pkg-build/packages/glibc/repos/core-x86_64/min-dl/loader/files/readelf_.so
-7f7aa1076000-7f7aa1077000 rw-p 0003c000 fe:00 2392137                    /chakra/home/universalpackagemanager/chroot/arch-chroot/arch-pkg-build/packages/glibc/repos/core-x86_64/min-dl/loader/files/readelf_.so
-7f7aa1077000-7f7aa109c000 r-xp 00000000 08:03 1594062                    /usr/lib/ld-2.26.so
-7f7aa111a000-7f7aa11af000 rw-p 00000000 00:00 0 
-7f7aa11af000-7f7aa1263000 r--p 00000000 fe:00 2396120                    /chakra/home/universalpackagemanager/chroot/arch-chroot/arch-pkg-build/packages/glibc/repos/core-x86_64/min-dl/loader/musl/lib/libc.so
-7f7aa1263000-7f7aa1266000 rw-p 00000000 00:00 0 
-7f7aa1290000-7f7aa1299000 r--p 00000000 fe:00 2392138                    /chakra/home/universalpackagemanager/chroot/arch-chroot/arch-pkg-build/packages/glibc/repos/core-x86_64/min-dl/loader/files/test_lib.so
-7f7aa1299000-7f7aa129b000 rw-p 00000000 00:00 0 
-7f7aa129b000-7f7aa129c000 r--p 00024000 08:03 1594062                    /usr/lib/ld-2.26.so
-7f7aa129c000-7f7aa129d000 rw-p 00025000 08:03 1594062                    /usr/lib/ld-2.26.so
-7f7aa129d000-7f7aa129e000 rw-p 00000000 00:00 0 
-7ffcc318d000-7ffcc31ae000 rw-p 00000000 00:00 0                          [stack]
-7ffcc31b7000-7ffcc31ba000 r--p 00000000 00:00 0                          [vvar]
-7ffcc31ba000-7ffcc31bc000 r-xp 00000000 00:00 0                          [vdso]
-ffffffffff600000-ffffffffff601000 r-xp 00000000 00:00 0                  [vsyscall]
-called round_up
-returning 0x7f7a4efa0000
+current index 2 holds "/lib/ld-musl-x86_64.so.1"
+index 2 holds desired library "/lib/ld-musl-x86_64.so.1"
 func_int_strlen_musl("test string\n")
 OK!
 Test dlopen/dlsym >
 dlopen
-dlopen: adding l to index 3
+"l" not found
 dlsym
-dlsym: adding k to index 3
 OK!
 Test gnu and musl libc functions >
-current index 3 holds "NULL"
+current index 0 holds "./files/test_lib.so"
+current index 1 holds "/lib/libc.so.6"
+index 1 holds desired library "/lib/libc.so.6"
+dlsym: adding write from ./files/test_lib.so
+current index 1 holds "/lib/libc.so.6"
 searching indexes for "/lib/libc.so.6" incase it has already been loaded
 current index 0 holds "./files/test_lib.so"
 current index 1 holds "/lib/libc.so.6"
 index 1 holds desired library "/lib/libc.so.6"
 write
+current index 0 holds "./files/test_lib.so"
 current index 1 holds "/lib/libc.so.6"
+current index 2 holds "/lib/ld-musl-x86_64.so.1"
+index 2 holds desired library "/lib/ld-musl-x86_64.so.1"
+dlsym: adding write from /lib/libc.so.6
+current index 2 holds "/lib/ld-musl-x86_64.so.1"
 searching indexes for "/lib/ld-musl-x86_64.so.1" incase it has already been loaded
 current index 0 holds "./files/test_lib.so"
 current index 1 holds "/lib/libc.so.6"
 current index 2 holds "/lib/ld-musl-x86_64.so.1"
 index 2 holds desired library "/lib/ld-musl-x86_64.so.1"
 write
-current index 2 holds "/lib/ld-musl-x86_64.so.1"
+current index 0 holds "./files/test_lib.so"
+current index 1 holds "/lib/libc.so.6"
+index 1 holds desired library "/lib/libc.so.6"
+dlsym: adding strlen from ./files/test_lib.so
+current index 1 holds "/lib/libc.so.6"
 searching indexes for "/lib/libc.so.6" incase it has already been loaded
 current index 0 holds "./files/test_lib.so"
 current index 1 holds "/lib/libc.so.6"
 index 1 holds desired library "/lib/libc.so.6"
-func_int_strlen_gnu("test string\n") = 12
+func_int_strlen_gnu("test string\n") = -804693936
+current index 0 holds "./files/test_lib.so"
 current index 1 holds "/lib/libc.so.6"
+current index 2 holds "/lib/ld-musl-x86_64.so.1"
+index 2 holds desired library "/lib/ld-musl-x86_64.so.1"
+dlsym: adding strlen from /lib/libc.so.6
+current index 2 holds "/lib/ld-musl-x86_64.so.1"
 searching indexes for "/lib/ld-musl-x86_64.so.1" incase it has already been loaded
 current index 0 holds "./files/test_lib.so"
 current index 1 holds "/lib/libc.so.6"
@@ -625,10 +614,39 @@ index 2 holds desired library "/lib/ld-musl-x86_64.so.1"
 func_int_strlen_musl("test string\n") = 12
 OK!
 Test nested functions >
-current index 2 holds "/lib/ld-musl-x86_64.so.1"
+current index 0 holds "./files/test_lib.so"
+index 0 holds desired library "./files/test_lib.so"
+dlsym: adding test_nested.2283 from (null)
+current index 0 holds "./files/test_lib.so"
 searching indexes for "./files/test_lib.so" incase it has already been loaded
 current index 0 holds "./files/test_lib.so"
 index 0 holds desired library "./files/test_lib.so"
 test_nested = 5
 OK!
-[exec@exec-pc loader]$
+current index 0 holds "./files/test_lib.so"
+current index 1 holds "/lib/libc.so.6"
+current index 2 holds "/lib/ld-musl-x86_64.so.1"
+current index 3 holds "/usr/lib/zsh/5.4.2/zsh/newuser.so"
+index 3 holds desired library "/usr/lib/zsh/5.4.2/zsh/newuser.so"
+dlsym: adding setup_ from /lib/ld-musl-x86_64.so.1
+current index 3 holds "/usr/lib/zsh/5.4.2/zsh/newuser.so"
+searching indexes for "/usr/lib/zsh/5.4.2/zsh/newuser.so" incase it has already been loaded
+current index 0 holds "./files/test_lib.so"
+current index 1 holds "/lib/libc.so.6"
+current index 2 holds "/lib/ld-musl-x86_64.so.1"
+current index 3 holds "/usr/lib/zsh/5.4.2/zsh/newuser.so"
+index 3 holds desired library "/usr/lib/zsh/5.4.2/zsh/newuser.so"
+current index 0 holds "./files/test_lib.so"
+current index 1 holds "/lib/libc.so.6"
+current index 2 holds "/lib/ld-musl-x86_64.so.1"
+current index 3 holds "/usr/lib/zsh/5.4.2/zsh/newuser.so"
+index 3 holds desired library "/usr/lib/zsh/5.4.2/zsh/newuser.so"
+dlsym: adding finish_ from /lib/ld-musl-x86_64.so.1
+current index 3 holds "/usr/lib/zsh/5.4.2/zsh/newuser.so"
+searching indexes for "/usr/lib/zsh/5.4.2/zsh/newuser.so" incase it has already been loaded
+current index 0 holds "./files/test_lib.so"
+current index 1 holds "/lib/libc.so.6"
+current index 2 holds "/lib/ld-musl-x86_64.so.1"
+current index 3 holds "/usr/lib/zsh/5.4.2/zsh/newuser.so"
+index 3 holds desired library "/usr/lib/zsh/5.4.2/zsh/newuser.so"
+[exec@exec-pc loader]$ 

@@ -16,6 +16,7 @@
 
 // unfortunately this is nessicary
 void * lookup_symbol_by_name_(const char * lib, const char * name);
+void * dlsym(int cc1, const char * cc2);
 int readelf_(const char * filename);
 
 int main() {
@@ -115,10 +116,24 @@ int main() {
 
     
 // multi test
+    // prepare
+    int test = dlopen("./files/test_lib.so");
+    int gnu = dlopen("/lib/libc.so.6");
+    int musl = dlopen("/lib/ld-musl-x86_64.so.1");
+    int zsh = dlopen("/usr/lib/zsh/5.4.2/zsh/newuser.so");
+    
+    // init all libs
+    
+    dlsym(test, "");
+    dlsym(gnu, "");
+    dlsym(musl, "");
+    dlsym(zsh, "");
+    
+    
     
     printf("Test exported functions >\n");
 
-    func_char = lookup_symbol_by_name_("./files/test_lib.so", "foo");
+    func_char = dlsym(test, "foo");
     printf("func = %s\n", func_char());
     
     printf("OK!\n");
@@ -127,7 +142,7 @@ int main() {
     printf("Test musl libc functions >\n");
 
     int (*func_int_write_musl)();
-    func_int_write_musl = lookup_symbol_by_name_("/lib/ld-musl-x86_64.so.1", "write");
+    func_int_write_musl = dlsym(musl, "write");
     func_int_write_musl(1, "write\n", 7);
 
     printf("OK!\n");
@@ -135,7 +150,7 @@ int main() {
 
     printf("Test functions that call external libc functions >\n");
 
-    func_int = lookup_symbol_by_name_("./files/test_lib.so", "test_strlen");
+    func_int = dlsym(test, "test_strlen");
     printf("func_int = %d\n", func_int());
 
     printf("OK!\n");
@@ -144,19 +159,19 @@ int main() {
     printf("Test gnu libc functions >\n");
 
     int (*func_int_strlen_gnu)();
-    func_int_strlen_gnu = lookup_symbol_by_name_("/lib/libc.so.6", "strlen");
+    func_int_strlen_gnu = dlsym(gnu, "strlen");
     printf("func_int_strlen_gnu(\"test string\\n\") = %d\n", func_int_strlen_gnu("test string\n"));
 
     printf("OK!\n");
 
 
-    func_int = lookup_symbol_by_name_("./files/test_lib.so", "bar_int");
+    func_int = dlsym(test, "bar_int");
     printf("func_int = %d\n", func_int());
 
-    func_char = lookup_symbol_by_name_("./files/test_lib.so", "bar");
+    func_char = dlsym(test, "bar");
     printf("func_char = %s\n", func_char());
 
-    func_char = lookup_symbol_by_name_("./files/test_lib.so", "bar2");
+    func_char = dlsym(test, "bar2");
     printf("func_char = %s\n", func_char());
 
     printf("OK!\n");
@@ -166,7 +181,7 @@ int main() {
     printf("Test nested functions >\n");
 
 
-    func_int = lookup_symbol_by_name_("./files/test_lib.so", "test");
+    func_int = dlsym(test, "test");
     printf("test = %d\n", func_int());
 
 
@@ -177,11 +192,11 @@ int main() {
     printf("Test musl libc functions >\n");
 
     int (*func_int_puts_musl)();
-    func_int_puts_musl = lookup_symbol_by_name_("/lib/ld-musl-x86_64.so.1", "puts");
+    func_int_puts_musl = dlsym(musl, "puts");
     func_int_puts_musl("func_int_strlen_gnu(\"test string\\n\")\n");
 
     int (*func_int_printf_musl)();
-    func_int_printf_musl = lookup_symbol_by_name_("/lib/ld-musl-x86_64.so.1", "printf");
+    func_int_printf_musl = dlsym(musl, "printf");
     func_int_printf_musl("func_int_strlen_musl(\"test string\\n\")\n");
 
     printf("OK!\n");
@@ -200,19 +215,19 @@ int main() {
     printf("Test gnu and musl libc functions >\n");
     
     int (*func_int_write_gnu)();
-    func_int_write_gnu = lookup_symbol_by_name_("/lib/libc.so.6", "write");
+    func_int_write_gnu = dlsym(gnu, "write");
     func_int_write_gnu(1, "write\n", 7);
 
     int (*func_int_write_musl_)();
-    func_int_write_musl_ = lookup_symbol_by_name_("/lib/ld-musl-x86_64.so.1", "write");
+    func_int_write_musl_ = dlsym(musl, "write");
     func_int_write_musl_(1, "write\n", 7);
 
     int (*func_int_strlen_gnu_)();
-    func_int_strlen_gnu_ = lookup_symbol_by_name_("/lib/libc.so.6", "strlen");
+    func_int_strlen_gnu_ = dlsym(gnu, "strlen");
     printf("func_int_strlen_gnu(\"test string\\n\") = %d\n", func_int_strlen_gnu_("test string\n"));
 
     int (*func_int_strlen_musl)();
-    func_int_strlen_musl = lookup_symbol_by_name_("/lib/ld-musl-x86_64.so.1", "strlen");
+    func_int_strlen_musl = dlsym(musl, "strlen");
     printf("func_int_strlen_musl(\"test string\\n\") = %d\n", func_int_strlen_musl("test string\n"));
 
     printf("OK!\n");
@@ -220,10 +235,13 @@ int main() {
 
     printf("Test nested functions >\n");
 
-    func_int = lookup_symbol_by_name_("./files/test_lib.so", "test_nested.2283");
+    func_int = dlsym(test, "test_nested.2283");
     printf("test_nested = %d\n", func_int());
 
     printf("OK!\n");
+
+    func_int = dlsym(zsh, "setup_");
+    func_int = dlsym(zsh, "finish_");
 
 
     return 0;
