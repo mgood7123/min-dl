@@ -1,5 +1,5 @@
 #include <stdio.h>
-
+#include <string.h>
 #include <assert.h>
 
 char *b = "test";
@@ -13,6 +13,8 @@ char ********bbbbbbbb = &bbbbbbb;
 char *********bbbbbbbbb = &bbbbbbbb;
 char **********bbbbbbbbbb = &bbbbbbbbb;
 char *********** address = &bbbbbbbbbb;
+
+extern int external();
 
 int k = 1239;
 char bar_a[4] = "bar";
@@ -45,10 +47,10 @@ int test_strlen() { return strlen("int test_strlen() { return strlen(\"TEST\n\")
 // call internal functions
 int test() {
     int a;
-    int test_nested() {
+    auto test_nested = [] () {
         int k=5;
         return k;
-    }
+    };
     int l = test_nested();
     a = l;
     return l+a+bar_int()+external();

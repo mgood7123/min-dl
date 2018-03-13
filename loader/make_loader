@@ -76,6 +76,12 @@ else
 a=1
 fi
 if [[ $a == 0 ]] ; then
+g++ -g3 -O0 test++_lib.cpp test++_lib2.cpp -o files/test++_lib.so --shared -fPIC
+a=$?
+else
+a=1
+fi
+if [[ $a == 0 ]] ; then
 gcc -fPIC -g3 -O0 test_loader.c -o files/loader files/readelf_.so files/libstring.so
 a=$?
 else

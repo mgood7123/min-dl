@@ -16,7 +16,8 @@
 
 // unfortunately this is nessicary
 void * lookup_symbol_by_name_(const char * lib, const char * name);
-void * dlsym(int cc1, const char * cc2);
+void * dlopen(const char * cc);
+void * dlsym(const char * cc1, const char * cc2);
 int readelf_(const char * filename);
 
 int main() {
@@ -117,17 +118,17 @@ int main() {
     
 // multi test
     // prepare
-    int test = dlopen("./files/test_lib.so");
-    int gnu = dlopen("/lib/libc.so.6");
-    int musl = dlopen("/lib/ld-musl-x86_64.so.1");
-    int zsh = dlopen("/usr/lib/zsh/5.4.2/zsh/newuser.so");
+    void* test = dlopen("./files/test_lib.so");
+    void* testCPlusPlus = dlopen("./files/test++_lib.so");
+    void* gnu = dlopen("./supplied/lib/libc-2.26.so");
+    void* musl = dlopen("./supplied/lib/ld-musl-x86_64.so.1");
     
     // init all libs
     
     dlsym(test, "");
+    dlsym(testCPlusPlus, "");
     dlsym(gnu, "");
     dlsym(musl, "");
-    dlsym(zsh, "");
     
     
     
@@ -168,6 +169,12 @@ int main() {
     func_int = dlsym(test, "bar_int");
     printf("func_int = %d\n", func_int());
 
+    char * o_ = dlsym(test, "bar_p");
+    printf("o = %s\n", o_);
+
+    char *********** oo_ = dlsym(test, "address");
+    printf("oo_ = %s\n", **********oo_);
+
     func_char = dlsym(test, "bar");
     printf("func_char = %s\n", func_char());
 
@@ -205,7 +212,7 @@ int main() {
     
 
     printf("dlopen\n");
-    int in = dlopen("l");
+    void * in = dlopen("l");
     printf("dlsym\n");
     dlsym(in, "k");
 
@@ -235,14 +242,55 @@ int main() {
 
     printf("Test nested functions >\n");
 
-    func_int = dlsym(test, "test_nested.2283");
+    func_int = dlsym(test, "test_nested.2051");
     printf("test_nested = %d\n", func_int());
 
     printf("OK!\n");
 
-    func_int = dlsym(zsh, "setup_");
-    func_int = dlsym(zsh, "finish_");
 
+    printf("Testing C++ >\n");
+    
+    readelf_(testCPlusPlus);
+    
+    printf("Test exported functions >\n");
+
+    func_char = dlsym(testCPlusPlus, "foo");
+    printf("func = %s\n", func_char());
+    
+    func_int = dlsym(testCPlusPlus, "bar_int");
+    printf("func_int = %d\n", func_int());
+
+    char * o = dlsym(testCPlusPlus, "bar");
+    printf("o = %s\n", o);
+
+    char *********** oo = dlsym(testCPlusPlus, "address");
+    printf("oo = %s\n", **********oo);
+
+    func_char = dlsym(testCPlusPlus, "bar2");
+    printf("func_char = %s\n", func_char());
+
+    printf("OK!\n");
+
+
+
+    printf("Test nested functions >\n");
+
+//     func_int = dlsym(testCPlusPlus, "test_nested.2245");
+    func_int = dlsym(testCPlusPlus, "test()::{lambda()#1}::operator()() const");
+    printf("test_nested = %d\n", func_int());
+
+    func_int = dlsym(testCPlusPlus, "test");
+    printf("test = %d\n", func_int());
+
+
+    printf("OK!\n");
+
+    printf("Test functions that call external libc functions >\n");
+
+    func_int = dlsym(testCPlusPlus, "test_strlen");
+    printf("func_int = %d\n", func_int());
+
+    printf("OK!\n");
 
     return 0;
 }
