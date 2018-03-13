@@ -10,10 +10,10 @@ int main() {
 }
 #else
 // compiled with -fpic or -fPIC
-const char * global_quiet = "yes";
-const char * symbol_quiet = "yes";
-const char * relocation_quiet = "yes";
-const char * analysis_quiet = "yes";
+const char * global_quiet = "no";
+const char * symbol_quiet = "no";
+const char * relocation_quiet = "no";
+const char * analysis_quiet = "no";
 #define quiet symbol_quiet
 
 // define all headers first

@@ -260,11 +260,14 @@ int main() {
     func_int = dlsym(testCPlusPlus, "bar_int");
     printf("func_int = %d\n", func_int());
 
-    char * o = dlsym(testCPlusPlus, "bar");
+    char * o = dlsym(testCPlusPlus, "bar_p");
     printf("o = %s\n", o);
 
     char *********** oo = dlsym(testCPlusPlus, "address");
     printf("oo = %s\n", **********oo);
+
+    func_char = dlsym(testCPlusPlus, "bar");
+    printf("func_char = %s\n", func_char());
 
     func_char = dlsym(testCPlusPlus, "bar2");
     printf("func_char = %s\n", func_char());
