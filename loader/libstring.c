@@ -76,6 +76,42 @@ int bcmp_(void const *vp, size_t n, void const *vp2, size_t n2)
 
 int bytecmp(void const * p, void const * pp) { return bcmp_(p, strlen(p), pp, strlen(pp)); }
 
+int bcmpc_(void const *vp, size_t n, void const *vp2, size_t n2)
+{
+    if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "----------------------------------------------------------------------->called %s() at line %d from %s\n", __func__, __LINE__, __FILE__);
+    int string_match = 0;
+    unsigned char const *p = vp;
+    unsigned char const *p2 = vp2;
+    int matches=0;
+    for (size_t i=0; i<n; i++)
+        if (p[i] == p2[i]) {
+            if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "p[%d] = %c\n", i, p[i]);
+            matches++;
+        } else break;
+    if (matches == 0) {
+        if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "ERROR: strings do not match\n");
+        return -1;
+    } else {
+        if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "returning 0\n");
+        return 0;
+    }
+}
+
+int bytecmpc(void const * p, void const * pp) { return bcmpc_(p, strlen(p), pp, strlen(pp)); }
+
+int bcmpcq_(void const *vp, size_t n, void const *vp2, size_t n2)
+{
+    int string_match = 0;
+    unsigned char const *p = vp;
+    unsigned char const *p2 = vp2;
+    int matches=0;
+    for (size_t i=0; i<n; i++) if (p[i] == p2[i]) matches++; else break;
+    if (matches == 0) return -1;
+    else return 0;
+}
+
+int bytecmpcq(void const * p, void const * pp) { return bcmpcq_(p, strlen(p), pp, strlen(pp)); }
+
 void nl() {
     if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "\n");
 }

@@ -94,7 +94,10 @@ fi
 # a=1
 # fi
 if [[ $a == 0 ]] ; then
-./files/loader
+cd examples/example1
+make
+LD_PRELOAD=../../files/libstring.so:../../files/readelf_.so ./example1
+#./files/loader
 a=$?
 set +v
 else

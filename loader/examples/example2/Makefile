@@ -6,10 +6,10 @@
 # Licensed under the GNU GPL.
 
 example2: main.cpp polygon.hpp triangle.so
-	$(CXX) $(CXXFLAGS) -o example2 main.cpp -ldl
+	$(CXX) $(CXXFLAGS) -o example2 main.cpp -ldl -g3
 
 triangle.so: triangle.cpp polygon.hpp
-	$(CXX) $(CXXFLAGS) -shared -fPIC -o triangle.so triangle.cpp
+	$(CXX) $(CXXFLAGS) -shared -fPIC -o triangle.so triangle.cpp -g3
 
 clean:
 	rm -f example2 triangle.so

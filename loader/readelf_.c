@@ -11,8 +11,8 @@ int main() {
 #else
 // compiled with -fpic or -fPIC
 const char * global_quiet = "no";
-const char * symbol_quiet = "no";
-const char * relocation_quiet = "no";
+const char * symbol_quiet = "yes";
+const char * relocation_quiet = "yes";
 const char * analysis_quiet = "no";
 #define quiet symbol_quiet
 
@@ -45,8 +45,10 @@ extern int errno;
 int library_index = 0; // must be global
 struct lib
 {
+    int init_lock;
     char * struct_init;
     char * library_name;
+    char ** NEEDED;
     char library_first_character;
     char * library_len;
     char * library_symbol;
@@ -54,7 +56,7 @@ struct lib
     Elf64_Ehdr * _elf_header;
     Elf64_Phdr * _elf_program_header;
     Elf64_Shdr * _elf_symbol_table;
-    char * program_hdr;
+    char *strtab;
     size_t len;
     char * array;
     char * current_lib;
@@ -66,6 +68,7 @@ struct lib
     int init__;
     int PT_DYNAMIC_;
     char * tmp99D;
+    Elf64_Dyn * dynamic;
     int First_Load_Header_index;
     int Last_Load_Header_index;
     size_t RELA_PLT_SIZE;
@@ -115,12 +118,16 @@ struct lib
     int _R_X86_64_REX_GOTPCRELX;
     int _R_X86_64_NUM;
     int _R_X86_64_UNKNOWN;
-} library[5];
+    Elf64_Addr * GOT;
+    Elf64_Addr * GOT2;
+    Elf64_Addr * PLT;
+} library[512];
 
 int
 init_struct() {
     library[library_index].struct_init = "initialized";
     library[library_index].library_name;
+    library[library_index].NEEDED = malloc(sizeof(library[library_index].NEEDED));
     library[library_index].library_first_character;
     library[library_index].library_len;
     library[library_index].library_symbol;
@@ -128,7 +135,7 @@ init_struct() {
     library[library_index]._elf_header;
     library[library_index]._elf_program_header;
     library[library_index]._elf_symbol_table;
-    library[library_index].program_hdr;
+    library[library_index].strtab = NULL;
     library[library_index].len;
     library[library_index].array;
     library[library_index].current_lib = "NULL";
@@ -189,6 +196,9 @@ init_struct() {
     library[library_index]._R_X86_64_REX_GOTPCRELX = 0;
     library[library_index]._R_X86_64_NUM = 0;
     library[library_index]._R_X86_64_UNKNOWN = 0;
+    library[library_index].GOT = NULL;
+    library[library_index].GOT2 = NULL;
+    library[library_index].PLT = NULL;
 }
 
 int init_(const char * filename);
@@ -476,8 +486,24 @@ int test_address(char ** addr)
     }
     else
     {
-//         fprintf(stderr, "%014p = %s\n", addr, "INVALID");
+        fprintf(stderr, "%014p = %s\n", addr, "INVALID");
         pointers--;
+        return -1;
+    }
+}
+
+int test_string(char * addr)
+{
+    init_handler();
+    int fault_code = setjmp(restore_point);
+    if (fault_code == 0)
+    {
+        fprintf(stderr, "%s", addr);
+        return 0;
+    }
+    else
+    {
+        fprintf(stderr, "INVALID");
         return -1;
     }
 }
@@ -956,6 +982,9 @@ __print_quoted_string__(const char *str, unsigned int size, const unsigned int s
     free(buf);
 //         return rc;
 }
+
+Elf64_Word
+get_dynamic_entryq(Elf64_Dyn *dynamic, int field);
 
 // read section header table
 int read_section_header_table_(const char * arrayb, Elf64_Ehdr * eh, Elf64_Shdr * sh_table[])
@@ -1779,266 +1808,6 @@ char * print_symbols_lookup_name(char * arrayd, Elf64_Ehdr * eh, Elf64_Shdr sh_t
 
 }
 
-int relocation_got_and_plt(char * arrayc, Elf64_Shdr sh_table[], uint64_t symbol_table) {
-    char *str_tbl;
-    Elf64_Sym* sym_tbl;
-    uint64_t i, symbol_count;
-
-    sym_tbl = (Elf64_Sym*)read_section_(arrayc, sh_table[symbol_table]);
-
-    /* Read linked string-table
-    * Section containing the string table having names of
-    * symbols of this section
-    */
-    uint64_t str_tbl_ndx = sh_table[symbol_table].sh_link;
-    if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "string/symbol table index = %d\n", str_tbl_ndx);
-    str_tbl = read_section_(arrayc, sh_table[str_tbl_ndx]);
-
-    symbol_count = (sh_table[symbol_table].sh_size);
-    int link_ = sh_table[symbol_table].sh_link;
-    link_ = sh_table[link_].sh_link;
-    int linkn = 0;
-    while (link_ != 0) {
-        link_ = sh_table[link_].sh_link;
-        linkn++;
-    }
-    if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "links: %d\n", linkn);
-    if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "%d symbols\n", symbol_count);
-
-//   Elf64_Word	st_name;		/* Symbol name (string tbl index) */
-//   unsigned char	st_info;		/* Symbol type and binding */
-//   unsigned char st_other;		/* Symbol visibility */
-//   Elf64_Section	st_shndx;		/* Section index */
-//   Elf64_Addr	st_value;		/* Symbol value */
-//   Elf64_Xword	st_size;		/* Symbol size */
-    for(int i=0; i< symbol_count; i++) {
-        if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "index: %d\t", i);
-        if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "size: %10d \t", sym_tbl[i].st_size);
-// /* Legal values for ST_BIND subfield of st_info (symbol binding).  */
-// 
-// #define STB_LOCAL	0		/* Local symbol */
-// #define STB_GLOBAL	1		/* Global symbol */
-// #define STB_WEAK	2		/* Weak symbol */
-// #define	STB_NUM		3		/* Number of defined types.  */
-// #define STB_LOOS	10		/* Start of OS-specific */
-// #define STB_GNU_UNIQUE	10		/* Unique symbol.  */
-// #define STB_HIOS	12		/* End of OS-specific */
-// #define STB_LOPROC	13		/* Start of processor-specific */
-// #define STB_HIPROC	15		/* End of processor-specific */
-        if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "binding: ");
-        switch (ELF64_ST_BIND(sym_tbl[i].st_info)) {
-            case STB_LOCAL:
-                if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "LOCAL   ( Local  symbol )  ");
-                break;
-            case STB_GLOBAL:
-                if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "GLOBAL  ( Global symbol )  ");
-                break;
-            case STB_WEAK:
-                if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "WEAK    (  Weak symbol  )  ");
-                break;
-            default:
-                if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "UNKNOWN (%d)                ", ELF64_ST_BIND(sym_tbl[i].st_info));
-                break;
-        }
-// /* Legal values for ST_TYPE subfield of st_info (symbol type).  */
-// 
-// #define STT_NOTYPE	0		/* Symbol type is unspecified */
-// #define STT_OBJECT	1		/* Symbol is a data object */
-// #define STT_FUNC	2		/* Symbol is a code object */
-// #define STT_SECTION	3		/* Symbol associated with a section */
-// #define STT_FILE	4		/* Symbol's name is file name */
-// #define STT_COMMON	5		/* Symbol is a common data object */
-// #define STT_TLS		6		/* Symbol is thread-local data object*/
-// #define	STT_NUM		7		/* Number of defined types.  */
-// #define STT_LOOS	10		/* Start of OS-specific */
-// #define STT_GNU_IFUNC	10		/* Symbol is indirect code object */
-// #define STT_HIOS	12		/* End of OS-specific */
-// #define STT_LOPROC	13		/* Start of processor-specific */
-// #define STT_HIPROC	15		/* End of processor-specific */
-// /* Symbol visibility specification encoded in the st_other field.  */
-// #define STV_DEFAULT	0		/* Default symbol visibility rules */
-// #define STV_INTERNAL	1		/* Processor specific hidden class */
-// #define STV_HIDDEN	2		/* Sym unavailable in other modules */
-// #define STV_PROTECTED	3		/* Not preemptible, not exported */
-        if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "visibility: ");
-        switch (ELF64_ST_VISIBILITY(sym_tbl[i].st_other)) {
-            case STV_DEFAULT:
-                if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "default   (Default symbol visibility rules)      ");
-                break;
-            case STV_INTERNAL:
-                if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "internal  (Processor specific hidden class)      ");
-                break;
-            case STV_HIDDEN:
-                if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "hidden    (Symbol unavailable in other modules)  ");
-                break;
-            case STV_PROTECTED:
-                if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "protected (Not preemptible, not exported)        ");
-                break;
-        }
-        char * address;
-        if ( ELF64_ST_TYPE(sym_tbl[i].st_info) == STT_FUNC)
-        {
-            address = sym_tbl[i].st_value+library[library_index].mappingb+library[library_index].align;
-            if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "address: %014p\t", address);
-        }
-        else
-        {
-            address = sym_tbl[i].st_value+library[library_index].mappingb;
-            if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "address: %014p\t", address);
-        }
-        if ( address > library[library_index].mappingb && address < library[library_index].mappingb_end ) test(address);
-        else if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "value: %15s\t", "invalid range");
-        if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "type: ");
-        switch (ELF64_ST_TYPE(sym_tbl[i].st_info)) {
-            case STT_NOTYPE:
-                if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "NOTYPE   (Symbol type is unspecified)             ");
-                break;
-            case STT_OBJECT:
-                if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "OBJECT   (Symbol is a data object)                ");
-                break;
-                case STT_FUNC:
-                if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "FUNCTION (Symbol is a code object)                ");
-                break;
-                case STT_SECTION:
-                if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "SECTION  (Symbol associated with a section)       ");
-                break;
-                case STT_FILE:
-                if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "FILE     (Symbol's name is file name)             ");
-                break;
-                case STT_COMMON:
-                if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "COMMON   (Symbol is a common data object)         ");
-                break;
-                case STT_TLS:
-                if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "TLS      (Symbol is thread-local data object)     ");
-                break;
-            default:
-                if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "UNKNOWN  (%d)                                     ", ELF64_ST_TYPE(sym_tbl[i].st_info));
-                break;
-        }
-        if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "name: [Not obtained due to it may crash this program]\n");
-//         if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "\n");
-    }
-}
-
-void print_elf_symbol_table_lookup_got_and_plt(char * arrayc, Elf64_Ehdr * eh, Elf64_Shdr sh_table[], uint64_t symbol_table)
-{
-    int level = 3;
-        switch(sh_table[symbol_table].sh_type) {
-            case SHT_NULL:
-                if (level == 3) relocation_got_and_plt(arrayc, sh_table, symbol_table);
-                break;
-            case SHT_PROGBITS:
-                if (level == 3) relocation_got_and_plt(arrayc, sh_table, symbol_table);
-                break;
-            case SHT_SYMTAB:
-                symbol(arrayc, sh_table, symbol_table);
-                break;
-            case SHT_STRTAB:
-                if (level == 3) relocation_got_and_plt(arrayc, sh_table, symbol_table);
-                break;
-            case SHT_RELA:
-                if (level == 3) relocation_got_and_plt(arrayc, sh_table, symbol_table);
-                break;
-            case SHT_HASH:
-                if (level == 3) relocation_got_and_plt(arrayc, sh_table, symbol_table);
-                break;
-            case SHT_DYNAMIC:
-                if (level == 3) relocation_got_and_plt(arrayc, sh_table, symbol_table);
-                break;
-            case SHT_NOTE:
-                if (level == 3) relocation_got_and_plt(arrayc, sh_table, symbol_table);
-                break;
-            case SHT_NOBITS:
-                if (level == 3) relocation_got_and_plt(arrayc, sh_table, symbol_table);
-                break;
-            case SHT_REL:
-                if (level == 3) relocation_got_and_plt(arrayc, sh_table, symbol_table);
-                break;
-            case SHT_SHLIB:
-                if (level == 3) relocation_got_and_plt(arrayc, sh_table, symbol_table);
-                break;
-            case SHT_DYNSYM:
-                symbol(arrayc, sh_table, symbol_table);
-                break;
-            case SHT_INIT_ARRAY:
-                if (level == 3) relocation_got_and_plt(arrayc, sh_table, symbol_table);
-                break;
-            case SHT_FINI_ARRAY:
-                if (level == 3) relocation_got_and_plt(arrayc, sh_table, symbol_table);
-                break;
-            case SHT_PREINIT_ARRAY:
-                if (level == 3) relocation_got_and_plt(arrayc, sh_table, symbol_table);
-                break;
-            case SHT_GROUP:
-                if (level == 3) relocation_got_and_plt(arrayc, sh_table, symbol_table);
-                break;
-            case SHT_SYMTAB_SHNDX:
-                if (level == 3) relocation_got_and_plt(arrayc, sh_table, symbol_table);
-                break;
-            case SHT_NUM:
-                if (level == 3) relocation_got_and_plt(arrayc, sh_table, symbol_table);
-                break;
-            case SHT_LOOS:
-                if (level == 3) relocation_got_and_plt(arrayc, sh_table, symbol_table);
-                break;
-            case SHT_GNU_ATTRIBUTES:
-                if (level == 3) relocation_got_and_plt(arrayc, sh_table, symbol_table);
-                break;
-            case SHT_GNU_HASH:
-                if (level == 3) relocation_got_and_plt(arrayc, sh_table, symbol_table);
-                break;
-            case SHT_GNU_LIBLIST:
-                if (level == 3) relocation_got_and_plt(arrayc, sh_table, symbol_table);
-                break;
-            case SHT_CHECKSUM:
-                if (level == 3) relocation_got_and_plt(arrayc, sh_table, symbol_table);
-                break;
-            case SHT_LOSUNW:
-                if (level == 3) relocation_got_and_plt(arrayc, sh_table, symbol_table);
-                break;
-            case SHT_SUNW_COMDAT:
-                if (level == 3) relocation_got_and_plt(arrayc, sh_table, symbol_table);
-                break;
-            case SHT_SUNW_syminfo:
-                if (level == 3) relocation_got_and_plt(arrayc, sh_table, symbol_table);
-                break;
-            case SHT_GNU_verdef:
-                if (level == 3) relocation_got_and_plt(arrayc, sh_table, symbol_table);
-                break;
-            case SHT_GNU_verneed:
-                if (level == 3) relocation_got_and_plt(arrayc, sh_table, symbol_table);
-                break;
-            case SHT_GNU_versym:
-                if (level == 3) relocation_got_and_plt(arrayc, sh_table, symbol_table);
-                break;
-            case SHT_LOPROC:
-                if (level == 3) relocation_got_and_plt(arrayc, sh_table, symbol_table);
-                break;
-            case SHT_HIPROC:
-                if (level == 3) relocation_got_and_plt(arrayc, sh_table, symbol_table);
-                break;
-            case SHT_LOUSER:
-                if (level == 3) relocation_got_and_plt(arrayc, sh_table, symbol_table);
-                break;
-            case SHT_HIUSER:
-                if (level == 3) relocation_got_and_plt(arrayc, sh_table, symbol_table);
-                break;
-            default:
-                if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "UNKNOWN ");
-                break;
-        }
-}
-
-char * print_symbols_lookup_got_and_ptl(char * arrayd, Elf64_Ehdr * eh, Elf64_Shdr sh_table[], int index)
-{
-//     for(int i=0; i<eh->e_shnum; i++) {
-        if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "print_symbols_lookup: trying index %d\n", 10);
-        print_elf_symbol_table_lookup_got_and_plt(arrayd, eh, sh_table, 10);
-        if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "print_symbols_lookup: trying index %d\n", 11);
-        print_elf_symbol_table_lookup_got_and_plt(arrayd, eh, sh_table, 11);
-//     }
-}
-
 void * lookup_symbol_by_name(const char * arrayb, Elf64_Ehdr * eh, char * name) {
 
         read_section_header_table_(arrayb, eh, &library[library_index]._elf_symbol_table);
@@ -2065,20 +1834,6 @@ void * lookup_symbol_by_index(const char * arrayb, Elf64_Ehdr * eh, int symbol_i
         if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) fprintf(stderr, "attempting to look up symbol, index = %d\n", symbol_index);
 
         read_section_header_table_(arrayb, eh, &library[library_index]._elf_symbol_table);
-//         if (bytecmpq(global_quiet, "no") == 0) nl();
-//         if (bytecmpq(global_quiet, "no") == 0) nl();
-//         print_symbols_lookup_got_and_ptl(arrayb, eh, library[library_index]._elf_symbol_table, symbol_index);
-//         if (bytecmpq(global_quiet, "no") == 0) nl();
-//         if (bytecmpq(global_quiet, "no") == 0) nl();
-//         Elf64_Addr * GOT = lookup_symbol_by_name(library[library_index].array, library[library_index]._elf_header, "_GLOBAL_OFFSET_TABLE_");
-//         if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) fprintf(stderr, "\n\naddress of GOT = %014p\n", lookup_symbol_by_name(library[library_index].array, library[library_index]._elf_header, "_GLOBAL_OFFSET_TABLE_"));
-//         if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) fprintf(stderr, "address of GOT[1] = %014p\n", GOT[1]);
-//         if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) fprintf(stderr, "address of GOT[2] = %014p\n", GOT[2]);
-//         if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) fprintf(stderr, "address of GOT[3] = %014p\n", GOT[3]);
-//         if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) fprintf(stderr, "address of GOT[4] = %014p\n", GOT[4]);
-//         if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) fprintf(stderr, "address of GOT[5] = %014p\n", GOT[5]);
-//         if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) fprintf(stderr, "address of GOT[6] = %014p\n", GOT[6]);
-//         if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) fprintf(stderr, "address of GOT[7] = %014p\n", GOT[7]);
         char * symbol = print_symbols_lookup(arrayb, eh, library[library_index]._elf_symbol_table, symbol_index, mode);
         if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) fprintf(stderr, "symbol = %d (%014p)\n", symbol, symbol);
         return symbol;
@@ -2118,11 +1873,11 @@ get_dynamic_entry(Elf64_Dyn *dynamic, int field)
 // DT_LOPROC   0x70000000  unspecified unspecified     unspecified
 // DT_HIPROC   0x7fffffff  unspecified unspecified     unspecified
 // 
-// DT_NULL         An entry with a DT_NULL tag marks the end of the _DYNAMIC library[library_index].array.
+// DT_NULL         An entry with a DT_NULL tag marks the end of the _DYNAMIC array.
 // DT_NEEDED       This element holds the string table offset of a null-terminated string, giving
 //                 the name of a needed library. The offset is an index into the table recorded
 //                 in the DT_STRTAB entry. See "Shared Object Dependencies'' for more
-//                 information about these names. The dynamic library[library_index].array may contain multiple
+//                 information about these names. The dynamic array may contain multiple
 //                 entries with this type. These entries' relative order is significant, though
 //                 their relation to entries of other types is not.
 // 
@@ -2579,6 +2334,204 @@ get_dynamic_entry(Elf64_Dyn *dynamic, int field)
     }
     if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "returning 0\n");
     return 0;
+}
+
+Elf64_Word
+get_dynamic_entryq(Elf64_Dyn *dynamic, int field)
+{
+    for (; dynamic->d_tag != DT_NULL; dynamic++) if (dynamic->d_tag == field) return dynamic->d_un.d_val;
+    return 0;
+}
+
+int
+if_valid(const char * file) {
+    if(!access(file, F_OK)) return 0;
+    else return -1;
+}
+
+void *
+dlopen(const char * cc);
+
+void *
+dlsym(const char * cc1, const char * cc2);
+
+Elf64_Word
+get_needed(const char * lib)
+{
+    int local_index = library_index;
+    int local_indexb = library_index;
+    fprintf(stderr, "\n\naquiring \"%s\"\n", lib);
+    sleep(1);
+
+    if (library[library_index].struct_init != "initialized") init_struct();
+    fprintf(stderr, "current index %d holds \"%s\"\nsearching indexes for \"%s\" incase it has already been loaded\n", library_index, library[library_index].last_lib, lib);
+    
+    library_index = search(lib);
+    library[library_index].last_lib = lib;
+    library[library_index].current_lib = lib;
+
+    fprintf(stderr, "checking if %s index %d is locked\n", library[library_index].last_lib, library_index);
+    if (library[library_index].init_lock == 1) {
+        fprintf(stderr, "get_needed: LOCKED\n");
+    }
+    else {
+        fprintf(stderr, "get_needed: UNLOCKED\n");
+    }
+    if ( if_valid(lib) == -1) {
+        fprintf(stderr, "\"%s\" not found\n", lib);
+        errno = 0;
+        return "-1";
+    }
+    fprintf(stderr, "init\n");
+    if (library[library_index].array != NULL) {
+        fprintf(stderr, "%s has a non null array\n", library[library_index].last_lib);
+        fprintf(stderr, "index %d get_needed: LOCKING\n", library_index);
+        library[library_index].init_lock = 1;
+        if (library[library_index].init_lock == 1) {
+            fprintf(stderr, "status: LOCKED\n");
+        }
+        else {
+            fprintf(stderr, "status: UNLOCKED\n");
+        }
+    } else {
+        fprintf(stderr, "%s has a null array\n", library[library_index].last_lib);
+        fprintf(stderr, "index %d get_needed: UNLOCKING\n", library_index);
+        library[library_index].init_lock = 0;
+        if (library[library_index].init_lock == 1) {
+            fprintf(stderr, "status: LOCKED\n");
+        }
+        else {
+            fprintf(stderr, "status: UNLOCKED\n");
+        }
+    }
+    dlopen(lib);
+    dlsym(lib, "");
+    fprintf(stderr, "init done\n");
+    
+    fprintf(stderr, "current index %d holds \"%s\"\nsearching indexes for \"%s\" incase it has already been loaded\n", library_index, library[library_index].last_lib, lib);
+    
+    library_index = search(lib);
+    local_index = library_index;
+    library[library_index].last_lib = lib;
+    library[library_index].current_lib = lib;
+
+    Elf64_Dyn *dynamic = library[library_index].dynamic;
+    Elf64_Dyn *dynamicb = library[library_index].dynamic;
+    const char * arrayb = library[library_index].array;
+    int i = 0;
+    int dynamic__ = 0;
+    fprintf(stderr, "looking for DT_NEEDED sections in \"%s\" (index %d)\n", lib, local_index);
+    for (; dynamic->d_tag != DT_NULL; dynamic++) {
+        if (dynamic->d_tag == DT_NEEDED) {
+            dynamic__ = 1;
+            library[library_index].NEEDED[i] = &library[library_index].strtab[dynamic->d_un.d_val];
+            fprintf(stderr, "\nfrom %s: library[%d].NEEDED[%d] string table index %d = %s\n\n", lib, library_index, i, dynamic->d_un.d_val, library[library_index].NEEDED[i]);
+            assert(bytecmpq(lib, "/lib/ld-linux-x86-64.so.2") != 0);
+            if (bytecmpcq(library[library_index].NEEDED[i], "/") == -1) {
+                fprintf(stderr, "\"%s\" is not a path\n", library[library_index].NEEDED[i]);
+
+
+// START
+// 
+// 
+// library[3].last_lib = /lib/libc.so.6
+// library[3].last_lib = /lib/libc.so.6
+// library[3].last_lib = 0x7ffc83d72e60
+// library[3].last_lib = /lib/libc.so.6
+// library[3].last_lib = /lib/libc.so.6
+// library[3].last_lib = 0x7ffc83d72e60
+// lib1                = 0x7ffc83d6ed70
+// 
+// 
+// 
+// END
+// START
+// 
+// 
+// library[3].last_lib = /lib/libc.so.6
+// library[3].last_lib = /lib/libc.so.6
+// library[3].last_lib = 0x7ffc83d72e60
+// library[3].last_lib = /lib/libc.so.6
+// library[3].last_lib = /lib/libc.so.6
+// library[3].last_lib = 0x7ffc83d72e60
+// lib1                = 0x7ffc83d70e00
+// 
+// 
+// 
+// END
+// START
+// 
+// 
+// library[2].last_lib = /lib/libm.so.6
+// library[3].last_lib = /lib/libc.so.6
+// library[3].last_lib = 0x7ffc83d72e60
+// library[2].last_lib = /lib/libm.so.6
+// library[3].last_lib = /lib/
+// library[3].last_lib = 0x7ffc83d72e60
+// lib1                = 0x7ffc83d72e60
+// 
+// 
+// 
+// END
+
+                fprintf(stderr, "\nSTART\n\n\n");
+                fprintf(stderr, "library[%d].last_lib = %s\nlibrary[%d].last_lib = %014p\n", library_index, library[library_index].last_lib,  library_index, library[library_index].last_lib);
+                if (library[3].struct_init == "initialized") fprintf(stderr, "library[3].last_lib = %s\nlibrary[3].last_lib = %014p\n", library[3].last_lib, library[3].last_lib);
+                char * lib_now;
+                if (library[3].struct_init == "initialized") lib_now = library[library_index].last_lib;
+                char lib1[4096] = "/lib/";
+                fprintf(stderr, "library[%d].last_lib = %s\nlibrary[%d].last_lib = %014p\n", library_index, library[library_index].last_lib,  library_index, library[library_index].last_lib);
+                if (library[3].struct_init == "initialized") fprintf(stderr, "library[3].last_lib = %s\nlibrary[3].last_lib = %014p\n", library[3].last_lib, library[3].last_lib);
+                fprintf(stderr, "lib1                = %014p\n", lib1);
+                printf("\n\n\nEND\n");
+                if (library[3].struct_init == "initialized") assert(bytecmpq(lib_now, library[3].last_lib) == 0);
+                strcat(lib1, library[library_index].NEEDED[i]);
+                if (if_valid(lib1) == 0)
+                {
+                    fprintf(stderr, "\"%s\" found\n", lib1);
+                    library[library_index].NEEDED[i] = lib1;
+                    errno = 0;
+                }
+                else
+                {
+                    char lib2[4096] = "/usr/lib/";
+                    strcat(lib2, library[library_index].NEEDED[i]);
+                    if (if_valid(lib2) == 0)
+                    {
+                        fprintf(stderr, "\"%s\" found\n", lib2);
+                        library[library_index].NEEDED[i] = lib2;
+                        errno = 0;
+                    }
+                    else
+                    {
+                        fprintf(stderr, "\"%s\", \"%s\" and \"%s\" not found\n", library[library_index].NEEDED[i], lib1, lib2);
+                        errno = 0;
+                    }
+                }
+            }
+            fprintf(stderr, "shared lib: %s\n", library[library_index].NEEDED[i]);
+            if (bytecmpq(lib, library[library_index].NEEDED[i]) == 0) fprintf(stderr, "RECURSION DETECTED, SKIPPING\n");
+            else get_needed(library[library_index].NEEDED[i]);
+            library_index = local_indexb;
+            i++;
+        }
+//         if (dynamic->d_tag == DT_RPATH) {
+//         char * rpath = &library[library_index].strtab[dynamic->d_un.d_val];
+//         fprintf(stderr, "rpath: %s\n", rpath);
+//         }
+    }
+    if (dynamic__ == 0) fprintf(stderr, "\"%s\" (index %d) has no DT_NEEDED sections\n", lib, local_index);
+    else library_index = local_indexb;
+//     local_index = local_indexb;
+
+    fprintf(stderr, "index %d get_needed: UNLOCKING\n", local_index);
+    library[local_index].init_lock = 0;
+    if (library[local_index].init_lock == 1) {
+        fprintf(stderr, "status: LOCKED\n");
+    }
+    else {
+        fprintf(stderr, "status: UNLOCKED\n");
+    }
 }
 
 #define symbol_mode_S 1
@@ -3082,7 +3035,7 @@ R_386_GOTPC         This relocation type resembles R_386_PC32, except it uses th
                 }
                 case R_X86_64_PC64:
                 {
-                    if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) fprintf(stderr, "\n\n\nR_X86_64_PC64                calculation: S + A (symbol value + r_addend)\n");
+                    if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) fprintf(stderr, "\n\n\nR_X86_64_PC64                calculation: S + A - P (symbol value + r_addend - (P: This means the place (section offset or address) of the storage unit being relocated (computed using r_offset ).))\n");
                     if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) fprintf(stderr, "reloc->r_offset = %014p\n", reloc->r_offset);
                     *((char**)((char*)library[library_index].mappingb + reloc->r_offset)) = lookup_symbol_by_index(library[library_index].array, library[library_index]._elf_header, ELF64_R_SYM(reloc->r_info), symbol_mode_S, quiet) + reloc->r_addend+library[library_index].mappingb;
                     if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) fprintf(stderr, "((char*)library[library_index].mappingb + reloc->r_offset)            = %014p\n", ((char*)library[library_index].mappingb + reloc->r_offset));
@@ -3247,52 +3200,52 @@ R_386_GOTPC         This relocation type resembles R_386_PC32, except it uses th
 
 int r_summary() {
     if (bytecmpq(global_quiet, "no") == 0) printf( "relocation summary:\n \
-    library[library_index]._R_X86_64_NONE              = %d\n \
-    library[library_index]._R_X86_64_64                = %d\n \
-    library[library_index]._R_X86_64_PC32              = %d\n \
-    library[library_index]._R_X86_64_GOT32             = %d\n \
-    library[library_index]._R_X86_64_PLT32             = %d\n \
-    library[library_index]._R_X86_64_COPY              = %d\n \
-    library[library_index]._R_X86_64_GLOB_DAT          = %d\n \
-    library[library_index]._R_X86_64_JUMP_SLOT         = %d\n \
-    library[library_index]._R_X86_64_RELATIVE          = %d\n \
-    library[library_index]._R_X86_64_GOTPCREL          = %d\n \
-    library[library_index]._R_X86_64_32                = %d\n \
-    library[library_index]._R_X86_64_32S               = %d\n \
-    library[library_index]._R_X86_64_16                = %d\n \
-    library[library_index]._R_X86_64_PC16              = %d\n \
-    library[library_index]._R_X86_64_8                 = %d\n \
-    library[library_index]._R_X86_64_PC8               = %d\n \
-    library[library_index]._R_X86_64_DTPMOD64          = %d\n \
-    library[library_index]._R_X86_64_DTPOFF64          = %d\n \
-    library[library_index]._R_X86_64_TPOFF64           = %d\n \
-    library[library_index]._R_X86_64_TLSGD             = %d\n \
-    library[library_index]._R_X86_64_TLSLD             = %d\n \
-    library[library_index]._R_X86_64_DTPOFF32          = %d\n \
-    library[library_index]._R_X86_64_GOTTPOFF          = %d\n \
-    library[library_index]._R_X86_64_TPOFF32           = %d\n \
-    library[library_index]._R_X86_64_PC64              = %d\n \
-    library[library_index]._R_X86_64_GOTOFF64          = %d\n \
-    library[library_index]._R_X86_64_GOTPC32           = %d\n \
-    library[library_index]._R_X86_64_GOT64             = %d\n \
-    library[library_index]._R_X86_64_GOTPCREL64        = %d\n \
-    library[library_index]._R_X86_64_GOTPC64           = %d\n \
-    library[library_index]._Deprecated1                = %d\n \
-    library[library_index]._R_X86_64_PLTOFF64          = %d\n \
-    library[library_index]._R_X86_64_SIZE32            = %d\n \
-    library[library_index]._R_X86_64_SIZE64            = %d\n \
-    library[library_index]._R_X86_64_GOTPC32_TLSDESC   = %d\n \
-    library[library_index]._R_X86_64_TLSDESC_CALL      = %d\n \
-    library[library_index]._R_X86_64_TLSDESC           = %d\n \
-    library[library_index]._R_X86_64_IRELATIVE         = %d\n \
-    library[library_index]._R_X86_64_RELATIVE64        = %d\n \
-    library[library_index]._Deprecated2                = %d\n \
-    library[library_index]._Deprecated3                = %d\n \
-    library[library_index]._R_X86_64_GOTPLT64          = %d\n \
-    library[library_index]._R_X86_64_GOTPCRELX         = %d\n \
-    library[library_index]._R_X86_64_REX_GOTPCRELX     = %d\n \
-    library[library_index]._R_X86_64_NUM               = %d\n \
-    library[library_index]._R_X86_64_UNKNOWN           = %d\n \
+    _R_X86_64_NONE              = %d\n \
+    _R_X86_64_64                = %d\n \
+    _R_X86_64_PC32              = %d\n \
+    _R_X86_64_GOT32             = %d\n \
+    _R_X86_64_PLT32             = %d\n \
+    _R_X86_64_COPY              = %d\n \
+    _R_X86_64_GLOB_DAT          = %d\n \
+    _R_X86_64_JUMP_SLOT         = %d\n \
+    _R_X86_64_RELATIVE          = %d\n \
+    _R_X86_64_GOTPCREL          = %d\n \
+    _R_X86_64_32                = %d\n \
+    _R_X86_64_32S               = %d\n \
+    _R_X86_64_16                = %d\n \
+    _R_X86_64_PC16              = %d\n \
+    _R_X86_64_8                 = %d\n \
+    _R_X86_64_PC8               = %d\n \
+    _R_X86_64_DTPMOD64          = %d\n \
+    _R_X86_64_DTPOFF64          = %d\n \
+    _R_X86_64_TPOFF64           = %d\n \
+    _R_X86_64_TLSGD             = %d\n \
+    _R_X86_64_TLSLD             = %d\n \
+    _R_X86_64_DTPOFF32          = %d\n \
+    _R_X86_64_GOTTPOFF          = %d\n \
+    _R_X86_64_TPOFF32           = %d\n \
+    _R_X86_64_PC64              = %d\n \
+    _R_X86_64_GOTOFF64          = %d\n \
+    _R_X86_64_GOTPC32           = %d\n \
+    _R_X86_64_GOT64             = %d\n \
+    _R_X86_64_GOTPCREL64        = %d\n \
+    _R_X86_64_GOTPC64           = %d\n \
+    _Deprecated1                = %d\n \
+    _R_X86_64_PLTOFF64          = %d\n \
+    _R_X86_64_SIZE32            = %d\n \
+    _R_X86_64_SIZE64            = %d\n \
+    _R_X86_64_GOTPC32_TLSDESC   = %d\n \
+    _R_X86_64_TLSDESC_CALL      = %d\n \
+    _R_X86_64_TLSDESC           = %d\n \
+    _R_X86_64_IRELATIVE         = %d\n \
+    _R_X86_64_RELATIVE64        = %d\n \
+    _Deprecated2                = %d\n \
+    _Deprecated3                = %d\n \
+    _R_X86_64_GOTPLT64          = %d\n \
+    _R_X86_64_GOTPCRELX         = %d\n \
+    _R_X86_64_REX_GOTPCRELX     = %d\n \
+    _R_X86_64_NUM               = %d\n \
+    _R_X86_64_UNKNOWN           = %d\n \
     total                       = %d\n", library[library_index]._R_X86_64_NONE, library[library_index]._R_X86_64_64, library[library_index]._R_X86_64_PC32, library[library_index]._R_X86_64_GOT32, library[library_index]._R_X86_64_PLT32, library[library_index]._R_X86_64_COPY, library[library_index]._R_X86_64_GLOB_DAT, library[library_index]._R_X86_64_JUMP_SLOT, library[library_index]._R_X86_64_RELATIVE, library[library_index]._R_X86_64_GOTPCREL, library[library_index]._R_X86_64_32, library[library_index]._R_X86_64_32S, library[library_index]._R_X86_64_16, library[library_index]._R_X86_64_PC16, library[library_index]._R_X86_64_8, library[library_index]._R_X86_64_PC8, library[library_index]._R_X86_64_DTPMOD64, library[library_index]._R_X86_64_DTPOFF64, library[library_index]._R_X86_64_TPOFF64, library[library_index]._R_X86_64_TLSGD, library[library_index]._R_X86_64_TLSLD, library[library_index]._R_X86_64_DTPOFF32, library[library_index]._R_X86_64_GOTTPOFF, library[library_index]._R_X86_64_TPOFF32, library[library_index]._R_X86_64_PC64, library[library_index]._R_X86_64_GOTOFF64, library[library_index]._R_X86_64_GOTPC32, library[library_index]._R_X86_64_GOT64, library[library_index]._R_X86_64_GOTPCREL64, library[library_index]._R_X86_64_GOTPC64, library[library_index]._Deprecated1, library[library_index]._R_X86_64_PLTOFF64, library[library_index]._R_X86_64_SIZE32, library[library_index]._R_X86_64_SIZE64, library[library_index]._R_X86_64_GOTPC32_TLSDESC, library[library_index]._R_X86_64_TLSDESC_CALL, library[library_index]._R_X86_64_TLSDESC, library[library_index]._R_X86_64_IRELATIVE, library[library_index]._R_X86_64_RELATIVE64, library[library_index]._Deprecated2, library[library_index]._Deprecated3, library[library_index]._R_X86_64_GOTPLT64, library[library_index]._R_X86_64_GOTPCRELX, library[library_index]._R_X86_64_REX_GOTPCRELX, library[library_index]._R_X86_64_NUM, library[library_index]._R_X86_64_UNKNOWN, library[library_index]._R_X86_64_NONE + library[library_index]._R_X86_64_64 + library[library_index]._R_X86_64_PC32 + library[library_index]._R_X86_64_GOT32 + library[library_index]._R_X86_64_PLT32 + library[library_index]._R_X86_64_COPY + library[library_index]._R_X86_64_GLOB_DAT + library[library_index]._R_X86_64_JUMP_SLOT + library[library_index]._R_X86_64_RELATIVE + library[library_index]._R_X86_64_GOTPCREL + library[library_index]._R_X86_64_32 + library[library_index]._R_X86_64_32S + library[library_index]._R_X86_64_16 + library[library_index]._R_X86_64_PC16 + library[library_index]._R_X86_64_8 + library[library_index]._R_X86_64_PC8 + library[library_index]._R_X86_64_DTPMOD64 + library[library_index]._R_X86_64_DTPOFF64 + library[library_index]._R_X86_64_TPOFF64 + library[library_index]._R_X86_64_TLSGD + library[library_index]._R_X86_64_TLSLD + library[library_index]._R_X86_64_DTPOFF32 + library[library_index]._R_X86_64_GOTTPOFF + library[library_index]._R_X86_64_TPOFF32 + library[library_index]._R_X86_64_PC64 + library[library_index]._R_X86_64_GOTOFF64 + library[library_index]._R_X86_64_GOTPC32 + library[library_index]._R_X86_64_GOT64 + library[library_index]._R_X86_64_GOTPCREL64 + library[library_index]._R_X86_64_GOTPC64 + library[library_index]._Deprecated1 + library[library_index]._R_X86_64_PLTOFF64 + library[library_index]._R_X86_64_SIZE32 + library[library_index]._R_X86_64_SIZE64 + library[library_index]._R_X86_64_GOTPC32_TLSDESC + library[library_index]._R_X86_64_TLSDESC_CALL + library[library_index]._R_X86_64_TLSDESC + library[library_index]._R_X86_64_IRELATIVE + library[library_index]._R_X86_64_RELATIVE64 + library[library_index]._Deprecated2 + library[library_index]._Deprecated3 + library[library_index]._R_X86_64_GOTPLT64 + library[library_index]._R_X86_64_GOTPCRELX + library[library_index]._R_X86_64_REX_GOTPCRELX + library[library_index]._R_X86_64_NUM + library[library_index]._R_X86_64_UNKNOWN);
 }
 
@@ -3305,6 +3258,8 @@ init_(const char * filename) {
     obtain_rela_plt_size(library[library_index].array, library[library_index]._elf_header, library[library_index]._elf_symbol_table);
     if(!strncmp((char*)library[library_index]._elf_header->e_ident, "\177ELF", 4)) {
         map();
+        char *load_addr = NULL;
+        uint32_t load_offset = 0;
         for (int i = 0; i < library[library_index]._elf_header->e_phnum; ++i) {
             char * section_;
             switch(library[library_index]._elf_program_header[i].p_type)
@@ -3314,6 +3269,8 @@ init_(const char * filename) {
                     break;
                 case PT_LOAD:
                     section_="PT_LOAD";
+                    load_addr = (const char *)library[library_index]._elf_program_header->p_vaddr;
+                    load_offset = library[library_index]._elf_program_header->p_offset;
                     break;
                 case PT_DYNAMIC:
                     section_="PT_DYNAMIC";
@@ -3375,11 +3332,25 @@ init_(const char * filename) {
             }
         }
         if (library[library_index].PT_DYNAMIC_ != 0) {
-            Elf64_Dyn * dynamic = library[library_index].tmp99D;
+            library[library_index].dynamic = library[library_index].tmp99D;
+            for (; library[library_index].dynamic->d_tag != DT_NULL; library[library_index].dynamic++) {
+                if (library[library_index].dynamic->d_tag == DT_STRTAB) {
+                const char *strtab_addr = (const char *)library[library_index].dynamic->d_un.d_ptr;
+                uint32_t strtab_offset = load_offset + (strtab_addr - load_addr);
+                library[library_index].strtab = library[library_index].array + strtab_offset;
+                }
+            }
+            if (library[library_index].strtab == NULL) {
+                abort_();
+            }
+            library[library_index].dynamic = library[library_index].tmp99D;
+            library[library_index].GOT2 = library[library_index].mappingb + get_dynamic_entry(library[library_index].dynamic, DT_PLTGOT);
+
             r_init();
-            r(library[library_index].mappingb + get_dynamic_entry(dynamic, DT_RELA), get_dynamic_entry(dynamic, DT_RELASZ), relocation_quiet);
-            r(library[library_index].mappingb + get_dynamic_entry(dynamic, DT_JMPREL), library[library_index].RELA_PLT_SIZE, relocation_quiet);
-            r(library[library_index].mappingb + get_dynamic_entry(dynamic, DT_PLTREL), get_dynamic_entry(dynamic, DT_PLTRELSZ), relocation_quiet);
+            r(library[library_index].mappingb + get_dynamic_entry(library[library_index].dynamic, DT_RELA), get_dynamic_entry(library[library_index].dynamic, DT_RELASZ), relocation_quiet);
+            r(library[library_index].mappingb + get_dynamic_entry(library[library_index].dynamic, DT_JMPREL), library[library_index].RELA_PLT_SIZE, relocation_quiet);
+            r(library[library_index].mappingb + get_dynamic_entry(library[library_index].dynamic, DT_BIND_NOW), library[library_index].RELA_PLT_SIZE, relocation_quiet);
+//             r(library[library_index].mappingb + get_dynamic_entry(library[library_index].dynamic, DT_PLTREL), get_dynamic_entry(library[library_index].dynamic, DT_PLTRELSZ), relocation_quiet);
             r_summary();
         }
     } else return -1;
@@ -3645,6 +3616,8 @@ initv_(const char * filename) {
             );
             map();
 // continue analysis
+            char *load_addr = NULL;
+            uint32_t load_offset = 0;
             for (int i = 0; i < library[library_index]._elf_header->e_phnum; ++i) {
                 char * section_;
                 if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "p_type:\t\t\t/* Segment type */\t\t= ");
@@ -3657,6 +3630,8 @@ initv_(const char * filename) {
                     case PT_LOAD:
                         if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "PT_LOAD\t\t/* Loadable program segment */\n");
                         section_="PT_LOAD";
+                        load_addr = (const char *)library[library_index]._elf_program_header->p_vaddr;
+                        load_offset = library[library_index]._elf_program_header->p_offset;
                         break;
                     case PT_DYNAMIC:
                         if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "PT_DYNAMIC\t\t/* Dynamic linking information */\n");
@@ -3771,19 +3746,34 @@ initv_(const char * filename) {
                 if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "p_flags:\t\t/* Segment flags */\t\t= %014p\np_offset:\t\t/* Segment file offset */\t= %014p\np_vaddr:\t\t/* Segment virtual address */\t= %014p\np_paddr:\t\t/* Segment physical address */\t= %014p\np_filesz:\t\t/* Segment size in file */\t= %014p\np_memsz:\t\t/* Segment size in memory */\t= %014p\np_align:\t\t/* Segment alignment */\t\t= %014p\n\n\n", library[library_index]._elf_program_header[library[library_index].Last_Load_Header_index].p_flags, library[library_index]._elf_program_header[library[library_index].Last_Load_Header_index].p_offset, library[library_index]._elf_program_header[library[library_index].Last_Load_Header_index].p_vaddr+library[library_index].mappingb, library[library_index]._elf_program_header[library[library_index].Last_Load_Header_index].p_paddr, library[library_index]._elf_program_header[library[library_index].Last_Load_Header_index].p_filesz, library[library_index]._elf_program_header[library[library_index].Last_Load_Header_index].p_memsz, library[library_index]._elf_program_header[library[library_index].Last_Load_Header_index].p_align);
                 if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "first PT_LOAD library[library_index]._elf_program_header[%d]->p_paddr = \n%014p\n", library[library_index].First_Load_Header_index, library[library_index]._elf_program_header[library[library_index].First_Load_Header_index].p_paddr+library[library_index].mappingb);
                 if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "Second PT_LOAD library[library_index]._elf_program_header[%d]->p_paddr = \n%014p\n", library[library_index].Last_Load_Header_index, library[library_index]._elf_program_header[library[library_index].Last_Load_Header_index].p_paddr+library[library_index].mappingb);
-                Elf64_Dyn * dynamic = library[library_index].tmp99D;
+                library[library_index].dynamic = library[library_index].tmp99D;
+                for (; library[library_index].dynamic->d_tag != DT_NULL; library[library_index].dynamic++) {
+                    if (library[library_index].dynamic->d_tag == DT_STRTAB) {
+                    const char *strtab_addr = (const char *)library[library_index].dynamic->d_un.d_ptr;
+                    uint32_t strtab_offset = load_offset + (strtab_addr - load_addr);
+                    library[library_index].strtab = library[library_index].array + strtab_offset;
+                    }
+                }
+                if (library[library_index].strtab == NULL) {
+                    abort_();
+                }
+                library[library_index].dynamic = library[library_index].tmp99D;
+
+                library[library_index].GOT2 = library[library_index].mappingb + get_dynamic_entry(library[library_index].dynamic, DT_PLTGOT);
+//                 library[library_index].PLT = library[library_index].mappingb + get_dynamic_entry(library[library_index].dynamic, DT_PLTREL);
 
 //                 if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "printing symbol data\n");
-//                 Elf64_Sym *syms = library[library_index].mappingb + get_dynamic_entry(dynamic, DT_SYMTAB);
+//                 Elf64_Sym *syms = library[library_index].mappingb + get_dynamic_entry(library[library_index].dynamic, DT_SYMTAB);
 //                 symbol1(library[library_index].array, syms, 0);
                 if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "examining current entries:\n");
-                get_dynamic_entry(dynamic, -1);
+                get_dynamic_entry(library[library_index].dynamic, -1);
                 if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "printing relocation data\n");
                 // needs to be the address of the mapping itself, not the base address
                 r_init();
-                r(library[library_index].mappingb + get_dynamic_entry(dynamic, DT_RELA), get_dynamic_entry(dynamic, DT_RELASZ), relocation_quiet);
-                r(library[library_index].mappingb + get_dynamic_entry(dynamic, DT_JMPREL), library[library_index].RELA_PLT_SIZE, relocation_quiet);
-                r(library[library_index].mappingb + get_dynamic_entry(dynamic, DT_PLTREL), get_dynamic_entry(dynamic, DT_PLTRELSZ), relocation_quiet);
+                r(library[library_index].mappingb + get_dynamic_entry(library[library_index].dynamic, DT_RELA), get_dynamic_entry(library[library_index].dynamic, DT_RELASZ), relocation_quiet);
+                r(library[library_index].mappingb + get_dynamic_entry(library[library_index].dynamic, DT_JMPREL), library[library_index].RELA_PLT_SIZE, relocation_quiet);
+                r(library[library_index].mappingb + get_dynamic_entry(library[library_index].dynamic, DT_BIND_NOW), library[library_index].RELA_PLT_SIZE, relocation_quiet);
+//                 r(library[library_index].mappingb + get_dynamic_entry(library[library_index].dynamic, DT_PLTREL), get_dynamic_entry(library[library_index].dynamic, DT_PLTRELSZ), relocation_quiet);
                 r_summary();
             }
 //             if (bytecmpq(global_quiet, "no") == 0) nl();
@@ -3819,23 +3809,21 @@ library[library_index]._elf_header->e_shoff = %014p)\n",\
 }
 
 int
-if_valid(const char * file) {
-    if(!access(file, F_OK)) return 0;
-    else return -1;
-}
-
-int
 readelf_(const char * filename);
 
 void *
 dlopen(const char * cc)
 {
+    if (library[library_index].init_lock == 1) {
+        fprintf(stderr, "dlopen: LOCKED\n");
+        return "-1";
+    };
     if ( if_valid(cc) == -1) {
         fprintf(stderr, "\"%s\" not found\n", cc);
         errno = 0;
         return "-1";
     }
-//     readelf_(cc);
+    init_(cc);
     library_index++;
     library[library_index].library_name = cc;
     library[library_index].library_first_character = library[library_index].library_name[0];
@@ -3847,6 +3835,52 @@ dlopen(const char * cc)
 void *
 dlsym(const char * cc1, const char * cc2)
 {
+    if (library[library_index].init_lock == 1) {
+        fprintf(stderr, "dlsym: LOCKED\n");
+        return "-1";
+    };
+    /*
+
+    printf resolution:
+    
+    initialization:
+    in during relocation JMP_SLOT relocations are preformed, which write directly to the GOT, in this case "printf" is translated directly to "puts" at compile time
+    ->
+    R_X86_64_JUMP_SLOT           calculation: S (symbol value)
+    library[library_index].mappingb    = 0x7ffff0000000
+    reloc->r_offset = 0x7ffff0000000+0x000000201018=0x7ffff0201018
+    attempting to look up symbol, index = 2
+    looking up index 2 of table 3
+    requested symbol name for index 2 is puts
+    symbol = 0 (         (nil))
+    0x7ffff0201018 = 0x7ffff0000000
+
+    in gdb tracing/examining the calls:
+    callq  540 <puts@plt>
+    ->
+    jmpq   *0x200ad2(%rip)        # 201018 <puts@GLIBC_2.2.5>
+    ->
+    retrieves the _GLOBAL_OFFSET_TABLE_ as an array called GOT
+    
+    address of GOT[3] = 0x7ffff0000000
+    (
+        pwndbg> x /g 0x7ffff0201000+0x8+0x10
+        0x7ffff0201018: 0x00007ffff0000000
+    )
+    ->
+    jumps to 0x00007ffff0000000 wich is incorrect as it is not the location of printf
+    
+     ► 0x7ffff0000540    jmp    qword ptr [rip + 0x200ad2] // callq  540 <puts@plt>
+        ↓
+       0x7ffff0000000    jg     0x7ffff0000047
+    
+    
+    since the jump can be modified we can make it jump to whatever we like wich would be bad in normal cases but usefull in specific cases, but for now we will try to make it jump to the actual location of puts in the libc library
+    
+    "ld.so takes the first symbol it finds"
+
+    */
+    
     if (bytecmpq(cc1,"-1") == 0) return "-1";
     library_index = search(cc1);
 
@@ -3854,6 +3888,38 @@ dlsym(const char * cc1, const char * cc2)
 
     fprintf(stderr, "dlsym: adding %s from %s\n", library[library_index].library_symbol, library[library_index].library_name);
 
+    library[library_index].GOT = lookup_symbol_by_name_(cc1, "_GLOBAL_OFFSET_TABLE_");
+    if (library[library_index].GOT != NULL) {
+        if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "\n\naddress of GOT   = %014p\n", library[library_index].GOT);
+        if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "address of GOT[1] = %014p\n", library[library_index].GOT[1]);
+        if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "address of GOT[2] = %014p\n", library[library_index].GOT[2]);
+        if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "address of GOT[3] = %014p\n", library[library_index].GOT[3]);
+        if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "address of GOT[4] = %014p\n", library[library_index].GOT[4]);
+        if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "address of GOT[5] = %014p\n", library[library_index].GOT[5]);
+        if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "address of GOT[6] = %014p\n", library[library_index].GOT[6]);
+        if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "address of GOT[7] = %014p\n", library[library_index].GOT[7]);
+    }
+    else if (library[library_index].GOT2 != NULL) {
+        if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "\n\naddress of GOT   = %014p\n", library[library_index].GOT2);
+        if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "address of GOT[1] = %014p\n", library[library_index].GOT2[1]);
+        if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "address of GOT[2] = %014p\n", library[library_index].GOT2[2]);
+        if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "address of GOT[3] = %014p\n", library[library_index].GOT2[3]);
+        if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "address of GOT[4] = %014p\n", library[library_index].GOT2[4]);
+        if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "address of GOT[5] = %014p\n", library[library_index].GOT2[5]);
+        if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "address of GOT[6] = %014p\n", library[library_index].GOT2[6]);
+        if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "address of GOT[7] = %014p\n", library[library_index].GOT2[7]);
+    }
+    if (library[library_index].PLT != NULL) {
+        if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "\n\naddress of PLT   = %014p\n", library[library_index].PLT);
+        if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "address of PLT[1] = %014p\n", library[library_index].PLT[1]);
+        if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "address of PLT[2] = %014p\n", library[library_index].PLT[2]);
+        if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "address of PLT[3] = %014p\n", library[library_index].PLT[3]);
+        if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "address of PLT[4] = %014p\n", library[library_index].PLT[4]);
+        if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "address of PLT[5] = %014p\n", library[library_index].PLT[5]);
+        if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "address of PLT[6] = %014p\n", library[library_index].PLT[6]);
+        if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "address of PLT[7] = %014p\n", library[library_index].PLT[7]);
+    }
+    get_needed(cc1);
     return lookup_symbol_by_name_(cc1, cc2);
 }
 
@@ -4239,7 +4305,7 @@ readelf_(const char * filename) {
                 Elf64_Dyn * dynamic = library[library_index].tmp99D;
 
                 if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "examining current entries:\n");
-                get_dynamic_entry(dynamic, -1);
+                get_dynamic_entry(library[library_index].dynamic, -1);
             }
 
             if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "Section Header\t \

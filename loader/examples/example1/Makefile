@@ -6,10 +6,10 @@
 # Licensed under the GNU GPL.
 
 example1: main.cpp hello.so
-	$(CXX) $(CXXFLAGS) -o example1 main.cpp -ldl
+	$(CXX) $(CXXFLAGS) -o example1 main.cpp -ldl -g3
 
 hello.so: hello.cpp
-	$(CXX) $(CXXFLAGS) -shared -fPIC -o hello.so hello.cpp
+	$(CXX) $(CXXFLAGS) -shared -fPIC -o hello.so hello.cpp -g3
 
 clean:
 	rm -f example1 hello.so

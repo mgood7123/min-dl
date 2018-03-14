@@ -118,6 +118,8 @@ int main() {
     
 // multi test
     // prepare
+    void* self1 = dlopen("./files/libstring.so");
+    void* self2 = dlopen("./files/readelf_.so");
     void* test = dlopen("./files/test_lib.so");
     void* testCPlusPlus = dlopen("./files/test++_lib.so");
     void* gnu = dlopen("./supplied/lib/libc-2.26.so");
@@ -125,6 +127,8 @@ int main() {
     
     // init all libs
     
+    dlsym(self1, ""); // not actually required
+    dlsym(self2, ""); // not actually required
     dlsym(test, "");
     dlsym(testCPlusPlus, "");
     dlsym(gnu, "");
