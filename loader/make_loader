@@ -82,7 +82,19 @@ else
 a=1
 fi
 if [[ $a == 0 ]] ; then
-gcc -fPIC -g3 -O0 test_loader.c -o files/loader files/readelf_.so files/libstring.so
+g++ -g3 -O0 patchelf.cc -o files/patchelf.so --shared -fPIC
+a=$?
+else
+a=1
+fi
+if [[ $a == 0 ]] ; then
+g++ -g3 -O0 patchelf.cc -o files/patchelf ./files/libstring.so -DM
+a=$?
+else
+a=1
+fi
+if [[ $a == 0 ]] ; then
+gcc -fPIC -g3 -O0 test_loader.c -o files/loader files/readelf_.so files/libstring.so files/patchelf.so
 a=$?
 else
 a=1
@@ -96,8 +108,9 @@ fi
 if [[ $a == 0 ]] ; then
 cd examples/example1
 make
-LD_PRELOAD=../../files/libstring.so:../../files/readelf_.so ./example1
-#./files/loader
+#LD_PRELOAD=../../files/patchelf.so:../../files/libstring.so:../../files/readelf_.so ./example1
+cd ../../
+./files/loader
 a=$?
 set +v
 else

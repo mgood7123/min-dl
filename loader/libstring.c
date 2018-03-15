@@ -69,7 +69,7 @@ int bcmp_(void const *vp, size_t n, void const *vp2, size_t n2)
         }
     } else
     {
-        if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "ERROR: different length string comparision, might want to use strcmp instead\n");
+        if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "ERROR: different length string comparision, might want to use bytecmpc instead\n");
         return -1;
     }
 }
@@ -83,11 +83,12 @@ int bcmpc_(void const *vp, size_t n, void const *vp2, size_t n2)
     unsigned char const *p = vp;
     unsigned char const *p2 = vp2;
     int matches=0;
-    for (size_t i=0; i<n; i++)
+    for (size_t i=0; i<n; i++) {
+        if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "p[%d] = %c\n", i, p[i]);
         if (p[i] == p2[i]) {
-            if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "p[%d] = %c\n", i, p[i]);
             matches++;
         } else break;
+    }
     if (matches == 0) {
         if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "ERROR: strings do not match\n");
         return -1;
@@ -111,6 +112,98 @@ int bcmpcq_(void const *vp, size_t n, void const *vp2, size_t n2)
 }
 
 int bytecmpcq(void const * p, void const * pp) { return bcmpcq_(p, strlen(p), pp, strlen(pp)); }
+
+// bytecmpr compares two strings in reverse char by char for an EXACT full string match, returns -1 if strings differ in length or do not match but are of same length
+
+int bcmp_qr(void const *vp, size_t n, void const *vp2, size_t n2)
+{
+    int string_match = 0;
+    if (n == n2) {
+        unsigned char const *p = vp;
+        unsigned char const *p2 = vp2;
+        for (size_t i=0; i<n; i++)
+            if (p[i] == p2[i]) {
+                string_match = 1;
+            } else { string_match = 0; break; }
+        if (string_match == 0) {
+            return -1;
+        } else return 0;
+    } else
+    {
+        return -1;
+    }
+}
+
+
+int bytecmpqr(void const * p, void const * pp) { return bcmp_qr(p, strlen(p), pp, strlen(pp)); }
+
+int bcmpr_(void const *vp, size_t n, void const *vp2, size_t n2)
+{
+    if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "----------------------------------------------------------------------->called %s() at line %d from %s\n", __func__, __LINE__, __FILE__);
+    int string_match = 0;
+    if (n == n2) {
+        unsigned char const *p = vp;
+        unsigned char const *p2 = vp2;
+        for (size_t i=n; i==0; i--)
+            if (p[i] == p2[i]) {
+                if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "p[%d] = %c\n", i, p[i]);
+                string_match = 1;
+            } else { string_match = 0; break; }
+        if (string_match == 0) {
+            if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "ERROR: strings do not match\n");
+            return -1;
+        } else {
+            if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "returning 0\n");
+            return 0;
+        }
+    } else
+    {
+        if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "ERROR: different length string comparision, might want to use bytecmpcr instead\n");
+        return -1;
+    }
+}
+
+int bytecmpr(void const * p, void const * pp) { return bcmpr_(p, strlen(p), pp, strlen(pp)); }
+
+int bcmpcr_(void const *vp, size_t n, void const *vp2, size_t n2)
+{
+    if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "----------------------------------------------------------------------->called %s() at line %d from %s\n", __func__, __LINE__, __FILE__);
+    int string_match = 0;
+    unsigned char const *p = vp;
+    unsigned char const *p2 = vp2;
+    int matches=0;
+    if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "p = %s\np2 = %s\n", p, p2);
+    size_t ii=n2;
+    for (size_t i=n-1; i>=0; i--) {
+        if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "p[%d] = %c\np2[%d] = %c\n", i, p[i], ii, p2[ii]);
+        if (p[i] == p2[ii]) matches++;
+        else break;
+        ii--;
+    }
+    if (matches == 0) {
+        if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "ERROR: strings do not match\n");
+        return -1;
+    } else {
+        if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "returning 0\n");
+        return 0;
+    }
+}
+
+int bytecmpcr(void const * p, void const * pp) { return bcmpcr_(p, strlen(p), pp, strlen(pp)); }
+
+int bcmpcqr_(void const *vp, size_t n, void const *vp2, size_t n2)
+{
+    int string_match = 0;
+    unsigned char const *p = vp;
+    unsigned char const *p2 = vp2;
+    int matches=0;
+    size_t ii=n2;
+    for (size_t i=n-1; i>=0; i--) { if (p[i] == p2[ii]) matches++; else break; ii--; }
+    if (matches == 0) return -1;
+    else return 0;
+}
+
+int bytecmpcqr(void const * p, void const * pp) { return bcmpcqr_(p, strlen(p), pp, strlen(pp)); }
 
 void nl() {
     if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "\n");

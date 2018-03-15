@@ -14,7 +14,7 @@ const char * global_quiet = "no";
 const char * symbol_quiet = "yes";
 const char * relocation_quiet = "yes";
 const char * analysis_quiet = "no";
-#define quiet symbol_quiet
+const char * ldd_quiet = "yes";
 
 // define all headers first
 
@@ -43,85 +43,7 @@ extern int errno;
 // need to add every needed declaration into this struct
 
 int library_index = 0; // must be global
-struct lib
-{
-    int init_lock;
-    char * struct_init;
-    char * library_name;
-    char ** NEEDED;
-    char library_first_character;
-    char * library_len;
-    char * library_symbol;
-    uintptr_t mappingb;
-    Elf64_Ehdr * _elf_header;
-    Elf64_Phdr * _elf_program_header;
-    Elf64_Shdr * _elf_symbol_table;
-    char *strtab;
-    size_t len;
-    char * array;
-    char * current_lib;
-    char * last_lib;
-    int is_mapped;
-    size_t align;
-    Elf64_Addr base_address;
-    Elf64_Addr mappingb_end;
-    int init__;
-    int PT_DYNAMIC_;
-    char * tmp99D;
-    Elf64_Dyn * dynamic;
-    int First_Load_Header_index;
-    int Last_Load_Header_index;
-    size_t RELA_PLT_SIZE;
-    int _R_X86_64_NONE;
-    int _R_X86_64_64;
-    int _R_X86_64_PC32;
-    int _R_X86_64_GOT32;
-    int _R_X86_64_PLT32;
-    int _R_X86_64_COPY;
-    int _R_X86_64_GLOB_DAT;
-    int _R_X86_64_JUMP_SLOT;
-    int _R_X86_64_RELATIVE;
-    int _R_X86_64_GOTPCREL;
-    int _R_X86_64_32;
-    int _R_X86_64_32S;
-    int _R_X86_64_16;
-    int _R_X86_64_PC16;
-    int _R_X86_64_8;
-    int _R_X86_64_PC8;
-    int _R_X86_64_DTPMOD64;
-    int _R_X86_64_DTPOFF64;
-    int _R_X86_64_TPOFF64;
-    int _R_X86_64_TLSGD;
-    int _R_X86_64_TLSLD;
-    int _R_X86_64_DTPOFF32;
-    int _R_X86_64_GOTTPOFF;
-    int _R_X86_64_TPOFF32;
-    int _R_X86_64_PC64;
-    int _R_X86_64_GOTOFF64;
-    int _R_X86_64_GOTPC32;
-    int _R_X86_64_GOT64;
-    int _R_X86_64_GOTPCREL64;
-    int _R_X86_64_GOTPC64;
-    int _Deprecated1;
-    int _R_X86_64_PLTOFF64;
-    int _R_X86_64_SIZE32;
-    int _R_X86_64_SIZE64;
-    int _R_X86_64_GOTPC32_TLSDESC;
-    int _R_X86_64_TLSDESC_CALL;
-    int _R_X86_64_TLSDESC;
-    int _R_X86_64_IRELATIVE;
-    int _R_X86_64_RELATIVE64;
-    int _Deprecated2;
-    int _Deprecated3;
-    int _R_X86_64_GOTPLT64;
-    int _R_X86_64_GOTPCRELX;
-    int _R_X86_64_REX_GOTPCRELX;
-    int _R_X86_64_NUM;
-    int _R_X86_64_UNKNOWN;
-    Elf64_Addr * GOT;
-    Elf64_Addr * GOT2;
-    Elf64_Addr * PLT;
-} library[512];
+#include "lib.h"
 
 int
 init_struct() {
@@ -586,7 +508,7 @@ int testh(char * address)
 #define QUOTE_FORCE_HEX				0x10
 #define QUOTE_FORCE_HEXOLD				9998
 #define QUOTE_FORCE_LEN				9999
-#define error_msg if (bytecmpq(global_quiet, "no") == 0) printf
+#define error_msg printf
 int search(const char * lib) {
     // need to be smarter
     int i = 0;
@@ -611,6 +533,29 @@ int search(const char * lib) {
     }
     return i;
 }
+
+int searchq(const char * lib) {
+    // need to be smarter
+    int i = 0;
+    while(1)
+    {
+        if (library[i].struct_init == "initialized") {
+            if ( bytecmpq(lib, library[i].last_lib) == -1 && bytecmpq("NULL", library[i].last_lib) == -1 ) i++;
+            else if ( bytecmpq("NULL", library[i].last_lib) == -1 )
+                 {
+                     break;
+                 }
+            else {
+                break;
+            }
+        } else {
+            fprintf(stderr, "WARNING: index %d is %s\n", i, library[i].struct_init);
+            break;
+        }
+    }
+    return i;
+}
+
 int init(char * lib) {
     if (library[library_index].struct_init != "initialized") init_struct();
     fprintf(stderr, "current index %d holds \"%s\"\nsearching indexes for \"%s\" incase it has already been loaded\n", library_index, library[library_index].last_lib, lib);
@@ -2350,67 +2295,64 @@ if_valid(const char * file) {
 }
 
 void *
-dlopen(const char * cc);
+dlopen_(const char * cc);
 
 void *
 dlsym(const char * cc1, const char * cc2);
-
 Elf64_Word
 get_needed(const char * lib)
 {
+     if (bytecmpq(ldd_quiet, "no") == 0) fprintf(stderr, "\n\naquiring \"%s\"\n", lib);
+
+     if (library[library_index].struct_init != "initialized") init_struct();
+     if (bytecmpq(ldd_quiet, "no") == 0) fprintf(stderr, "current index %d holds \"%s\"\nsearching indexes for \"%s\" incase it has already been loaded\n", library_index, library[library_index].last_lib, lib);
+    
+    library_index = searchq(lib);
     int local_index = library_index;
     int local_indexb = library_index;
-    fprintf(stderr, "\n\naquiring \"%s\"\n", lib);
-    sleep(1);
-
-    if (library[library_index].struct_init != "initialized") init_struct();
-    fprintf(stderr, "current index %d holds \"%s\"\nsearching indexes for \"%s\" incase it has already been loaded\n", library_index, library[library_index].last_lib, lib);
-    
-    library_index = search(lib);
     library[library_index].last_lib = lib;
     library[library_index].current_lib = lib;
 
-    fprintf(stderr, "checking if %s index %d is locked\n", library[library_index].last_lib, library_index);
+     if (bytecmpq(ldd_quiet, "no") == 0) fprintf(stderr, "checking if %s index %d is locked\n", library[library_index].last_lib, library_index);
     if (library[library_index].init_lock == 1) {
-        fprintf(stderr, "get_needed: LOCKED\n");
+         if (bytecmpq(ldd_quiet, "no") == 0) fprintf(stderr, "get_needed: LOCKED\n");
     }
     else {
-        fprintf(stderr, "get_needed: UNLOCKED\n");
+         if (bytecmpq(ldd_quiet, "no") == 0) fprintf(stderr, "get_needed: UNLOCKED\n");
     }
     if ( if_valid(lib) == -1) {
-        fprintf(stderr, "\"%s\" not found\n", lib);
+         if (bytecmpq(ldd_quiet, "no") == 0) fprintf(stderr, "\"%s\" not found\n", lib);
         errno = 0;
         return "-1";
     }
-    fprintf(stderr, "init\n");
+     if (bytecmpq(ldd_quiet, "no") == 0) fprintf(stderr, "init\n");
     if (library[library_index].array != NULL) {
-        fprintf(stderr, "%s has a non null array\n", library[library_index].last_lib);
-        fprintf(stderr, "index %d get_needed: LOCKING\n", library_index);
+         if (bytecmpq(ldd_quiet, "no") == 0) fprintf(stderr, "%s has a non null array\n", library[library_index].last_lib);
+         if (bytecmpq(ldd_quiet, "no") == 0) fprintf(stderr, "index %d get_needed: LOCKING\n", library_index);
         library[library_index].init_lock = 1;
         if (library[library_index].init_lock == 1) {
-            fprintf(stderr, "status: LOCKED\n");
+             if (bytecmpq(ldd_quiet, "no") == 0) fprintf(stderr, "status: LOCKED\n");
         }
         else {
-            fprintf(stderr, "status: UNLOCKED\n");
+             if (bytecmpq(ldd_quiet, "no") == 0) fprintf(stderr, "status: UNLOCKED\n");
         }
     } else {
-        fprintf(stderr, "%s has a null array\n", library[library_index].last_lib);
-        fprintf(stderr, "index %d get_needed: UNLOCKING\n", library_index);
+         if (bytecmpq(ldd_quiet, "no") == 0) fprintf(stderr, "%s has a null array\n", library[library_index].last_lib);
+         if (bytecmpq(ldd_quiet, "no") == 0) fprintf(stderr, "index %d get_needed: UNLOCKING\n", library_index);
         library[library_index].init_lock = 0;
         if (library[library_index].init_lock == 1) {
-            fprintf(stderr, "status: LOCKED\n");
+             if (bytecmpq(ldd_quiet, "no") == 0) fprintf(stderr, "status: LOCKED\n");
         }
         else {
-            fprintf(stderr, "status: UNLOCKED\n");
+             if (bytecmpq(ldd_quiet, "no") == 0) fprintf(stderr, "status: UNLOCKED\n");
         }
     }
-    dlopen(lib);
+    dlopen_(lib);
     dlsym(lib, "");
-    fprintf(stderr, "init done\n");
+     if (bytecmpq(ldd_quiet, "no") == 0) fprintf(stderr, "init done\n");
+     if (bytecmpq(ldd_quiet, "no") == 0) fprintf(stderr, "current index %d holds \"%s\"\nsearching indexes for \"%s\" incase it has already been loaded\n", library_index, library[library_index].last_lib, lib);
     
-    fprintf(stderr, "current index %d holds \"%s\"\nsearching indexes for \"%s\" incase it has already been loaded\n", library_index, library[library_index].last_lib, lib);
-    
-    library_index = search(lib);
+    library_index = searchq(lib);
     local_index = library_index;
     library[library_index].last_lib = lib;
     library[library_index].current_lib = lib;
@@ -2418,119 +2360,16 @@ get_needed(const char * lib)
     Elf64_Dyn *dynamic = library[library_index].dynamic;
     Elf64_Dyn *dynamicb = library[library_index].dynamic;
     const char * arrayb = library[library_index].array;
-    int i = 0;
-    int dynamic__ = 0;
-    fprintf(stderr, "looking for DT_NEEDED sections in \"%s\" (index %d)\n", lib, local_index);
-    for (; dynamic->d_tag != DT_NULL; dynamic++) {
-        if (dynamic->d_tag == DT_NEEDED) {
-            dynamic__ = 1;
-            library[library_index].NEEDED[i] = &library[library_index].strtab[dynamic->d_un.d_val];
-            fprintf(stderr, "\nfrom %s: library[%d].NEEDED[%d] string table index %d = %s\n\n", lib, library_index, i, dynamic->d_un.d_val, library[library_index].NEEDED[i]);
-            assert(bytecmpq(lib, "/lib/ld-linux-x86-64.so.2") != 0);
-            if (bytecmpcq(library[library_index].NEEDED[i], "/") == -1) {
-                fprintf(stderr, "\"%s\" is not a path\n", library[library_index].NEEDED[i]);
-
-
-// START
-// 
-// 
-// library[3].last_lib = /lib/libc.so.6
-// library[3].last_lib = /lib/libc.so.6
-// library[3].last_lib = 0x7ffc83d72e60
-// library[3].last_lib = /lib/libc.so.6
-// library[3].last_lib = /lib/libc.so.6
-// library[3].last_lib = 0x7ffc83d72e60
-// lib1                = 0x7ffc83d6ed70
-// 
-// 
-// 
-// END
-// START
-// 
-// 
-// library[3].last_lib = /lib/libc.so.6
-// library[3].last_lib = /lib/libc.so.6
-// library[3].last_lib = 0x7ffc83d72e60
-// library[3].last_lib = /lib/libc.so.6
-// library[3].last_lib = /lib/libc.so.6
-// library[3].last_lib = 0x7ffc83d72e60
-// lib1                = 0x7ffc83d70e00
-// 
-// 
-// 
-// END
-// START
-// 
-// 
-// library[2].last_lib = /lib/libm.so.6
-// library[3].last_lib = /lib/libc.so.6
-// library[3].last_lib = 0x7ffc83d72e60
-// library[2].last_lib = /lib/libm.so.6
-// library[3].last_lib = /lib/
-// library[3].last_lib = 0x7ffc83d72e60
-// lib1                = 0x7ffc83d72e60
-// 
-// 
-// 
-// END
-
-                fprintf(stderr, "\nSTART\n\n\n");
-                fprintf(stderr, "library[%d].last_lib = %s\nlibrary[%d].last_lib = %014p\n", library_index, library[library_index].last_lib,  library_index, library[library_index].last_lib);
-                if (library[3].struct_init == "initialized") fprintf(stderr, "library[3].last_lib = %s\nlibrary[3].last_lib = %014p\n", library[3].last_lib, library[3].last_lib);
-                char * lib_now;
-                if (library[3].struct_init == "initialized") lib_now = library[library_index].last_lib;
-                char lib1[4096] = "/lib/";
-                fprintf(stderr, "library[%d].last_lib = %s\nlibrary[%d].last_lib = %014p\n", library_index, library[library_index].last_lib,  library_index, library[library_index].last_lib);
-                if (library[3].struct_init == "initialized") fprintf(stderr, "library[3].last_lib = %s\nlibrary[3].last_lib = %014p\n", library[3].last_lib, library[3].last_lib);
-                fprintf(stderr, "lib1                = %014p\n", lib1);
-                printf("\n\n\nEND\n");
-                if (library[3].struct_init == "initialized") assert(bytecmpq(lib_now, library[3].last_lib) == 0);
-                strcat(lib1, library[library_index].NEEDED[i]);
-                if (if_valid(lib1) == 0)
-                {
-                    fprintf(stderr, "\"%s\" found\n", lib1);
-                    library[library_index].NEEDED[i] = lib1;
-                    errno = 0;
-                }
-                else
-                {
-                    char lib2[4096] = "/usr/lib/";
-                    strcat(lib2, library[library_index].NEEDED[i]);
-                    if (if_valid(lib2) == 0)
-                    {
-                        fprintf(stderr, "\"%s\" found\n", lib2);
-                        library[library_index].NEEDED[i] = lib2;
-                        errno = 0;
-                    }
-                    else
-                    {
-                        fprintf(stderr, "\"%s\", \"%s\" and \"%s\" not found\n", library[library_index].NEEDED[i], lib1, lib2);
-                        errno = 0;
-                    }
-                }
-            }
-            fprintf(stderr, "shared lib: %s\n", library[library_index].NEEDED[i]);
-            if (bytecmpq(lib, library[library_index].NEEDED[i]) == 0) fprintf(stderr, "RECURSION DETECTED, SKIPPING\n");
-            else get_needed(library[library_index].NEEDED[i]);
-            library_index = local_indexb;
-            i++;
-        }
-//         if (dynamic->d_tag == DT_RPATH) {
-//         char * rpath = &library[library_index].strtab[dynamic->d_un.d_val];
-//         fprintf(stderr, "rpath: %s\n", rpath);
-//         }
-    }
-    if (dynamic__ == 0) fprintf(stderr, "\"%s\" (index %d) has no DT_NEEDED sections\n", lib, local_index);
-    else library_index = local_indexb;
-//     local_index = local_indexb;
-
-    fprintf(stderr, "index %d get_needed: UNLOCKING\n", local_index);
+    print_needed(lib, depth_default, LDD);
+    for (int i = 0; i<=library[library_index].NEEDED_COUNT-1; i++) get_needed(library[library_index].NEEDED[i]);
+    local_index = local_indexb;
+     if (bytecmpq(ldd_quiet, "no") == 0) fprintf(stderr, "index %d get_needed: UNLOCKING\n", local_index);
     library[local_index].init_lock = 0;
     if (library[local_index].init_lock == 1) {
-        fprintf(stderr, "status: LOCKED\n");
+         if (bytecmpq(ldd_quiet, "no") == 0) fprintf(stderr, "status: LOCKED\n");
     }
     else {
-        fprintf(stderr, "status: UNLOCKED\n");
+         if (bytecmpq(ldd_quiet, "no") == 0) fprintf(stderr, "status: UNLOCKED\n");
     }
 }
 
@@ -2855,7 +2694,7 @@ R_386_GOTPC         This relocation type resembles R_386_PC32, except it uses th
                 {
                     if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) fprintf(stderr, "\n\n\nR_X86_64_64                  calculation: S + A (symbol value + r_addend)\n");
                     if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) fprintf(stderr, "reloc->r_offset = %014p\n", reloc->r_offset);
-                    *((char**)((char*)library[library_index].mappingb + reloc->r_offset)) = lookup_symbol_by_index(library[library_index].array, library[library_index]._elf_header, ELF64_R_SYM(reloc->r_info), symbol_mode_S, quiet) + reloc->r_addend+library[library_index].mappingb;
+                    *((char**)((char*)library[library_index].mappingb + reloc->r_offset)) = lookup_symbol_by_index(library[library_index].array, library[library_index]._elf_header, ELF64_R_SYM(reloc->r_info), symbol_mode_S, symbol_quiet) + reloc->r_addend+library[library_index].mappingb;
                     if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) fprintf(stderr, "((char*)library[library_index].mappingb + reloc->r_offset)            = %014p\n", ((char*)library[library_index].mappingb + reloc->r_offset));
                     library[library_index]._R_X86_64_64++;
                     break;
@@ -2864,7 +2703,7 @@ R_386_GOTPC         This relocation type resembles R_386_PC32, except it uses th
                 {
                     if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) fprintf(stderr, "\n\n\nR_X86_64_PC32                calculation: S + A - P (symbol value + r_addend - (P: This means the place (section offset or address) of the storage unit being relocated (computed using r_offset ).)\n");
                     if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) fprintf(stderr, "reloc->r_offset = %014p\n", reloc->r_offset);
-                    *((char**)((char*)library[library_index].mappingb + reloc->r_offset)) = lookup_symbol_by_index(library[library_index].array, library[library_index]._elf_header, ELF64_R_SYM(reloc->r_info), symbol_mode_S, quiet) + reloc->r_addend+library[library_index].mappingb;
+                    *((char**)((char*)library[library_index].mappingb + reloc->r_offset)) = lookup_symbol_by_index(library[library_index].array, library[library_index]._elf_header, ELF64_R_SYM(reloc->r_info), symbol_mode_S, symbol_quiet) + reloc->r_addend+library[library_index].mappingb;
                     if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) fprintf(stderr, "((char*)library[library_index].mappingb + reloc->r_offset)            = %014p\n", ((char*)library[library_index].mappingb + reloc->r_offset));
                     library[library_index]._R_X86_64_PC32++;
                     break;
@@ -2892,7 +2731,7 @@ R_386_GOTPC         This relocation type resembles R_386_PC32, except it uses th
                 {
                     if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) fprintf(stderr, "\n\n\nR_X86_64_GLOB_DAT            calculation: S (symbol value)\n");
                     if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) fprintf(stderr, "reloc->r_offset = %014p+%014p=%014p\n", library[library_index].mappingb, reloc->r_offset, library[library_index].mappingb+reloc->r_offset);
-                    *((char**)((char*)library[library_index].mappingb + reloc->r_offset)) = lookup_symbol_by_index(library[library_index].array, library[library_index]._elf_header, ELF64_R_SYM(reloc->r_info), symbol_mode_S, quiet)+library[library_index].mappingb;
+                    *((char**)((char*)library[library_index].mappingb + reloc->r_offset)) = lookup_symbol_by_index(library[library_index].array, library[library_index]._elf_header, ELF64_R_SYM(reloc->r_info), symbol_mode_S, symbol_quiet)+library[library_index].mappingb;
                     char ** addr = reloc->r_offset + library[library_index].mappingb;
                     if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) test_address(addr);
                     library[library_index]._R_X86_64_GLOB_DAT++;
@@ -2903,7 +2742,7 @@ R_386_GOTPC         This relocation type resembles R_386_PC32, except it uses th
                     if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) fprintf(stderr, "\n\n\nR_X86_64_JUMP_SLOT           calculation: S (symbol value)\n");
                     if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) fprintf(stderr, "library[library_index].mappingb    = %014p\n", library[library_index].mappingb);
                     if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) fprintf(stderr, "reloc->r_offset = %014p+%014p=%014p\n", library[library_index].mappingb, reloc->r_offset, library[library_index].mappingb+reloc->r_offset);
-                    *((char**)((char*)library[library_index].mappingb + reloc->r_offset)) = lookup_symbol_by_index(library[library_index].array, library[library_index]._elf_header, ELF64_R_SYM(reloc->r_info), symbol_mode_S, quiet)+library[library_index].mappingb;
+                    *((char**)((char*)library[library_index].mappingb + reloc->r_offset)) = lookup_symbol_by_index(library[library_index].array, library[library_index]._elf_header, ELF64_R_SYM(reloc->r_info), symbol_mode_S, symbol_quiet)+library[library_index].mappingb;
                     char ** addr = reloc->r_offset + library[library_index].mappingb;
                     if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) test_address(addr);
                     library[library_index]._R_X86_64_JUMP_SLOT++;
@@ -2934,7 +2773,7 @@ R_386_GOTPC         This relocation type resembles R_386_PC32, except it uses th
                 {
                     if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) fprintf(stderr, "\n\n\nR_X86_64_32                  calculation: S + A (symbol value + r_addend)\n");
                     if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) fprintf(stderr, "reloc->r_offset = %014p\n", reloc->r_offset);
-                    *((char**)((char*)library[library_index].mappingb + reloc->r_offset)) = lookup_symbol_by_index(library[library_index].array, library[library_index]._elf_header, ELF64_R_SYM(reloc->r_info), symbol_mode_S, quiet) + reloc->r_addend+library[library_index].mappingb;
+                    *((char**)((char*)library[library_index].mappingb + reloc->r_offset)) = lookup_symbol_by_index(library[library_index].array, library[library_index]._elf_header, ELF64_R_SYM(reloc->r_info), symbol_mode_S, symbol_quiet) + reloc->r_addend+library[library_index].mappingb;
                     if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) fprintf(stderr, "((char*)library[library_index].mappingb + reloc->r_offset)            = %014p\n", ((char*)library[library_index].mappingb + reloc->r_offset));
                     library[library_index]._R_X86_64_32++;
                     break;
@@ -2943,7 +2782,7 @@ R_386_GOTPC         This relocation type resembles R_386_PC32, except it uses th
                 {
                     if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) fprintf(stderr, "\n\n\nR_X86_64_32S                 calculation: S + A (symbol value + r_addend)\n");
                     if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) fprintf(stderr, "reloc->r_offset = %014p\n", reloc->r_offset);
-                    *((char**)((char*)library[library_index].mappingb + reloc->r_offset)) = lookup_symbol_by_index(library[library_index].array, library[library_index]._elf_header, ELF64_R_SYM(reloc->r_info), symbol_mode_S, quiet) + reloc->r_addend+library[library_index].mappingb;
+                    *((char**)((char*)library[library_index].mappingb + reloc->r_offset)) = lookup_symbol_by_index(library[library_index].array, library[library_index]._elf_header, ELF64_R_SYM(reloc->r_info), symbol_mode_S, symbol_quiet) + reloc->r_addend+library[library_index].mappingb;
                     if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) fprintf(stderr, "((char*)library[library_index].mappingb + reloc->r_offset)            = %014p\n", ((char*)library[library_index].mappingb + reloc->r_offset));
                     library[library_index]._R_X86_64_32S++;
                     break;
@@ -2952,7 +2791,7 @@ R_386_GOTPC         This relocation type resembles R_386_PC32, except it uses th
                 {
                     if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) fprintf(stderr, "\n\n\nR_X86_64_16                  calculation: S + A (symbol value + r_addend)\n");
                     if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) fprintf(stderr, "reloc->r_offset = %014p\n", reloc->r_offset);
-                    *((char**)((char*)library[library_index].mappingb + reloc->r_offset)) = lookup_symbol_by_index(library[library_index].array, library[library_index]._elf_header, ELF64_R_SYM(reloc->r_info), symbol_mode_S, quiet) + reloc->r_addend+library[library_index].mappingb;
+                    *((char**)((char*)library[library_index].mappingb + reloc->r_offset)) = lookup_symbol_by_index(library[library_index].array, library[library_index]._elf_header, ELF64_R_SYM(reloc->r_info), symbol_mode_S, symbol_quiet) + reloc->r_addend+library[library_index].mappingb;
                     if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) fprintf(stderr, "((char*)library[library_index].mappingb + reloc->r_offset)            = %014p\n", ((char*)library[library_index].mappingb + reloc->r_offset));
                     library[library_index]._R_X86_64_16++;
                     break;
@@ -2961,7 +2800,7 @@ R_386_GOTPC         This relocation type resembles R_386_PC32, except it uses th
                 {
                     if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) fprintf(stderr, "\n\n\nR_X86_64_PC16                calculation: S + A - P (symbol value + r_addend - (P: This means the place (section offset or address) of the storage unit being relocated (computed using r_offset ).))\n");
                     if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) fprintf(stderr, "reloc->r_offset = %014p\n", reloc->r_offset);
-                    *((char**)((char*)library[library_index].mappingb + reloc->r_offset)) = lookup_symbol_by_index(library[library_index].array, library[library_index]._elf_header, ELF64_R_SYM(reloc->r_info), symbol_mode_S, quiet) + reloc->r_addend+library[library_index].mappingb;
+                    *((char**)((char*)library[library_index].mappingb + reloc->r_offset)) = lookup_symbol_by_index(library[library_index].array, library[library_index]._elf_header, ELF64_R_SYM(reloc->r_info), symbol_mode_S, symbol_quiet) + reloc->r_addend+library[library_index].mappingb;
                     if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) fprintf(stderr, "((char*)library[library_index].mappingb + reloc->r_offset)            = %014p\n", ((char*)library[library_index].mappingb + reloc->r_offset));
                     library[library_index]._R_X86_64_PC16++;
                     break;
@@ -2970,7 +2809,7 @@ R_386_GOTPC         This relocation type resembles R_386_PC32, except it uses th
                 {
                     if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) fprintf(stderr, "\n\n\nR_X86_64_8                   calculation: S + A (symbol value + r_addend)\n");
                     if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) fprintf(stderr, "reloc->r_offset = %014p\n", reloc->r_offset);
-                    *((char**)((char*)library[library_index].mappingb + reloc->r_offset)) = lookup_symbol_by_index(library[library_index].array, library[library_index]._elf_header, ELF64_R_SYM(reloc->r_info), symbol_mode_S, quiet) + reloc->r_addend+library[library_index].mappingb;
+                    *((char**)((char*)library[library_index].mappingb + reloc->r_offset)) = lookup_symbol_by_index(library[library_index].array, library[library_index]._elf_header, ELF64_R_SYM(reloc->r_info), symbol_mode_S, symbol_quiet) + reloc->r_addend+library[library_index].mappingb;
                     if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) fprintf(stderr, "((char*)library[library_index].mappingb + reloc->r_offset)            = %014p\n", ((char*)library[library_index].mappingb + reloc->r_offset));
                     library[library_index]._R_X86_64_8++;
                     break;
@@ -2979,7 +2818,7 @@ R_386_GOTPC         This relocation type resembles R_386_PC32, except it uses th
                 {
                     if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) fprintf(stderr, "\n\n\nR_X86_64_PC8                 calculation: S + A - P (symbol value + r_addend - (P: This means the place (section offset or address) of the storage unit being relocated (computed using r_offset ).))\n");
                     if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) fprintf(stderr, "reloc->r_offset = %014p\n", reloc->r_offset);
-                    *((char**)((char*)library[library_index].mappingb + reloc->r_offset)) = lookup_symbol_by_index(library[library_index].array, library[library_index]._elf_header, ELF64_R_SYM(reloc->r_info), symbol_mode_S, quiet) + reloc->r_addend+library[library_index].mappingb;
+                    *((char**)((char*)library[library_index].mappingb + reloc->r_offset)) = lookup_symbol_by_index(library[library_index].array, library[library_index]._elf_header, ELF64_R_SYM(reloc->r_info), symbol_mode_S, symbol_quiet) + reloc->r_addend+library[library_index].mappingb;
                     if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) fprintf(stderr, "((char*)library[library_index].mappingb + reloc->r_offset)            = %014p\n", ((char*)library[library_index].mappingb + reloc->r_offset));
                     library[library_index]._R_X86_64_PC8++;
                     break;
@@ -3037,7 +2876,7 @@ R_386_GOTPC         This relocation type resembles R_386_PC32, except it uses th
                 {
                     if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) fprintf(stderr, "\n\n\nR_X86_64_PC64                calculation: S + A - P (symbol value + r_addend - (P: This means the place (section offset or address) of the storage unit being relocated (computed using r_offset ).))\n");
                     if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) fprintf(stderr, "reloc->r_offset = %014p\n", reloc->r_offset);
-                    *((char**)((char*)library[library_index].mappingb + reloc->r_offset)) = lookup_symbol_by_index(library[library_index].array, library[library_index]._elf_header, ELF64_R_SYM(reloc->r_info), symbol_mode_S, quiet) + reloc->r_addend+library[library_index].mappingb;
+                    *((char**)((char*)library[library_index].mappingb + reloc->r_offset)) = lookup_symbol_by_index(library[library_index].array, library[library_index]._elf_header, ELF64_R_SYM(reloc->r_info), symbol_mode_S, symbol_quiet) + reloc->r_addend+library[library_index].mappingb;
                     if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) fprintf(stderr, "((char*)library[library_index].mappingb + reloc->r_offset)            = %014p\n", ((char*)library[library_index].mappingb + reloc->r_offset));
                     library[library_index]._R_X86_64_PC64++;
                     break;
@@ -3046,7 +2885,7 @@ R_386_GOTPC         This relocation type resembles R_386_PC32, except it uses th
                 {
                     if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) fprintf(stderr, "\n\n\nR_X86_64_GOTOFF64            calculation: S + A - GOT (symbol value + r_addend - address of global offset table)\n");
                     if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) fprintf(stderr, "reloc->r_offset = %014p\n", reloc->r_offset);
-                    *((char**)((char*)library[library_index].mappingb + reloc->r_offset)) = lookup_symbol_by_index(library[library_index].array, library[library_index]._elf_header, ELF64_R_SYM(reloc->r_info), symbol_mode_S, quiet) + reloc->r_addend+library[library_index].mappingb;
+                    *((char**)((char*)library[library_index].mappingb + reloc->r_offset)) = lookup_symbol_by_index(library[library_index].array, library[library_index]._elf_header, ELF64_R_SYM(reloc->r_info), symbol_mode_S, symbol_quiet) + reloc->r_addend+library[library_index].mappingb;
                     if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) fprintf(stderr, "((char*)library[library_index].mappingb + reloc->r_offset)            = %014p\n", ((char*)library[library_index].mappingb + reloc->r_offset));
                     Elf64_Addr * GOT = lookup_symbol_by_name(library[library_index].array, library[library_index]._elf_header, "_GLOBAL_OFFSET_TABLE_");
                     library[library_index]._R_X86_64_GOTOFF64++;
@@ -3098,7 +2937,7 @@ R_386_GOTPC         This relocation type resembles R_386_PC32, except it uses th
                 {
                     if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) fprintf(stderr, "\n\n\nR_X86_64_SIZE32                 calculation: Z + A (symbol size + r_addend)\n");
                     if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) fprintf(stderr, "reloc->r_offset = %014p\n", reloc->r_offset);
-                    *((char**)((char*)library[library_index].mappingb + reloc->r_offset)) = lookup_symbol_by_index(library[library_index].array, library[library_index]._elf_header, ELF64_R_SYM(reloc->r_info), symbol_mode_Z, quiet) + reloc->r_addend+library[library_index].mappingb;
+                    *((char**)((char*)library[library_index].mappingb + reloc->r_offset)) = lookup_symbol_by_index(library[library_index].array, library[library_index]._elf_header, ELF64_R_SYM(reloc->r_info), symbol_mode_Z, symbol_quiet) + reloc->r_addend+library[library_index].mappingb;
                     if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) fprintf(stderr, "((char*)library[library_index].mappingb + reloc->r_offset)            = %014p\n", ((char*)library[library_index].mappingb + reloc->r_offset));
                     library[library_index]._R_X86_64_SIZE32++;
                     break;
@@ -3107,7 +2946,7 @@ R_386_GOTPC         This relocation type resembles R_386_PC32, except it uses th
                 {
                     if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) fprintf(stderr, "\n\n\nR_X86_64_SIZE64                 calculation: Z + A (symbol size + r_addend)\n");
                     if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) fprintf(stderr, "reloc->r_offset = %014p\n", reloc->r_offset);
-                    *((char**)((char*)library[library_index].mappingb + reloc->r_offset)) = lookup_symbol_by_index(library[library_index].array, library[library_index]._elf_header, ELF64_R_SYM(reloc->r_info), symbol_mode_Z, quiet) + reloc->r_addend+library[library_index].mappingb;
+                    *((char**)((char*)library[library_index].mappingb + reloc->r_offset)) = lookup_symbol_by_index(library[library_index].array, library[library_index]._elf_header, ELF64_R_SYM(reloc->r_info), symbol_mode_Z, symbol_quiet) + reloc->r_addend+library[library_index].mappingb;
                     if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) fprintf(stderr, "((char*)library[library_index].mappingb + reloc->r_offset)            = %014p\n", ((char*)library[library_index].mappingb + reloc->r_offset));
                     library[library_index]._R_X86_64_SIZE64++;
                     break;
@@ -3812,10 +3651,10 @@ int
 readelf_(const char * filename);
 
 void *
-dlopen(const char * cc)
+dlopen_(const char * cc)
 {
     if (library[library_index].init_lock == 1) {
-        fprintf(stderr, "dlopen: LOCKED\n");
+        if (bytecmpq(ldd_quiet, "no") == 0) fprintf(stderr, "dlopen: LOCKED\n");
         return "-1";
     };
     if ( if_valid(cc) == -1) {
@@ -3824,19 +3663,24 @@ dlopen(const char * cc)
         return "-1";
     }
     init_(cc);
-    library_index++;
+//     library_index++;
     library[library_index].library_name = cc;
     library[library_index].library_first_character = library[library_index].library_name[0];
     library[library_index].library_len = strlen(library[library_index].library_name);
-    fprintf(stderr, "dlopen: adding %s to index %d\n", library[library_index].library_name, library_index);
+    fprintf(stderr, "dlopen: adding %s to index %d\n", cc, library_index);
     return cc;
 }
 
 void *
+dlopen(const char * cc) {
+    get_needed(cc);
+    return dlopen_(cc);
+}
+void *
 dlsym(const char * cc1, const char * cc2)
 {
     if (library[library_index].init_lock == 1) {
-        fprintf(stderr, "dlsym: LOCKED\n");
+        if (bytecmpq(ldd_quiet, "no") == 0) fprintf(stderr, "dlsym: LOCKED\n");
         return "-1";
     };
     /*
@@ -3919,7 +3763,6 @@ dlsym(const char * cc1, const char * cc2)
         if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "address of PLT[6] = %014p\n", library[library_index].PLT[6]);
         if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "address of PLT[7] = %014p\n", library[library_index].PLT[7]);
     }
-    get_needed(cc1);
     return lookup_symbol_by_name_(cc1, cc2);
 }
 
