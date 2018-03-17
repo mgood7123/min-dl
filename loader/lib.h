@@ -5,6 +5,7 @@ struct lib
     int init_lock;
     char * struct_init;
     char * library_name;
+    char * parent;
     char ** NEEDED;
     int NEEDED_COUNT;
     char library_first_character;
@@ -25,6 +26,7 @@ struct lib
     Elf64_Addr mappingb_end;
     int init__;
     int PT_DYNAMIC_;
+    char * interp;
     char * tmp99D;
     Elf64_Dyn * dynamic;
     int First_Load_Header_index;

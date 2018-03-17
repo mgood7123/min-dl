@@ -22,7 +22,7 @@
 #include <alloca.h>
 #include <sys/auxv.h>
 #include <math.h>
-char * global_quiet = "no";
+char * GQ2 = "yes";
 
 // bytecmp compares two strings char by char for an EXACT full string match, returns -1 if strings differ in length or do not match but are of same length
 
@@ -50,26 +50,26 @@ int bytecmpq(void const * p, void const * pp) { return bcmp_q(p, strlen(p), pp, 
 
 int bcmp_(void const *vp, size_t n, void const *vp2, size_t n2)
 {
-    if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "----------------------------------------------------------------------->called %s() at line %d from %s\n", __func__, __LINE__, __FILE__);
+    if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "----------------------------------------------------------------------->called %s() at line %d from %s\n", __func__, __LINE__, __FILE__);
     int string_match = 0;
     if (n == n2) {
         unsigned char const *p = vp;
         unsigned char const *p2 = vp2;
         for (size_t i=0; i<n; i++)
             if (p[i] == p2[i]) {
-                if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "p[%d] = %c\n", i, p[i]);
+                if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "p[%d] = %c\n", i, p[i]);
                 string_match = 1;
             } else { string_match = 0; break; }
         if (string_match == 0) {
-            if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "ERROR: strings do not match\n");
+            if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "ERROR: strings do not match\n");
             return -1;
         } else {
-            if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "returning 0\n");
+            if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "returning 0\n");
             return 0;
         }
     } else
     {
-        if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "ERROR: different length string comparision, might want to use bytecmpc instead\n");
+        if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "ERROR: different length string comparision, might want to use bytecmpc instead\n");
         return -1;
     }
 }
@@ -78,22 +78,22 @@ int bytecmp(void const * p, void const * pp) { return bcmp_(p, strlen(p), pp, st
 
 int bcmpc_(void const *vp, size_t n, void const *vp2, size_t n2)
 {
-    if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "----------------------------------------------------------------------->called %s() at line %d from %s\n", __func__, __LINE__, __FILE__);
+    if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "----------------------------------------------------------------------->called %s() at line %d from %s\n", __func__, __LINE__, __FILE__);
     int string_match = 0;
     unsigned char const *p = vp;
     unsigned char const *p2 = vp2;
     int matches=0;
     for (size_t i=0; i<n; i++) {
-        if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "p[%d] = %c\n", i, p[i]);
+        if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "p[%d] = %c\n", i, p[i]);
         if (p[i] == p2[i]) {
             matches++;
         } else break;
     }
     if (matches == 0) {
-        if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "ERROR: strings do not match\n");
+        if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "ERROR: strings do not match\n");
         return -1;
     } else {
-        if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "returning 0\n");
+        if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "returning 0\n");
         return 0;
     }
 }
@@ -139,26 +139,26 @@ int bytecmpqr(void const * p, void const * pp) { return bcmp_qr(p, strlen(p), pp
 
 int bcmpr_(void const *vp, size_t n, void const *vp2, size_t n2)
 {
-    if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "----------------------------------------------------------------------->called %s() at line %d from %s\n", __func__, __LINE__, __FILE__);
+    if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "----------------------------------------------------------------------->called %s() at line %d from %s\n", __func__, __LINE__, __FILE__);
     int string_match = 0;
     if (n == n2) {
         unsigned char const *p = vp;
         unsigned char const *p2 = vp2;
         for (size_t i=n; i==0; i--)
             if (p[i] == p2[i]) {
-                if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "p[%d] = %c\n", i, p[i]);
+                if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "p[%d] = %c\n", i, p[i]);
                 string_match = 1;
             } else { string_match = 0; break; }
         if (string_match == 0) {
-            if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "ERROR: strings do not match\n");
+            if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "ERROR: strings do not match\n");
             return -1;
         } else {
-            if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "returning 0\n");
+            if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "returning 0\n");
             return 0;
         }
     } else
     {
-        if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "ERROR: different length string comparision, might want to use bytecmpcr instead\n");
+        if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "ERROR: different length string comparision, might want to use bytecmpcr instead\n");
         return -1;
     }
 }
@@ -167,24 +167,24 @@ int bytecmpr(void const * p, void const * pp) { return bcmpr_(p, strlen(p), pp, 
 
 int bcmpcr_(void const *vp, size_t n, void const *vp2, size_t n2)
 {
-    if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "----------------------------------------------------------------------->called %s() at line %d from %s\n", __func__, __LINE__, __FILE__);
+    if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "----------------------------------------------------------------------->called %s() at line %d from %s\n", __func__, __LINE__, __FILE__);
     int string_match = 0;
     unsigned char const *p = vp;
     unsigned char const *p2 = vp2;
     int matches=0;
-    if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "p = %s\np2 = %s\n", p, p2);
+    if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "p = %s\np2 = %s\n", p, p2);
     size_t ii=n2;
     for (size_t i=n-1; i>=0; i--) {
-        if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "p[%d] = %c\np2[%d] = %c\n", i, p[i], ii, p2[ii]);
+        if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "p[%d] = %c\np2[%d] = %c\n", i, p[i], ii, p2[ii]);
         if (p[i] == p2[ii]) matches++;
         else break;
         ii--;
     }
     if (matches == 0) {
-        if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "ERROR: strings do not match\n");
+        if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "ERROR: strings do not match\n");
         return -1;
     } else {
-        if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "returning 0\n");
+        if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "returning 0\n");
         return 0;
     }
 }
@@ -206,18 +206,18 @@ int bcmpcqr_(void const *vp, size_t n, void const *vp2, size_t n2)
 int bytecmpcqr(void const * p, void const * pp) { return bcmpcqr_(p, strlen(p), pp, strlen(pp)); }
 
 void nl() {
-    if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "\n");
+    if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "\n");
 }
 
 uintptr_t round_down(uintptr_t value, uintptr_t size)
 {
-    if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "called round_down\nreturning %014p\n", value ? size * (value / size) : value);
+    if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "called round_down\nreturning %014p\n", value ? size * (value / size) : value);
     return value ? size * (value / size) : value;
 }
 
 uintptr_t round_up(uintptr_t value, uintptr_t size)
 {
-    if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "called round_up\nreturning %014p\n", value ? size * ((value + (size - 1)) / size) : size);
+    if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "called round_up\nreturning %014p\n", value ? size * ((value + (size - 1)) / size) : size);
 //     return size * ((value + (size - 1)) / size);
     return value ? size * ((value + (size - 1)) / size) : size;
 }
@@ -240,14 +240,14 @@ void * setaux(void * value, void * type);
 void * currentaux();
 
 void abort_() {
-    if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "%s: cannot continue, pausing execution to allow for debugging\nif you do now know how to debug this process as paused execute the following in a new terminal:\n\n    sudo gdb -p %d\n\n", getaux(AT_EXECFN), getpid());
+    if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "%s: cannot continue, pausing execution to allow for debugging\nif you do now know how to debug this process as paused execute the following in a new terminal:\n\n    sudo gdb -p %d\n\n", getaux(AT_EXECFN), getpid());
     pause();
 }
 
 void
 init_env (void)
 {
-    if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "----------------------------------------------------------------------->called %s() at line %d from %s\n", __func__, __LINE__, __FILE__);
+    if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "----------------------------------------------------------------------->called %s() at line %d from %s\n", __func__, __LINE__, __FILE__);
     extern char ** __environ;
     assert(__environ!=NULL);
     saved_environ = __environ;
@@ -256,7 +256,7 @@ init_env (void)
 
 void
 init_argX() {
-    if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "----------------------------------------------------------------------->called %s() at line %d from %s\n", __func__, __LINE__, __FILE__);
+    if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "----------------------------------------------------------------------->called %s() at line %d from %s\n", __func__, __LINE__, __FILE__);
     size_t i;
     char **p = &saved_environ[-2];
     for (i = 1; i != *(size_t*)(p-1); i++) {
@@ -268,13 +268,13 @@ init_argX() {
 
 void __attribute__ ((__constructor__ (0)))
 init_aux() {
-    if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "----------------------------------------------------------------------->called %s() at line %d from %s\n", __func__, __LINE__, __FILE__);
+    if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "----------------------------------------------------------------------->called %s() at line %d from %s\n", __func__, __LINE__, __FILE__);
     init_env();
     init_argX();
 }
 void *
 getaux(void * type) {
-    if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "----------------------------------------------------------------------->called %s() at line %d from %s\n", __func__, __LINE__, __FILE__);
+    if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "----------------------------------------------------------------------->called %s() at line %d from %s\n", __func__, __LINE__, __FILE__);
     #include <elf.h>
     #include <unistd.h>
     #ifndef AUX_CNT
@@ -292,221 +292,221 @@ getaux(void * type) {
                 case 0:
                     AUXV_NAME = "AT_NULL";
                     AUXV_TYPE = "";
-                    // if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "AUXV_NAME = %s, AUXV_TYPE = %s\n", AUXV_NAME, AUXV_TYPE);
+                    // if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "AUXV_NAME = %s, AUXV_TYPE = %s\n", AUXV_NAME, AUXV_TYPE);
                     num = 0;
                     break;
                 case 1:
                     AUXV_NAME = "AT_IGNORE";
                     AUXV_TYPE = "";
-                    // if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "AUXV_NAME = %s, AUXV_TYPE = %s\n", AUXV_NAME, AUXV_TYPE);
+                    // if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "AUXV_NAME = %s, AUXV_TYPE = %s\n", AUXV_NAME, AUXV_TYPE);
                     num = 1;
                     break;
                 case 2:
                     AUXV_NAME = "AT_EXECFD";
                     AUXV_TYPE = "";
-                    // if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "AUXV_NAME = %s, AUXV_TYPE = %s\n", AUXV_NAME, AUXV_TYPE);
+                    // if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "AUXV_NAME = %s, AUXV_TYPE = %s\n", AUXV_NAME, AUXV_TYPE);
                     num = 2;
                     break;
                 case 3:
                     AUXV_NAME = "AT_PHDR";
                     AUXV_TYPE = "ADDRESS";
-                    // if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "AUXV_NAME = %s, AUXV_TYPE = %s\n", AUXV_NAME, AUXV_TYPE);
+                    // if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "AUXV_NAME = %s, AUXV_TYPE = %s\n", AUXV_NAME, AUXV_TYPE);
                     num = 3;
                     break;
                 case 4:
                     AUXV_NAME = "AT_PHENT";
                     AUXV_TYPE = "INT";
-                    // if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "AUXV_NAME = %s, AUXV_TYPE = %s\n", AUXV_NAME, AUXV_TYPE);
+                    // if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "AUXV_NAME = %s, AUXV_TYPE = %s\n", AUXV_NAME, AUXV_TYPE);
                     num = 4;
                     break;
                 case 5:
                     AUXV_NAME = "AT_PHNUM";
                     AUXV_TYPE = "INT";
-                    // if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "AUXV_NAME = %s, AUXV_TYPE = %s\n", AUXV_NAME, AUXV_TYPE);
+                    // if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "AUXV_NAME = %s, AUXV_TYPE = %s\n", AUXV_NAME, AUXV_TYPE);
                     num = 5;
                     break;
                 case 6:
                     AUXV_NAME = "AT_PAGESZ";
                     AUXV_TYPE = "INT";
-                    // if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "AUXV_NAME = %s, AUXV_TYPE = %s\n", AUXV_NAME, AUXV_TYPE);
+                    // if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "AUXV_NAME = %s, AUXV_TYPE = %s\n", AUXV_NAME, AUXV_TYPE);
                     num = 6;
                     break;
                 case 7:
                     AUXV_NAME = "AT_BASE";
                     AUXV_TYPE = "ADDRESS";
-                    // if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "AUXV_NAME = %s, AUXV_TYPE = %s\n", AUXV_NAME, AUXV_TYPE);
+                    // if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "AUXV_NAME = %s, AUXV_TYPE = %s\n", AUXV_NAME, AUXV_TYPE);
                     num = 7;
                     break;
                 case 8:
                     AUXV_NAME = "AT_FLAGS";
                     AUXV_TYPE = "ADDRESS";
-                    // if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "AUXV_NAME = %s, AUXV_TYPE = %s\n", AUXV_NAME, AUXV_TYPE);
+                    // if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "AUXV_NAME = %s, AUXV_TYPE = %s\n", AUXV_NAME, AUXV_TYPE);
                     num = 8;
                     break;
                 case 9:
                     AUXV_NAME = "AT_ENTRY";
                     AUXV_TYPE = "ADDRESS";
-                    // if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "AUXV_NAME = %s, AUXV_TYPE = %s\n", AUXV_NAME, AUXV_TYPE);
+                    // if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "AUXV_NAME = %s, AUXV_TYPE = %s\n", AUXV_NAME, AUXV_TYPE);
                     num = 9;
                     break;
                 case 10:
                     AUXV_NAME = "AT_NOTELF";
                     AUXV_TYPE = "";
-                    // if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "AUXV_NAME = %s, AUXV_TYPE = %s\n", AUXV_NAME, AUXV_TYPE);
+                    // if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "AUXV_NAME = %s, AUXV_TYPE = %s\n", AUXV_NAME, AUXV_TYPE);
                     num = 10;
                     break;
                 case 11:
                     AUXV_NAME = "AT_UID";
                     AUXV_TYPE = "INT";
-                    // if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "AUXV_NAME = %s, AUXV_TYPE = %s\n", AUXV_NAME, AUXV_TYPE);
+                    // if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "AUXV_NAME = %s, AUXV_TYPE = %s\n", AUXV_NAME, AUXV_TYPE);
                     num = 11;
                     break;
                 case 12:
                     AUXV_NAME = "AT_EUID";
                     AUXV_TYPE = "INT";
-                    // if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "AUXV_NAME = %s, AUXV_TYPE = %s\n", AUXV_NAME, AUXV_TYPE);
+                    // if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "AUXV_NAME = %s, AUXV_TYPE = %s\n", AUXV_NAME, AUXV_TYPE);
                     num = 12;
                     break;
                 case 13:
                     AUXV_NAME = "AT_GID";
                     AUXV_TYPE = "INT";
-                    // if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "AUXV_NAME = %s, AUXV_TYPE = %s\n", AUXV_NAME, AUXV_TYPE);
+                    // if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "AUXV_NAME = %s, AUXV_TYPE = %s\n", AUXV_NAME, AUXV_TYPE);
                     num = 13;
                     break;
                 case 14:
                     AUXV_NAME = "AT_EGID";
                     AUXV_TYPE = "INT";
-                    // if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "AUXV_NAME = %s, AUXV_TYPE = %s\n", AUXV_NAME, AUXV_TYPE);
+                    // if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "AUXV_NAME = %s, AUXV_TYPE = %s\n", AUXV_NAME, AUXV_TYPE);
                     num = 14;
                     break;
                 case 15:
                     AUXV_NAME = "AT_PLATFORM";
                     AUXV_TYPE = "CHAR*";
-                    // if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "AUXV_NAME = %s, AUXV_TYPE = %s\n", AUXV_NAME, AUXV_TYPE);
+                    // if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "AUXV_NAME = %s, AUXV_TYPE = %s\n", AUXV_NAME, AUXV_TYPE);
                     num = 15;
                     break;
                 case 16:
                     AUXV_NAME = "AT_HWCAP";
                     AUXV_TYPE = "ADDRESS";
-                    // if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "AUXV_NAME = %s, AUXV_TYPE = %s\n", AUXV_NAME, AUXV_TYPE);
+                    // if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "AUXV_NAME = %s, AUXV_TYPE = %s\n", AUXV_NAME, AUXV_TYPE);
                     num = 16;
                     break;
                 case 17:
                     AUXV_NAME = "AT_CLKTCK";
                     AUXV_TYPE = "INT";
-                    // if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "AUXV_NAME = %s, AUXV_TYPE = %s\n", AUXV_NAME, AUXV_TYPE);
+                    // if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "AUXV_NAME = %s, AUXV_TYPE = %s\n", AUXV_NAME, AUXV_TYPE);
                     num = 17;
                     break;
                 case 18:
                     AUXV_NAME = "AT_FPUCW";
                     AUXV_TYPE = "";
-                    // if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "AUXV_NAME = %s, AUXV_TYPE = %s\n", AUXV_NAME, AUXV_TYPE);
+                    // if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "AUXV_NAME = %s, AUXV_TYPE = %s\n", AUXV_NAME, AUXV_TYPE);
                     num = 18;
                     break;
                 case 19:
                     AUXV_NAME = "AT_DCACHEBSIZE";
                     AUXV_TYPE = "";
-                    // if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "AUXV_NAME = %s, AUXV_TYPE = %s\n", AUXV_NAME, AUXV_TYPE);
+                    // if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "AUXV_NAME = %s, AUXV_TYPE = %s\n", AUXV_NAME, AUXV_TYPE);
                     num = 19;
                     break;
                 case 20:
                     AUXV_NAME = "AT_ICACHEBSIZE";
                     AUXV_TYPE = "";
-                    // if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "AUXV_NAME = %s, AUXV_TYPE = %s\n", AUXV_NAME, AUXV_TYPE);
+                    // if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "AUXV_NAME = %s, AUXV_TYPE = %s\n", AUXV_NAME, AUXV_TYPE);
                     num = 20;
                     break;
                 case 21:
                     AUXV_NAME = "AT_UCACHEBSIZE";
                     AUXV_TYPE = "";
-                    // if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "AUXV_NAME = %s, AUXV_TYPE = %s\n", AUXV_NAME, AUXV_TYPE);
+                    // if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "AUXV_NAME = %s, AUXV_TYPE = %s\n", AUXV_NAME, AUXV_TYPE);
                     num = 21;
                     break;
                 case 22:
                     AUXV_NAME = "AT_IGNOREPPC";
                     AUXV_TYPE = "";
-                    // if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "AUXV_NAME = %s, AUXV_TYPE = %s\n", AUXV_NAME, AUXV_TYPE);
+                    // if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "AUXV_NAME = %s, AUXV_TYPE = %s\n", AUXV_NAME, AUXV_TYPE);
                     num = 22;
                     break;
                 case 23:
                     AUXV_NAME = "AT_SECURE";
                     AUXV_TYPE = "INT";
-                    // if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "AUXV_NAME = %s, AUXV_TYPE = %s\n", AUXV_NAME, AUXV_TYPE);
+                    // if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "AUXV_NAME = %s, AUXV_TYPE = %s\n", AUXV_NAME, AUXV_TYPE);
                     num = 23;
                     break;
                 case 24:
                     AUXV_NAME = "AT_BASE_PLATFORM";
                     AUXV_TYPE = "";
-                    // if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "AUXV_NAME = %s, AUXV_TYPE = %s\n", AUXV_NAME, AUXV_TYPE);
+                    // if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "AUXV_NAME = %s, AUXV_TYPE = %s\n", AUXV_NAME, AUXV_TYPE);
                     num = 24;
                     break;
                 case 25:
                     AUXV_NAME = "AT_RANDOM";
                     AUXV_TYPE = "";
-                    // if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "AUXV_NAME = %s, AUXV_TYPE = %s\n", AUXV_NAME, AUXV_TYPE);
+                    // if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "AUXV_NAME = %s, AUXV_TYPE = %s\n", AUXV_NAME, AUXV_TYPE);
                     num = 25;
                     break;
                 case 26:
                     AUXV_NAME = "AT_HWCAP2";
                     AUXV_TYPE = "ADDRESS";
-                    // if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "AUXV_NAME = %s, AUXV_TYPE = %s\n", AUXV_NAME, AUXV_TYPE);
+                    // if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "AUXV_NAME = %s, AUXV_TYPE = %s\n", AUXV_NAME, AUXV_TYPE);
                     num = 26;
                     break;
                 case 31:
                     AUXV_NAME = "AT_EXECFN";
                     AUXV_TYPE = "CHAR*";
-                    // if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "AUXV_NAME = %s, AUXV_TYPE = %s\n", AUXV_NAME, AUXV_TYPE);
+                    // if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "AUXV_NAME = %s, AUXV_TYPE = %s\n", AUXV_NAME, AUXV_TYPE);
                     num = 31;
                     break;
                 case 32:
                     AUXV_NAME = "AT_SYSINFO";
                     AUXV_TYPE = "";
-                    // if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "AUXV_NAME = %s, AUXV_TYPE = %s\n", AUXV_NAME, AUXV_TYPE);
+                    // if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "AUXV_NAME = %s, AUXV_TYPE = %s\n", AUXV_NAME, AUXV_TYPE);
                     num = 32;
                     break;
                 case 33:
                     AUXV_NAME = "AT_SYSINFO_EHDR";
                     AUXV_TYPE = "ADDRESS";
-                    // if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "AUXV_NAME = %s, AUXV_TYPE = %s\n", AUXV_NAME, AUXV_TYPE);
+                    // if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "AUXV_NAME = %s, AUXV_TYPE = %s\n", AUXV_NAME, AUXV_TYPE);
                     num = 33;
                     break;
                 case 34:
                     AUXV_NAME = "AT_L1I_CACHESHAPE";
                     AUXV_TYPE = "";
-                    // if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "AUXV_NAME = %s, AUXV_TYPE = %s\n", AUXV_NAME, AUXV_TYPE);
+                    // if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "AUXV_NAME = %s, AUXV_TYPE = %s\n", AUXV_NAME, AUXV_TYPE);
                     num = 34;
                     break;
                 case 35:
                     AUXV_NAME = "AT_L1D_CACHESHAPE";
                     AUXV_TYPE = "";
-                    // if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "AUXV_NAME = %s, AUXV_TYPE = %s\n", AUXV_NAME, AUXV_TYPE);
+                    // if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "AUXV_NAME = %s, AUXV_TYPE = %s\n", AUXV_NAME, AUXV_TYPE);
                     num = 35;
                     break;
                 case 36:
                     AUXV_NAME = "AT_L2_CACHESHAPE";
                     AUXV_TYPE = "";
-                    // if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "AUXV_NAME = %s, AUXV_TYPE = %s\n", AUXV_NAME, AUXV_TYPE);
+                    // if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "AUXV_NAME = %s, AUXV_TYPE = %s\n", AUXV_NAME, AUXV_TYPE);
                     num = 36;
                     break;
                 case 37:
                     AUXV_NAME = "AT_L3_CACHESHAPE";
                     AUXV_TYPE = "";
-                    // if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "AUXV_NAME = %s, AUXV_TYPE = %s\n", AUXV_NAME, AUXV_TYPE);
+                    // if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "AUXV_NAME = %s, AUXV_TYPE = %s\n", AUXV_NAME, AUXV_TYPE);
                     num = 37;
                     break;
                 default:
                     AUXV_NAME = "UNDEFINED";
                     AUXV_TYPE = "";
-                    // if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "AUXV_NAME = %s, AUXV_TYPE = %s\n", AUXV_NAME, AUXV_TYPE);
+                    // if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "AUXV_NAME = %s, AUXV_TYPE = %s\n", AUXV_NAME, AUXV_TYPE);
                     num = -1;
                     break;
         }
         if (num == type) {
             if (AUXV_TYPE == "CHAR*") {
-            if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "%s = %s\n", AUXV_NAME, (void *)(argv+i+1+ii)[1]);
+            if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "%s = %s\n", AUXV_NAME, (void *)(argv+i+1+ii)[1]);
             } else if (AUXV_TYPE == "INT") {
-            if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "%s = %d\n", AUXV_NAME, (void *)(argv+i+1+ii)[1]);
+            if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "%s = %d\n", AUXV_NAME, (void *)(argv+i+1+ii)[1]);
             } else if (AUXV_TYPE == "ADDRESS") {
-            if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "%s = %p\n", AUXV_NAME, (void *)(argv+i+1+ii)[1]);
+            if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "%s = %p\n", AUXV_NAME, (void *)(argv+i+1+ii)[1]);
             }
             return (argv+i+1+ii)[1];
         }
@@ -532,211 +532,211 @@ setaux(void * value, void * type) {
                 case 0:
                     AUXV_NAME = "AT_NULL";
                     AUXV_TYPE = "";
-                    // if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "AUXV_NAME = %s, AUXV_TYPE = %s\n", AUXV_NAME, AUXV_TYPE);
+                    // if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "AUXV_NAME = %s, AUXV_TYPE = %s\n", AUXV_NAME, AUXV_TYPE);
                     num = 0;
                     break;
                 case 1:
                     AUXV_NAME = "AT_IGNORE";
                     AUXV_TYPE = "";
-                    // if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "AUXV_NAME = %s, AUXV_TYPE = %s\n", AUXV_NAME, AUXV_TYPE);
+                    // if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "AUXV_NAME = %s, AUXV_TYPE = %s\n", AUXV_NAME, AUXV_TYPE);
                     num = 1;
                     break;
                 case 2:
                     AUXV_NAME = "AT_EXECFD";
                     AUXV_TYPE = "";
-                    // if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "AUXV_NAME = %s, AUXV_TYPE = %s\n", AUXV_NAME, AUXV_TYPE);
+                    // if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "AUXV_NAME = %s, AUXV_TYPE = %s\n", AUXV_NAME, AUXV_TYPE);
                     num = 2;
                     break;
                 case 3:
                     AUXV_NAME = "AT_PHDR";
                     AUXV_TYPE = "ADDRESS";
-                    // if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "AUXV_NAME = %s, AUXV_TYPE = %s\n", AUXV_NAME, AUXV_TYPE);
+                    // if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "AUXV_NAME = %s, AUXV_TYPE = %s\n", AUXV_NAME, AUXV_TYPE);
                     num = 3;
                     break;
                 case 4:
                     AUXV_NAME = "AT_PHENT";
                     AUXV_TYPE = "INT";
-                    // if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "AUXV_NAME = %s, AUXV_TYPE = %s\n", AUXV_NAME, AUXV_TYPE);
+                    // if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "AUXV_NAME = %s, AUXV_TYPE = %s\n", AUXV_NAME, AUXV_TYPE);
                     num = 4;
                     break;
                 case 5:
                     AUXV_NAME = "AT_PHNUM";
                     AUXV_TYPE = "INT";
-                    // if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "AUXV_NAME = %s, AUXV_TYPE = %s\n", AUXV_NAME, AUXV_TYPE);
+                    // if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "AUXV_NAME = %s, AUXV_TYPE = %s\n", AUXV_NAME, AUXV_TYPE);
                     num = 5;
                     break;
                 case 6:
                     AUXV_NAME = "AT_PAGESZ";
                     AUXV_TYPE = "INT";
-                    // if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "AUXV_NAME = %s, AUXV_TYPE = %s\n", AUXV_NAME, AUXV_TYPE);
+                    // if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "AUXV_NAME = %s, AUXV_TYPE = %s\n", AUXV_NAME, AUXV_TYPE);
                     num = 6;
                     break;
                 case 7:
                     AUXV_NAME = "AT_BASE";
                     AUXV_TYPE = "ADDRESS";
-                    // if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "AUXV_NAME = %s, AUXV_TYPE = %s\n", AUXV_NAME, AUXV_TYPE);
+                    // if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "AUXV_NAME = %s, AUXV_TYPE = %s\n", AUXV_NAME, AUXV_TYPE);
                     num = 7;
                     break;
                 case 8:
                     AUXV_NAME = "AT_FLAGS";
                     AUXV_TYPE = "ADDRESS";
-                    // if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "AUXV_NAME = %s, AUXV_TYPE = %s\n", AUXV_NAME, AUXV_TYPE);
+                    // if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "AUXV_NAME = %s, AUXV_TYPE = %s\n", AUXV_NAME, AUXV_TYPE);
                     num = 8;
                     break;
                 case 9:
                     AUXV_NAME = "AT_ENTRY";
                     AUXV_TYPE = "ADDRESS";
-                    // if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "AUXV_NAME = %s, AUXV_TYPE = %s\n", AUXV_NAME, AUXV_TYPE);
+                    // if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "AUXV_NAME = %s, AUXV_TYPE = %s\n", AUXV_NAME, AUXV_TYPE);
                     num = 9;
                     break;
                 case 10:
                     AUXV_NAME = "AT_NOTELF";
                     AUXV_TYPE = "";
-                    // if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "AUXV_NAME = %s, AUXV_TYPE = %s\n", AUXV_NAME, AUXV_TYPE);
+                    // if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "AUXV_NAME = %s, AUXV_TYPE = %s\n", AUXV_NAME, AUXV_TYPE);
                     num = 10;
                     break;
                 case 11:
                     AUXV_NAME = "AT_UID";
                     AUXV_TYPE = "INT";
-                    // if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "AUXV_NAME = %s, AUXV_TYPE = %s\n", AUXV_NAME, AUXV_TYPE);
+                    // if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "AUXV_NAME = %s, AUXV_TYPE = %s\n", AUXV_NAME, AUXV_TYPE);
                     num = 11;
                     break;
                 case 12:
                     AUXV_NAME = "AT_EUID";
                     AUXV_TYPE = "INT";
-                    // if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "AUXV_NAME = %s, AUXV_TYPE = %s\n", AUXV_NAME, AUXV_TYPE);
+                    // if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "AUXV_NAME = %s, AUXV_TYPE = %s\n", AUXV_NAME, AUXV_TYPE);
                     num = 12;
                     break;
                 case 13:
                     AUXV_NAME = "AT_GID";
                     AUXV_TYPE = "INT";
-                    // if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "AUXV_NAME = %s, AUXV_TYPE = %s\n", AUXV_NAME, AUXV_TYPE);
+                    // if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "AUXV_NAME = %s, AUXV_TYPE = %s\n", AUXV_NAME, AUXV_TYPE);
                     num = 13;
                     break;
                 case 14:
                     AUXV_NAME = "AT_EGID";
                     AUXV_TYPE = "INT";
-                    // if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "AUXV_NAME = %s, AUXV_TYPE = %s\n", AUXV_NAME, AUXV_TYPE);
+                    // if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "AUXV_NAME = %s, AUXV_TYPE = %s\n", AUXV_NAME, AUXV_TYPE);
                     num = 14;
                     break;
                 case 15:
                     AUXV_NAME = "AT_PLATFORM";
                     AUXV_TYPE = "CHAR*";
-                    // if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "AUXV_NAME = %s, AUXV_TYPE = %s\n", AUXV_NAME, AUXV_TYPE);
+                    // if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "AUXV_NAME = %s, AUXV_TYPE = %s\n", AUXV_NAME, AUXV_TYPE);
                     num = 15;
                     break;
                 case 16:
                     AUXV_NAME = "AT_HWCAP";
                     AUXV_TYPE = "ADDRESS";
-                    // if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "AUXV_NAME = %s, AUXV_TYPE = %s\n", AUXV_NAME, AUXV_TYPE);
+                    // if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "AUXV_NAME = %s, AUXV_TYPE = %s\n", AUXV_NAME, AUXV_TYPE);
                     num = 16;
                     break;
                 case 17:
                     AUXV_NAME = "AT_CLKTCK";
                     AUXV_TYPE = "INT";
-                    // if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "AUXV_NAME = %s, AUXV_TYPE = %s\n", AUXV_NAME, AUXV_TYPE);
+                    // if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "AUXV_NAME = %s, AUXV_TYPE = %s\n", AUXV_NAME, AUXV_TYPE);
                     num = 17;
                     break;
                 case 18:
                     AUXV_NAME = "AT_FPUCW";
                     AUXV_TYPE = "";
-                    // if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "AUXV_NAME = %s, AUXV_TYPE = %s\n", AUXV_NAME, AUXV_TYPE);
+                    // if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "AUXV_NAME = %s, AUXV_TYPE = %s\n", AUXV_NAME, AUXV_TYPE);
                     num = 18;
                     break;
                 case 19:
                     AUXV_NAME = "AT_DCACHEBSIZE";
                     AUXV_TYPE = "";
-                    // if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "AUXV_NAME = %s, AUXV_TYPE = %s\n", AUXV_NAME, AUXV_TYPE);
+                    // if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "AUXV_NAME = %s, AUXV_TYPE = %s\n", AUXV_NAME, AUXV_TYPE);
                     num = 19;
                     break;
                 case 20:
                     AUXV_NAME = "AT_ICACHEBSIZE";
                     AUXV_TYPE = "";
-                    // if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "AUXV_NAME = %s, AUXV_TYPE = %s\n", AUXV_NAME, AUXV_TYPE);
+                    // if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "AUXV_NAME = %s, AUXV_TYPE = %s\n", AUXV_NAME, AUXV_TYPE);
                     num = 20;
                     break;
                 case 21:
                     AUXV_NAME = "AT_UCACHEBSIZE";
                     AUXV_TYPE = "";
-                    // if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "AUXV_NAME = %s, AUXV_TYPE = %s\n", AUXV_NAME, AUXV_TYPE);
+                    // if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "AUXV_NAME = %s, AUXV_TYPE = %s\n", AUXV_NAME, AUXV_TYPE);
                     num = 21;
                     break;
                 case 22:
                     AUXV_NAME = "AT_IGNOREPPC";
                     AUXV_TYPE = "";
-                    // if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "AUXV_NAME = %s, AUXV_TYPE = %s\n", AUXV_NAME, AUXV_TYPE);
+                    // if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "AUXV_NAME = %s, AUXV_TYPE = %s\n", AUXV_NAME, AUXV_TYPE);
                     num = 22;
                     break;
                 case 23:
                     AUXV_NAME = "AT_SECURE";
                     AUXV_TYPE = "INT";
-                    // if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "AUXV_NAME = %s, AUXV_TYPE = %s\n", AUXV_NAME, AUXV_TYPE);
+                    // if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "AUXV_NAME = %s, AUXV_TYPE = %s\n", AUXV_NAME, AUXV_TYPE);
                     num = 23;
                     break;
                 case 24:
                     AUXV_NAME = "AT_BASE_PLATFORM";
                     AUXV_TYPE = "";
-                    // if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "AUXV_NAME = %s, AUXV_TYPE = %s\n", AUXV_NAME, AUXV_TYPE);
+                    // if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "AUXV_NAME = %s, AUXV_TYPE = %s\n", AUXV_NAME, AUXV_TYPE);
                     num = 24;
                     break;
                 case 25:
                     AUXV_NAME = "AT_RANDOM";
                     AUXV_TYPE = "";
-                    // if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "AUXV_NAME = %s, AUXV_TYPE = %s\n", AUXV_NAME, AUXV_TYPE);
+                    // if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "AUXV_NAME = %s, AUXV_TYPE = %s\n", AUXV_NAME, AUXV_TYPE);
                     num = 25;
                     break;
                 case 26:
                     AUXV_NAME = "AT_HWCAP2";
                     AUXV_TYPE = "ADDRESS";
-                    // if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "AUXV_NAME = %s, AUXV_TYPE = %s\n", AUXV_NAME, AUXV_TYPE);
+                    // if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "AUXV_NAME = %s, AUXV_TYPE = %s\n", AUXV_NAME, AUXV_TYPE);
                     num = 26;
                     break;
                 case 31:
                     AUXV_NAME = "AT_EXECFN";
                     AUXV_TYPE = "CHAR*";
-                    // if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "AUXV_NAME = %s, AUXV_TYPE = %s\n", AUXV_NAME, AUXV_TYPE);
+                    // if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "AUXV_NAME = %s, AUXV_TYPE = %s\n", AUXV_NAME, AUXV_TYPE);
                     num = 31;
                     break;
                 case 32:
                     AUXV_NAME = "AT_SYSINFO";
                     AUXV_TYPE = "";
-                    // if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "AUXV_NAME = %s, AUXV_TYPE = %s\n", AUXV_NAME, AUXV_TYPE);
+                    // if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "AUXV_NAME = %s, AUXV_TYPE = %s\n", AUXV_NAME, AUXV_TYPE);
                     num = 32;
                     break;
                 case 33:
                     AUXV_NAME = "AT_SYSINFO_EHDR";
                     AUXV_TYPE = "ADDRESS";
-                    // if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "AUXV_NAME = %s, AUXV_TYPE = %s\n", AUXV_NAME, AUXV_TYPE);
+                    // if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "AUXV_NAME = %s, AUXV_TYPE = %s\n", AUXV_NAME, AUXV_TYPE);
                     num = 33;
                     break;
                 case 34:
                     AUXV_NAME = "AT_L1I_CACHESHAPE";
                     AUXV_TYPE = "";
-                    // if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "AUXV_NAME = %s, AUXV_TYPE = %s\n", AUXV_NAME, AUXV_TYPE);
+                    // if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "AUXV_NAME = %s, AUXV_TYPE = %s\n", AUXV_NAME, AUXV_TYPE);
                     num = 34;
                     break;
                 case 35:
                     AUXV_NAME = "AT_L1D_CACHESHAPE";
                     AUXV_TYPE = "";
-                    // if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "AUXV_NAME = %s, AUXV_TYPE = %s\n", AUXV_NAME, AUXV_TYPE);
+                    // if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "AUXV_NAME = %s, AUXV_TYPE = %s\n", AUXV_NAME, AUXV_TYPE);
                     num = 35;
                     break;
                 case 36:
                     AUXV_NAME = "AT_L2_CACHESHAPE";
                     AUXV_TYPE = "";
-                    // if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "AUXV_NAME = %s, AUXV_TYPE = %s\n", AUXV_NAME, AUXV_TYPE);
+                    // if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "AUXV_NAME = %s, AUXV_TYPE = %s\n", AUXV_NAME, AUXV_TYPE);
                     num = 36;
                     break;
                 case 37:
                     AUXV_NAME = "AT_L3_CACHESHAPE";
                     AUXV_TYPE = "";
-                    // if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "AUXV_NAME = %s, AUXV_TYPE = %s\n", AUXV_NAME, AUXV_TYPE);
+                    // if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "AUXV_NAME = %s, AUXV_TYPE = %s\n", AUXV_NAME, AUXV_TYPE);
                     num = 37;
                     break;
                 default:
                     AUXV_NAME = "UNDEFINED";
                     AUXV_TYPE = "";
-                    // if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "AUXV_NAME = %s, AUXV_TYPE = %s\n", AUXV_NAME, AUXV_TYPE);
+                    // if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "AUXV_NAME = %s, AUXV_TYPE = %s\n", AUXV_NAME, AUXV_TYPE);
                     num = -1;
                     break;
         }
@@ -766,7 +766,7 @@ setaux(void * value, void * type) {
 
 void * __attribute__ ((__constructor__ (1)))
 currentaux() {
-    if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "----------------------------------------------------------------------->called %s() at line %d from %s\n", __func__, __LINE__, __FILE__);
+    if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "----------------------------------------------------------------------->called %s() at line %d from %s\n", __func__, __LINE__, __FILE__);
     #include <elf.h>
     #include <unistd.h>
     #ifndef AUX_CNT
@@ -784,221 +784,221 @@ currentaux() {
                 case 0:
                     AUXV_NAME = "AT_NULL";
                     AUXV_TYPE = "";
-                    // if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "AUXV_NAME = %s, AUXV_TYPE = %s\n", AUXV_NAME, AUXV_TYPE);
+                    // if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "AUXV_NAME = %s, AUXV_TYPE = %s\n", AUXV_NAME, AUXV_TYPE);
                     num = 0;
                     break;
                 case 1:
                     AUXV_NAME = "AT_IGNORE";
                     AUXV_TYPE = "";
-                    // if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "AUXV_NAME = %s, AUXV_TYPE = %s\n", AUXV_NAME, AUXV_TYPE);
+                    // if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "AUXV_NAME = %s, AUXV_TYPE = %s\n", AUXV_NAME, AUXV_TYPE);
                     num = 1;
                     break;
                 case 2:
                     AUXV_NAME = "AT_EXECFD";
                     AUXV_TYPE = "";
-                    // if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "AUXV_NAME = %s, AUXV_TYPE = %s\n", AUXV_NAME, AUXV_TYPE);
+                    // if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "AUXV_NAME = %s, AUXV_TYPE = %s\n", AUXV_NAME, AUXV_TYPE);
                     num = 2;
                     break;
                 case 3:
                     AUXV_NAME = "AT_PHDR";
                     AUXV_TYPE = "ADDRESS";
-                    // if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "AUXV_NAME = %s, AUXV_TYPE = %s\n", AUXV_NAME, AUXV_TYPE);
+                    // if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "AUXV_NAME = %s, AUXV_TYPE = %s\n", AUXV_NAME, AUXV_TYPE);
                     num = 3;
                     break;
                 case 4:
                     AUXV_NAME = "AT_PHENT";
                     AUXV_TYPE = "INT";
-                    // if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "AUXV_NAME = %s, AUXV_TYPE = %s\n", AUXV_NAME, AUXV_TYPE);
+                    // if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "AUXV_NAME = %s, AUXV_TYPE = %s\n", AUXV_NAME, AUXV_TYPE);
                     num = 4;
                     break;
                 case 5:
                     AUXV_NAME = "AT_PHNUM";
                     AUXV_TYPE = "INT";
-                    // if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "AUXV_NAME = %s, AUXV_TYPE = %s\n", AUXV_NAME, AUXV_TYPE);
+                    // if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "AUXV_NAME = %s, AUXV_TYPE = %s\n", AUXV_NAME, AUXV_TYPE);
                     num = 5;
                     break;
                 case 6:
                     AUXV_NAME = "AT_PAGESZ";
                     AUXV_TYPE = "INT";
-                    // if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "AUXV_NAME = %s, AUXV_TYPE = %s\n", AUXV_NAME, AUXV_TYPE);
+                    // if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "AUXV_NAME = %s, AUXV_TYPE = %s\n", AUXV_NAME, AUXV_TYPE);
                     num = 6;
                     break;
                 case 7:
                     AUXV_NAME = "AT_BASE";
                     AUXV_TYPE = "ADDRESS";
-                    // if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "AUXV_NAME = %s, AUXV_TYPE = %s\n", AUXV_NAME, AUXV_TYPE);
+                    // if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "AUXV_NAME = %s, AUXV_TYPE = %s\n", AUXV_NAME, AUXV_TYPE);
                     num = 7;
                     break;
                 case 8:
                     AUXV_NAME = "AT_FLAGS";
                     AUXV_TYPE = "ADDRESS";
-                    // if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "AUXV_NAME = %s, AUXV_TYPE = %s\n", AUXV_NAME, AUXV_TYPE);
+                    // if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "AUXV_NAME = %s, AUXV_TYPE = %s\n", AUXV_NAME, AUXV_TYPE);
                     num = 8;
                     break;
                 case 9:
                     AUXV_NAME = "AT_ENTRY";
                     AUXV_TYPE = "ADDRESS";
-                    // if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "AUXV_NAME = %s, AUXV_TYPE = %s\n", AUXV_NAME, AUXV_TYPE);
+                    // if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "AUXV_NAME = %s, AUXV_TYPE = %s\n", AUXV_NAME, AUXV_TYPE);
                     num = 9;
                     break;
                 case 10:
                     AUXV_NAME = "AT_NOTELF";
                     AUXV_TYPE = "";
-                    // if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "AUXV_NAME = %s, AUXV_TYPE = %s\n", AUXV_NAME, AUXV_TYPE);
+                    // if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "AUXV_NAME = %s, AUXV_TYPE = %s\n", AUXV_NAME, AUXV_TYPE);
                     num = 10;
                     break;
                 case 11:
                     AUXV_NAME = "AT_UID";
                     AUXV_TYPE = "INT";
-                    // if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "AUXV_NAME = %s, AUXV_TYPE = %s\n", AUXV_NAME, AUXV_TYPE);
+                    // if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "AUXV_NAME = %s, AUXV_TYPE = %s\n", AUXV_NAME, AUXV_TYPE);
                     num = 11;
                     break;
                 case 12:
                     AUXV_NAME = "AT_EUID";
                     AUXV_TYPE = "INT";
-                    // if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "AUXV_NAME = %s, AUXV_TYPE = %s\n", AUXV_NAME, AUXV_TYPE);
+                    // if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "AUXV_NAME = %s, AUXV_TYPE = %s\n", AUXV_NAME, AUXV_TYPE);
                     num = 12;
                     break;
                 case 13:
                     AUXV_NAME = "AT_GID";
                     AUXV_TYPE = "INT";
-                    // if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "AUXV_NAME = %s, AUXV_TYPE = %s\n", AUXV_NAME, AUXV_TYPE);
+                    // if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "AUXV_NAME = %s, AUXV_TYPE = %s\n", AUXV_NAME, AUXV_TYPE);
                     num = 13;
                     break;
                 case 14:
                     AUXV_NAME = "AT_EGID";
                     AUXV_TYPE = "INT";
-                    // if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "AUXV_NAME = %s, AUXV_TYPE = %s\n", AUXV_NAME, AUXV_TYPE);
+                    // if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "AUXV_NAME = %s, AUXV_TYPE = %s\n", AUXV_NAME, AUXV_TYPE);
                     num = 14;
                     break;
                 case 15:
                     AUXV_NAME = "AT_PLATFORM";
                     AUXV_TYPE = "CHAR*";
-                    // if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "AUXV_NAME = %s, AUXV_TYPE = %s\n", AUXV_NAME, AUXV_TYPE);
+                    // if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "AUXV_NAME = %s, AUXV_TYPE = %s\n", AUXV_NAME, AUXV_TYPE);
                     num = 15;
                     break;
                 case 16:
                     AUXV_NAME = "AT_HWCAP";
                     AUXV_TYPE = "ADDRESS";
-                    // if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "AUXV_NAME = %s, AUXV_TYPE = %s\n", AUXV_NAME, AUXV_TYPE);
+                    // if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "AUXV_NAME = %s, AUXV_TYPE = %s\n", AUXV_NAME, AUXV_TYPE);
                     num = 16;
                     break;
                 case 17:
                     AUXV_NAME = "AT_CLKTCK";
                     AUXV_TYPE = "INT";
-                    // if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "AUXV_NAME = %s, AUXV_TYPE = %s\n", AUXV_NAME, AUXV_TYPE);
+                    // if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "AUXV_NAME = %s, AUXV_TYPE = %s\n", AUXV_NAME, AUXV_TYPE);
                     num = 17;
                     break;
                 case 18:
                     AUXV_NAME = "AT_FPUCW";
                     AUXV_TYPE = "";
-                    // if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "AUXV_NAME = %s, AUXV_TYPE = %s\n", AUXV_NAME, AUXV_TYPE);
+                    // if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "AUXV_NAME = %s, AUXV_TYPE = %s\n", AUXV_NAME, AUXV_TYPE);
                     num = 18;
                     break;
                 case 19:
                     AUXV_NAME = "AT_DCACHEBSIZE";
                     AUXV_TYPE = "";
-                    // if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "AUXV_NAME = %s, AUXV_TYPE = %s\n", AUXV_NAME, AUXV_TYPE);
+                    // if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "AUXV_NAME = %s, AUXV_TYPE = %s\n", AUXV_NAME, AUXV_TYPE);
                     num = 19;
                     break;
                 case 20:
                     AUXV_NAME = "AT_ICACHEBSIZE";
                     AUXV_TYPE = "";
-                    // if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "AUXV_NAME = %s, AUXV_TYPE = %s\n", AUXV_NAME, AUXV_TYPE);
+                    // if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "AUXV_NAME = %s, AUXV_TYPE = %s\n", AUXV_NAME, AUXV_TYPE);
                     num = 20;
                     break;
                 case 21:
                     AUXV_NAME = "AT_UCACHEBSIZE";
                     AUXV_TYPE = "";
-                    // if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "AUXV_NAME = %s, AUXV_TYPE = %s\n", AUXV_NAME, AUXV_TYPE);
+                    // if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "AUXV_NAME = %s, AUXV_TYPE = %s\n", AUXV_NAME, AUXV_TYPE);
                     num = 21;
                     break;
                 case 22:
                     AUXV_NAME = "AT_IGNOREPPC";
                     AUXV_TYPE = "";
-                    // if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "AUXV_NAME = %s, AUXV_TYPE = %s\n", AUXV_NAME, AUXV_TYPE);
+                    // if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "AUXV_NAME = %s, AUXV_TYPE = %s\n", AUXV_NAME, AUXV_TYPE);
                     num = 22;
                     break;
                 case 23:
                     AUXV_NAME = "AT_SECURE";
                     AUXV_TYPE = "INT";
-                    // if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "AUXV_NAME = %s, AUXV_TYPE = %s\n", AUXV_NAME, AUXV_TYPE);
+                    // if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "AUXV_NAME = %s, AUXV_TYPE = %s\n", AUXV_NAME, AUXV_TYPE);
                     num = 23;
                     break;
                 case 24:
                     AUXV_NAME = "AT_BASE_PLATFORM";
                     AUXV_TYPE = "";
-                    // if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "AUXV_NAME = %s, AUXV_TYPE = %s\n", AUXV_NAME, AUXV_TYPE);
+                    // if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "AUXV_NAME = %s, AUXV_TYPE = %s\n", AUXV_NAME, AUXV_TYPE);
                     num = 24;
                     break;
                 case 25:
                     AUXV_NAME = "AT_RANDOM";
                     AUXV_TYPE = "";
-                    // if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "AUXV_NAME = %s, AUXV_TYPE = %s\n", AUXV_NAME, AUXV_TYPE);
+                    // if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "AUXV_NAME = %s, AUXV_TYPE = %s\n", AUXV_NAME, AUXV_TYPE);
                     num = 25;
                     break;
                 case 26:
                     AUXV_NAME = "AT_HWCAP2";
                     AUXV_TYPE = "ADDRESS";
-                    // if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "AUXV_NAME = %s, AUXV_TYPE = %s\n", AUXV_NAME, AUXV_TYPE);
+                    // if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "AUXV_NAME = %s, AUXV_TYPE = %s\n", AUXV_NAME, AUXV_TYPE);
                     num = 26;
                     break;
                 case 31:
                     AUXV_NAME = "AT_EXECFN";
                     AUXV_TYPE = "CHAR*";
-                    // if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "AUXV_NAME = %s, AUXV_TYPE = %s\n", AUXV_NAME, AUXV_TYPE);
+                    // if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "AUXV_NAME = %s, AUXV_TYPE = %s\n", AUXV_NAME, AUXV_TYPE);
                     num = 31;
                     break;
                 case 32:
                     AUXV_NAME = "AT_SYSINFO";
                     AUXV_TYPE = "";
-                    // if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "AUXV_NAME = %s, AUXV_TYPE = %s\n", AUXV_NAME, AUXV_TYPE);
+                    // if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "AUXV_NAME = %s, AUXV_TYPE = %s\n", AUXV_NAME, AUXV_TYPE);
                     num = 32;
                     break;
                 case 33:
                     AUXV_NAME = "AT_SYSINFO_EHDR";
                     AUXV_TYPE = "ADDRESS";
-                    // if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "AUXV_NAME = %s, AUXV_TYPE = %s\n", AUXV_NAME, AUXV_TYPE);
+                    // if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "AUXV_NAME = %s, AUXV_TYPE = %s\n", AUXV_NAME, AUXV_TYPE);
                     num = 33;
                     break;
                 case 34:
                     AUXV_NAME = "AT_L1I_CACHESHAPE";
                     AUXV_TYPE = "";
-                    // if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "AUXV_NAME = %s, AUXV_TYPE = %s\n", AUXV_NAME, AUXV_TYPE);
+                    // if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "AUXV_NAME = %s, AUXV_TYPE = %s\n", AUXV_NAME, AUXV_TYPE);
                     num = 34;
                     break;
                 case 35:
                     AUXV_NAME = "AT_L1D_CACHESHAPE";
                     AUXV_TYPE = "";
-                    // if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "AUXV_NAME = %s, AUXV_TYPE = %s\n", AUXV_NAME, AUXV_TYPE);
+                    // if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "AUXV_NAME = %s, AUXV_TYPE = %s\n", AUXV_NAME, AUXV_TYPE);
                     num = 35;
                     break;
                 case 36:
                     AUXV_NAME = "AT_L2_CACHESHAPE";
                     AUXV_TYPE = "";
-                    // if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "AUXV_NAME = %s, AUXV_TYPE = %s\n", AUXV_NAME, AUXV_TYPE);
+                    // if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "AUXV_NAME = %s, AUXV_TYPE = %s\n", AUXV_NAME, AUXV_TYPE);
                     num = 36;
                     break;
                 case 37:
                     AUXV_NAME = "AT_L3_CACHESHAPE";
                     AUXV_TYPE = "";
-                    // if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "AUXV_NAME = %s, AUXV_TYPE = %s\n", AUXV_NAME, AUXV_TYPE);
+                    // if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "AUXV_NAME = %s, AUXV_TYPE = %s\n", AUXV_NAME, AUXV_TYPE);
                     num = 37;
                     break;
                 default:
                     AUXV_NAME = "UNDEFINED";
                     AUXV_TYPE = "";
-                    // if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "AUXV_NAME = %s, AUXV_TYPE = %s\n", AUXV_NAME, AUXV_TYPE);
+                    // if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "AUXV_NAME = %s, AUXV_TYPE = %s\n", AUXV_NAME, AUXV_TYPE);
                     num = -1;
                     break;
         }
 //         if (num == 31) {
             if (AUXV_TYPE == "CHAR*") {
-            if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "%s = %s\n", AUXV_NAME, (void *)(argv+i+1+ii)[1]);
+            if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "%s = %s\n", AUXV_NAME, (void *)(argv+i+1+ii)[1]);
             } else if (AUXV_TYPE == "INT") {
-            if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "%s = %d\n", AUXV_NAME, (void *)(argv+i+1+ii)[1]);
+            if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "%s = %d\n", AUXV_NAME, (void *)(argv+i+1+ii)[1]);
             } else if (AUXV_TYPE == "ADDRESS") {
-            if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "%s = %p\n", AUXV_NAME, (void *)(argv+i+1+ii)[1]);
+            if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "%s = %p\n", AUXV_NAME, (void *)(argv+i+1+ii)[1]);
             }
 //             return (void *)(argv+i+1+ii)[1];
 //         }
@@ -1307,7 +1307,7 @@ print_quoted_string_catraw(const char *str, unsigned int size, const unsigned in
     alloc_size = 4 * size;
     if (alloc_size / 4 != size) {
         error_msg("Out of memory");
-        if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "???");
+        if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "???");
         return -1;
     }
     alloc_size += 1 + (style & QUOTE_OMIT_LEADING_TRAILING_QUOTES ? 0 : 2);
@@ -1319,7 +1319,7 @@ print_quoted_string_catraw(const char *str, unsigned int size, const unsigned in
         outstr = buf = malloc(alloc_size);
         if (!buf) {
             error_msg("Out of memory");
-            if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "???");
+            if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "???");
             return -1;
         }
     }
@@ -1551,7 +1551,7 @@ char *
     for (; s; i++) {
         if (s)
         {
-//                 if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "%s\n", s);
+//                 if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "%s\n", s);
             char * pch;
             char * y = (char *)malloc(strlenb(s) + 1);
             strcpyb(y,s);
@@ -1559,10 +1559,10 @@ char *
             while (pch != '\0')
                 {
                     char * NAME = pch;
-                        if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "trying \"%s\"\n", y);
+                        if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "trying \"%s\"\n", y);
                     if (strcmpb(NAME,STTR) == 0 )
                         {
-                                if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "  MATCH FOUND=\"%s\"\n", y);
+                                if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "  MATCH FOUND=\"%s\"\n", y);
                             char * pch = strtok (NULL, "=");
                             char * VALUE = pch;
                                 printf ("VALUE = %s\n",VALUE);
@@ -1570,7 +1570,7 @@ char *
                         }
                     if (strcmpb(NAME,STTR) != 0 )
                         {
-                                if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "  \"%s\" did not match \"%s\"\n", NAME,STTR);
+                                if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "  \"%s\" did not match \"%s\"\n", NAME,STTR);
                         }
                     break;
                 }
@@ -1578,7 +1578,7 @@ char *
         }
         s = *(environ+i);
     }
-if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "  \"%s\" COULD NOT BE FOUND\n", STTR);
+if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "  \"%s\" COULD NOT BE FOUND\n", STTR);
 free(s);
 return 0;
 }
@@ -1594,7 +1594,7 @@ return 0;
 char *
 resolve_debug(char * path, char * save_to_variable)
 {
-if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "called resolve_debug()\n");
+if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "called resolve_debug()\n");
         char *cptr = save_to_variable;
 
     if(!access(path, F_OK)) {
@@ -1621,52 +1621,52 @@ if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "called resolve_debug()\n
         #include <sys/stat.h>
     char* resolvedir(const char * pathb)
     {
-        if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "chdir(%s)\n", pathb);
+        if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "chdir(%s)\n", pathb);
         chdir(pathb);
-        if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "getcwd(%s, sizeof(%s))\n", tmp_pwd, tmp_pwd);
+        if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "getcwd(%s, sizeof(%s))\n", tmp_pwd, tmp_pwd);
         getcwd(tmp_pwd, sizeof(tmp_pwd));
-        if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "%s points to %s\n\n", pathb, tmp_pwd);
-        if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "chdir(%s)\n", current_pwd);
+        if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "%s points to %s\n\n", pathb, tmp_pwd);
+        if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "chdir(%s)\n", current_pwd);
         chdir(current_pwd);
-        if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "return %s\n", tmp_pwd);
+        if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "return %s\n", tmp_pwd);
         return tmp_pwd;
     }
     char* resolvefile(char * pathb)
     {
-        if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "strncpyb(%s, %s, sizeof(%s)\n", linkb, pathb, linkb);
+        if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "strncpyb(%s, %s, sizeof(%s)\n", linkb, pathb, linkb);
         strncpyb(linkb, pathb, sizeof(linkb));
-        if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "linkb[sizeof(%s)-1]=0\n", linkb);
+        if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "linkb[sizeof(%s)-1]=0\n", linkb);
         linkb[sizeof(linkb)-1]=0;
-        if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "strncpyb(%s, %s, sizeof(%s)\n", linkd, pathb, linkb);
+        if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "strncpyb(%s, %s, sizeof(%s)\n", linkd, pathb, linkb);
         strncpyb(linkd, pathb, sizeof(linkb));
-        if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "linkb[sizeof(%s)-1]=0\n", linkb);
+        if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "linkb[sizeof(%s)-1]=0\n", linkb);
         linkb[sizeof(linkb)-1]=0;
-        if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "dirname(%s)\n", linkd);
+        if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "dirname(%s)\n", linkd);
         dirname(linkd);
-        if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "strncatb(%s, \"/\", sizeof(%s));\n", linkd, linkd);
+        if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "strncatb(%s, \"/\", sizeof(%s));\n", linkd, linkd);
         strncatb(linkd, "/", sizeof(linkd));
-        if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "linkd[sizeof(%s)-1]=0\n", linkd);
+        if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "linkd[sizeof(%s)-1]=0\n", linkd);
         linkd[sizeof(linkd)-1]=0;
-        if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "chdir(%s)\n", linkd);
+        if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "chdir(%s)\n", linkd);
         chdir(linkd);
-        if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "getcwd(%s, sizeof(%s))\n", tmp_pwd, tmp_pwd);
+        if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "getcwd(%s, sizeof(%s))\n", tmp_pwd, tmp_pwd);
         getcwd(tmp_pwd, sizeof(tmp_pwd));
-        if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "strncatb(%s, \"/\", sizeof(%s));\n", tmp_pwd, tmp_pwd);
+        if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "strncatb(%s, \"/\", sizeof(%s));\n", tmp_pwd, tmp_pwd);
         strncatb(tmp_pwd, "/", sizeof(tmp_pwd));
-        if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "tmp_pwd[sizeof(%s)-1]=0\n", tmp_pwd);
+        if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "tmp_pwd[sizeof(%s)-1]=0\n", tmp_pwd);
         tmp_pwd[sizeof(tmp_pwd)-1]=0;
-        if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "strncpyb(%s, %s, sizeof(%s));\n", linkb, basename(pathb), linkb);
+        if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "strncpyb(%s, %s, sizeof(%s));\n", linkb, basename(pathb), linkb);
         strncpyb(linkb, basename(pathb), sizeof(linkb));
-        if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "linkb[sizeof(%s)-1]=0\n", linkb);
+        if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "linkb[sizeof(%s)-1]=0\n", linkb);
         linkb[sizeof(linkb)-1]=0;
-        if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "strncatb(%s, %s, sizeof(%s));\n", tmp_pwd, linkb, tmp_pwd);
+        if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "strncatb(%s, %s, sizeof(%s));\n", tmp_pwd, linkb, tmp_pwd);
         strncatb(tmp_pwd, linkb, sizeof(tmp_pwd));
-        if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "tmp_pwd[sizeof(%s)-1]=0\n", tmp_pwd);
+        if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "tmp_pwd[sizeof(%s)-1]=0\n", tmp_pwd);
         tmp_pwd[sizeof(tmp_pwd)-1]=0;
-        if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "%s points to %s\n\n", pathb, tmp_pwd);
-        if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "chdir(%s)\n", current_pwd);
+        if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "%s points to %s\n\n", pathb, tmp_pwd);
+        if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "chdir(%s)\n", current_pwd);
         chdir(current_pwd);
-        if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "return %s\n", tmp_pwd);
+        if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "return %s\n", tmp_pwd);
         return tmp_pwd;
     }
     #include <sys/types.h>
@@ -1675,13 +1675,13 @@ if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "called resolve_debug()\n
     {
         struct stat p_statbuf;
         if (lstat(link,&p_statbuf)==0) {
-                if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "%s type is <int>\n",link, S_ISLNK(p_statbuf.st_mode));
+                if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "%s type is <int>\n",link, S_ISLNK(p_statbuf.st_mode));
             if (S_ISLNK(p_statbuf.st_mode)==1)
             {
-                if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "%s is symbolic link \n", link);
+                if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "%s is symbolic link \n", link);
             } else
             {
-                if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "%s is not symbolic link \n", link);
+                if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "%s is not symbolic link \n", link);
                 return 0;
             }
         }
@@ -1714,7 +1714,7 @@ if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "called resolve_debug()\n
 
         linkname[sb.st_size] = '\0';
 
-    if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "\"%s\" points to '%s'\n", link, linkname);
+    if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "\"%s\" points to '%s'\n", link, linkname);
 
         path = linkname;
         char * checkifsymlink(const char * tlink)
@@ -1722,25 +1722,25 @@ if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "called resolve_debug()\n
             struct stat p_statbuf;
             if (lstat(tlink,&p_statbuf)==0)
             {
-                    if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "%s type is <int>\n",tlink, S_ISLNK(p_statbuf.st_mode));
+                    if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "%s type is <int>\n",tlink, S_ISLNK(p_statbuf.st_mode));
                 if (S_ISLNK(p_statbuf.st_mode)==1)
                 {
-                    if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "%s is symbolic link \n", tlink);
-                    if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "called getlink()\n");
+                    if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "%s is symbolic link \n", tlink);
+                    if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "called getlink()\n");
                     getlink(tlink);
                 } else
                 {
-                    if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "%s is not symbolic link \n", tlink);
+                    if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "%s is not symbolic link \n", tlink);
                     return 0;
                 }
             }
         return 0;
         }
-    if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "called checkifsymlink()\n");
+    if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "called checkifsymlink()\n");
         checkifsymlink(path);
         return 0;
     }
-if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "called getlink()\n");
+if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "called getlink()\n");
     getlink(path);
     char * testtype(const char * patha)
     {
@@ -1759,92 +1759,92 @@ if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "called getlink()\n");
         }
         if (is_regular_file(patha)==1)
         {
-        if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "%s is file \n", patha);
+        if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "%s is file \n", patha);
             if (path[0]==path_separator)
             {
                 if ( strstrb(path, relpathdot_separator ))
                 {
-                    if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "    %s is an absolute path which contains a dot relative path\n", path);
-                    if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "called Rresolvefile()\n");
+                    if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "    %s is an absolute path which contains a dot relative path\n", path);
+                    if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "called Rresolvefile()\n");
                     return resolvefile(path);
                 } else if ( strstrb(path, relpathdotdor_separator ))
                 {
-                    if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "    %s is an absolute path which contains a dot dot relative path\n", path);
-                    if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "called resolvefile()\n");
+                    if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "    %s is an absolute path which contains a dot dot relative path\n", path);
+                    if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "called resolvefile()\n");
                 return resolvefile(path);
                 } else
                 {
-                    if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "    %s is an absolute path with no relative paths\n", path);
+                    if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "    %s is an absolute path with no relative paths\n", path);
                     return path;
                 }
                 return 0;
             } else if ( strchrb(path, path_separator ))
             {
-                if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "    %s is a relative path\n", path);
+                if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "    %s is a relative path\n", path);
                 strncpyb(newpathb, current_pwd, sizeof(newpathb));
                 newpathb[sizeof(newpathb)-1]=0;
                 strncatb(newpathb, "/", sizeof(newpathb));
                 newpathb[sizeof(newpathb)-1]=0;
                 strncatb(newpathb, path, sizeof(newpathb));
                 newpathb[sizeof(newpathb)-1]=0;
-                if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "called resolvefile()\n");
+                if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "called resolvefile()\n");
                 resolvefile(newpathb);
                 return 0;
             } else
             {
-                if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "could not determine path type of %s\n", path);
+                if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "could not determine path type of %s\n", path);
                 return 1;
             }
         } else if (isDirectory(patha)==1)
         {
-        if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "%s is a directory \n", patha);
+        if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "%s is a directory \n", patha);
             if (path[0]==path_separator)
             {
                 if ( strstrb(path, relpathdot_separator ))
                 {
-                    if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "    %s is an absolute path which contains a dot relative path\n", path);
-                    if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "called resolvedir()\n");
+                    if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "    %s is an absolute path which contains a dot relative path\n", path);
+                    if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "called resolvedir()\n");
                     resolvedir(path);
                 } else if ( strstrb(path, relpathdotdor_separator ))
                 {
-                    if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "    %s is an absolute path which contains a dot dot relative path\n", path);
-                    if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "called resolvedir()\n");
+                    if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "    %s is an absolute path which contains a dot dot relative path\n", path);
+                    if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "called resolvedir()\n");
                     resolvedir(path);
                 } else
                 {
-                    if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "    %s is an absolute path with no relative paths\n", path);
+                    if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "    %s is an absolute path with no relative paths\n", path);
                     return path;
                 }
                 return 0;
             } else if ( strchrb(path, path_separator ))
             {
-                if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "    %s is a relative path\n", path);
-                if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "    strncpyb(%s, %s, sizeof(%s));\n", newpathc, current_pwd, newpathc);
+                if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "    %s is a relative path\n", path);
+                if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "    strncpyb(%s, %s, sizeof(%s));\n", newpathc, current_pwd, newpathc);
                 strncpyb(newpathc, current_pwd, sizeof(newpathc));
-                if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "    newpath2[sizeof(%s)-1]=0;\n", newpathc);
+                if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "    newpath2[sizeof(%s)-1]=0;\n", newpathc);
                 newpathc[sizeof(newpathc)-1]=0;
-                if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "    strncatb(%s, %s, sizeof(%s));\n", newpathc, "/", newpathc);
+                if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "    strncatb(%s, %s, sizeof(%s));\n", newpathc, "/", newpathc);
                 strncatb(newpathc, "/", sizeof(newpathc));
-                if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "    newpathc[sizeof(%s)-1]=0;\n", newpathc);
+                if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "    newpathc[sizeof(%s)-1]=0;\n", newpathc);
                 newpathc[sizeof(newpathc)-1]=0;
-                if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "    strncatb(%s, %s, sizeof(%s));\n", newpathc, path, newpathc);
+                if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "    strncatb(%s, %s, sizeof(%s));\n", newpathc, path, newpathc);
                 strncatb(newpathc, path, sizeof(newpathc));
-                if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "    newpathc[sizeof(%s)-1]=0;\n", newpathc);
+                if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "    newpathc[sizeof(%s)-1]=0;\n", newpathc);
                 newpathc[sizeof(newpathc)-1]=0;
-                if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "called resolvedir()\n");
+                if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "called resolvedir()\n");
                 resolvedir(newpathc);
                 return 0;
             } else
             {
-                if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "could not determine path type of %s\n", path);
+                if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "could not determine path type of %s\n", path);
                 return 1;
             }
         }
         return 0;
     }
-if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "called testtype()\n");
+if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "called testtype()\n");
     save_to_variable = testtype(path);
-if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "print save_to_variable from resolve_debug() %s\n", save_to_variable);
+if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "print save_to_variable from resolve_debug() %s\n", save_to_variable);
     while (*cptr) {
         cptr++;
     }
@@ -1872,20 +1872,20 @@ int findyourself_initialized=0;
 void findyourself_init_debug(char *argv0)
 {
 
-if(findyourself_verbose) if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "  getcwd(%s,sizeof(%s));\n", findyourself_save_pwd, findyourself_save_pwd);
+if(findyourself_verbose) if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "  getcwd(%s,sizeof(%s));\n", findyourself_save_pwd, findyourself_save_pwd);
   getcwd(findyourself_save_pwd, sizeof(findyourself_save_pwd));
-if(findyourself_verbose) if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "  getcwd(%s,sizeof(%s));\n", findyourself_save_pwd, findyourself_save_pwd);
+if(findyourself_verbose) if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "  getcwd(%s,sizeof(%s));\n", findyourself_save_pwd, findyourself_save_pwd);
 
-if(findyourself_verbose) if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "  strncpyb(%s, %s, sizeof(%s));\n", findyourself_save_argv0, argv0, findyourself_save_argv0);
+if(findyourself_verbose) if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "  strncpyb(%s, %s, sizeof(%s));\n", findyourself_save_argv0, argv0, findyourself_save_argv0);
   strncpyb(findyourself_save_argv0, argv0, sizeof(findyourself_save_argv0));
-if(findyourself_verbose) if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "  findyourself_save_argv0[sizeof(%s)-1)=0;\n", findyourself_save_argv0);
+if(findyourself_verbose) if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "  findyourself_save_argv0[sizeof(%s)-1)=0;\n", findyourself_save_argv0);
   findyourself_save_argv0[sizeof(findyourself_save_argv0)-1]=0;
 
-if(findyourself_verbose) if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "  strncpyb(%s, getenv_debug(\"PATH\"), sizeof(%s));\n", findyourself_save_path, findyourself_save_path);
+if(findyourself_verbose) if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "  strncpyb(%s, getenv_debug(\"PATH\"), sizeof(%s));\n", findyourself_save_path, findyourself_save_path);
   strncpyb(findyourself_save_path, getenv_debug("PATH"), sizeof(findyourself_save_path));
-if(findyourself_verbose) if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "  findyourself_save_path[sizeof(%s)-1)=0;\n", findyourself_save_path);
+if(findyourself_verbose) if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "  findyourself_save_path[sizeof(%s)-1)=0;\n", findyourself_save_path);
   findyourself_save_path[sizeof(findyourself_save_path)-1]=0;
-if(findyourself_verbose) if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "  findyourself_initialized=1\n");
+if(findyourself_verbose) if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "  findyourself_initialized=1\n");
   findyourself_initialized=1;
 }
 
@@ -1895,101 +1895,101 @@ int find_yourself_debug(char *result, size_t size_of_result)
   char newpath[PATH_MAX+256];
   char newpath2[PATH_MAX+256];
 
-if(findyourself_verbose) if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "  assert(1)\n");
+if(findyourself_verbose) if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "  assert(1)\n");
   assert(findyourself_initialized);
-if(findyourself_verbose) if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "  result[0]=0\n");
+if(findyourself_verbose) if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "  result[0]=0\n");
   result[0]=0;
-if(findyourself_verbose) if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "  if(%s==<char>) {\n",findyourself_save_argv0, findyourself_path_separator);
+if(findyourself_verbose) if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "  if(%s==<char>) {\n",findyourself_save_argv0, findyourself_path_separator);
   if(findyourself_save_argv0[0]==findyourself_path_separator) {
-    if(findyourself_debug) if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "     absolute path\n");
-if(findyourself_verbose) if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "     resolve_debug(%s);\n",findyourself_save_argv0);
+    if(findyourself_debug) if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "     absolute path\n");
+if(findyourself_verbose) if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "     resolve_debug(%s);\n",findyourself_save_argv0);
      resolve_debug(findyourself_save_argv0, newpath);
-     if(findyourself_debug) if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "     newpath=\"%s\"\n", newpath);
-if(findyourself_verbose) if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "     if(!access(%s, F_OK)) {\n", newpath);
+     if(findyourself_debug) if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "     newpath=\"%s\"\n", newpath);
+if(findyourself_verbose) if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "     if(!access(%s, F_OK)) {\n", newpath);
      if(!access(newpath, F_OK)) {
-if(findyourself_verbose) if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "        strncpyb(%s, %s, <int>);\n", result, newpath, size_of_result);
+if(findyourself_verbose) if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "        strncpyb(%s, %s, <int>);\n", result, newpath, size_of_result);
         strncpyb(result, newpath, size_of_result);
-if(findyourself_verbose) if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "        result[<int>-1]=0;\n", size_of_result);
+if(findyourself_verbose) if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "        result[<int>-1]=0;\n", size_of_result);
         result[size_of_result-1]=0;
-if(findyourself_verbose) if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "        return(0);\n");
+if(findyourself_verbose) if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "        return(0);\n");
         return(0);
      } else {
-if(findyourself_verbose) if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "     } else {\n");
-if(findyourself_verbose) if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "    perror(\"access failed 1\");\n");
-if(findyourself_verbose) if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "      }\n");
+if(findyourself_verbose) if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "     } else {\n");
+if(findyourself_verbose) if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "    perror(\"access failed 1\");\n");
+if(findyourself_verbose) if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "      }\n");
       }
   } else if( strchrb(findyourself_save_argv0, findyourself_path_separator )) {
-if(findyourself_verbose) if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "  } else if( strchrb(%s, <char> )) {\n",findyourself_save_argv0, findyourself_path_separator );
-    if(findyourself_debug) if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "    relative path to pwd\n");
-if(findyourself_verbose) if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "    strncpyb(%s, %s, sizeof(%s));\n", newpath2, findyourself_save_pwd, newpath2);
+if(findyourself_verbose) if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "  } else if( strchrb(%s, <char> )) {\n",findyourself_save_argv0, findyourself_path_separator );
+    if(findyourself_debug) if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "    relative path to pwd\n");
+if(findyourself_verbose) if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "    strncpyb(%s, %s, sizeof(%s));\n", newpath2, findyourself_save_pwd, newpath2);
     strncpyb(newpath2, findyourself_save_pwd, sizeof(newpath2));
-if(findyourself_verbose) if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "    newpath2[sizeof(%s)-1]=0;\n", newpath2);
+if(findyourself_verbose) if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "    newpath2[sizeof(%s)-1]=0;\n", newpath2);
     newpath2[sizeof(newpath2)-1]=0;
-if(findyourself_verbose) if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "    strncatb(%s, %s, sizeof(%s));\n", newpath2, findyourself_path_separator_as_string, newpath2);
+if(findyourself_verbose) if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "    strncatb(%s, %s, sizeof(%s));\n", newpath2, findyourself_path_separator_as_string, newpath2);
     strncatb(newpath2, findyourself_path_separator_as_string, sizeof(newpath2));
-if(findyourself_verbose) if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "    newpath2[sizeof(%s)-1]=0;\n", newpath2);
+if(findyourself_verbose) if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "    newpath2[sizeof(%s)-1]=0;\n", newpath2);
     newpath2[sizeof(newpath2)-1]=0;
-if(findyourself_verbose) if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "    strncatb(%s, %s, sizeof(%s));\n", newpath2, findyourself_save_argv0, newpath2);
+if(findyourself_verbose) if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "    strncatb(%s, %s, sizeof(%s));\n", newpath2, findyourself_save_argv0, newpath2);
     strncatb(newpath2, findyourself_save_argv0, sizeof(newpath2));
-if(findyourself_verbose) if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "    newpath2[sizeof(%s)-1]=0;\n", newpath2);
+if(findyourself_verbose) if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "    newpath2[sizeof(%s)-1]=0;\n", newpath2);
     newpath2[sizeof(newpath2)-1]=0;
-if(findyourself_verbose) if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "    resolve_debug(%s);\n",newpath2);
+if(findyourself_verbose) if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "    resolve_debug(%s);\n",newpath2);
     resolve_debug(newpath2, newpath);
-    if(findyourself_debug) if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "    newpath=\"%s\"\n", newpath);
-if(findyourself_verbose) if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "    if(!access(%s, F_OK)) {\n", newpath);
+    if(findyourself_debug) if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "    newpath=\"%s\"\n", newpath);
+if(findyourself_verbose) if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "    if(!access(%s, F_OK)) {\n", newpath);
     if(!access(newpath, F_OK)) {
-if(findyourself_verbose) if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "        strncpyb(%s, %s, <int>);\n", result, newpath, size_of_result);
+if(findyourself_verbose) if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "        strncpyb(%s, %s, <int>);\n", result, newpath, size_of_result);
         strncpyb(result, newpath, size_of_result);
-if(findyourself_verbose) if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "        result[<int>-1]=0;\n", size_of_result);
+if(findyourself_verbose) if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "        result[<int>-1]=0;\n", size_of_result);
         result[size_of_result-1]=0;
-if(findyourself_verbose) if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "        return(0);\n");
+if(findyourself_verbose) if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "        return(0);\n");
         return(0);
      } else {
-if(findyourself_verbose) if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "     } else {\n");
-if(findyourself_verbose) if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "    perror(\"access failed 2\");\n");
-if(findyourself_verbose) if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "      }\n");
+if(findyourself_verbose) if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "     } else {\n");
+if(findyourself_verbose) if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "    perror(\"access failed 2\");\n");
+if(findyourself_verbose) if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "      }\n");
       }
   } else {
-if(findyourself_verbose) if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "  } else {\n");
-    if(findyourself_debug) if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "    searching $PATH\n");
+if(findyourself_verbose) if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "  } else {\n");
+    if(findyourself_debug) if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "    searching $PATH\n");
     char *saveptr;
     char *pathitem;
-if(findyourself_verbose) if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "    for(pathitem=strtok_r(%s, %s,  %s); %s; pathitem=strtok_r(NULL, %s, %s) ) {;\n", findyourself_save_path, findyourself_path_list_separator,  &saveptr, pathitem, findyourself_path_list_separator, &saveptr);
+if(findyourself_verbose) if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "    for(pathitem=strtok_r(%s, %s,  %s); %s; pathitem=strtok_r(NULL, %s, %s) ) {;\n", findyourself_save_path, findyourself_path_list_separator,  &saveptr, pathitem, findyourself_path_list_separator, &saveptr);
     for(pathitem=strtok_r(findyourself_save_path, findyourself_path_list_separator,  &saveptr); pathitem; pathitem=strtok_r(NULL, findyourself_path_list_separator, &saveptr) ) {
-       if(findyourself_debug>=2) if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "       pathitem=\"%s\"\n", pathitem);
-if(findyourself_verbose) if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "       strncpyb(%s, %s, sizeof(%s));\n", newpath2, pathitem, newpath2);
+       if(findyourself_debug>=2) if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "       pathitem=\"%s\"\n", pathitem);
+if(findyourself_verbose) if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "       strncpyb(%s, %s, sizeof(%s));\n", newpath2, pathitem, newpath2);
        strncpyb(newpath2, pathitem, sizeof(newpath2));
-if(findyourself_verbose) if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "       newpath2[sizeof(%s)-1]=0;\n", newpath2);
+if(findyourself_verbose) if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "       newpath2[sizeof(%s)-1]=0;\n", newpath2);
        newpath2[sizeof(newpath2)-1]=0;
-if(findyourself_verbose) if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "       strncatb(%s, %s, sizeof(%s));\n", newpath2, findyourself_path_separator_as_string, newpath2);
+if(findyourself_verbose) if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "       strncatb(%s, %s, sizeof(%s));\n", newpath2, findyourself_path_separator_as_string, newpath2);
        strncatb(newpath2, findyourself_path_separator_as_string, sizeof(newpath2));
-if(findyourself_verbose) if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "       newpath2[sizeof(%s)-1]=0;\n", newpath2);
+if(findyourself_verbose) if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "       newpath2[sizeof(%s)-1]=0;\n", newpath2);
        newpath2[sizeof(newpath2)-1]=0;
-if(findyourself_verbose) if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "       strncatb(%s, %s, sizeof(%s));\n", newpath2, findyourself_save_argv0, newpath2);
+if(findyourself_verbose) if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "       strncatb(%s, %s, sizeof(%s));\n", newpath2, findyourself_save_argv0, newpath2);
        strncatb(newpath2, findyourself_save_argv0, sizeof(newpath2));
-if(findyourself_verbose) if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "       newpath2[sizeof(%s)-1]=0;\n", newpath2);
+if(findyourself_verbose) if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "       newpath2[sizeof(%s)-1]=0;\n", newpath2);
        newpath2[sizeof(newpath2)-1]=0;
-if(findyourself_verbose) if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "       resolve_debug(%s);\n",newpath2);
+if(findyourself_verbose) if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "       resolve_debug(%s);\n",newpath2);
        resolve_debug(newpath2, newpath);
-       if(findyourself_debug) if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "       newpath=\"%s\"\n", newpath);
-if(findyourself_verbose) if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "       if(!access(%s, F_OK)) {\n", newpath);
+       if(findyourself_debug) if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "       newpath=\"%s\"\n", newpath);
+if(findyourself_verbose) if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "       if(!access(%s, F_OK)) {\n", newpath);
        if(!access(newpath, F_OK)) {
-if(findyourself_verbose) if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "          strncpyb(%s, %s, <int>);\n", result, newpath, size_of_result);
+if(findyourself_verbose) if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "          strncpyb(%s, %s, <int>);\n", result, newpath, size_of_result);
           strncpyb(result, newpath, size_of_result);
-if(findyourself_verbose) if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "          result[<int>-1]=0;\n", size_of_result);
+if(findyourself_verbose) if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "          result[<int>-1]=0;\n", size_of_result);
           result[size_of_result-1]=0;
-if(findyourself_verbose) if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "          return(0);\n");
-if(findyourself_verbose) if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "      }\n");
+if(findyourself_verbose) if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "          return(0);\n");
+if(findyourself_verbose) if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "      }\n");
           return(0);
       }
-if(findyourself_verbose) if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "    }\n");
+if(findyourself_verbose) if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "    }\n");
     } // end for
-if(findyourself_verbose) if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "    perror(\"access failed 3\");\n");
-if(findyourself_verbose) if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "  }\n");
+if(findyourself_verbose) if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "    perror(\"access failed 3\");\n");
+if(findyourself_verbose) if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "  }\n");
   } // end else
   // if we get here, we have tried all three methods on argv[0] and still haven't succeeded.   Include fallback methods here.
-if(findyourself_verbose) if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "  return(1);\n");
-if(findyourself_verbose) if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "}\n");
+if(findyourself_verbose) if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "  return(1);\n");
+if(findyourself_verbose) if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "}\n");
   return(1);
 }
 
@@ -2029,7 +2029,7 @@ print_quoted_string(const char *str, unsigned int size, const unsigned int style
     alloc_size = 4 * size;
     if (alloc_size / 4 != size) {
         error_msg("Out of memory");
-        if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "???");
+        if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "???");
         return "-1";
     }
     alloc_size += 1 + (style & QUOTE_OMIT_LEADING_TRAILING_QUOTES ? 0 : 2);
@@ -2041,7 +2041,7 @@ print_quoted_string(const char *str, unsigned int size, const unsigned int style
         outstr = buf = malloc(alloc_size);
         if (!buf) {
             error_msg("Out of memory");
-            if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "???");
+            if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "???");
             return "-1";
         }
     }
@@ -2113,11 +2113,11 @@ int read_fast_verifyb(const char *src, int len_of_source, char **dest, int reque
     *dest = malloc(requested_len+align+PT_LOAD_L.p_align);
     if (len_of_source < requested_len) memcpy(*dest, src, len_of_source);
     else memcpy(*dest, src, requested_len);
-    if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "memmove: round_up(%014p, %014p)+%014p = %014p\n", *dest, align, PT_LOAD_L.p_align, round_up(*dest, align)+PT_LOAD_L.p_align);
+    if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "memmove: round_up(%014p, %014p)+%014p = %014p\n", *dest, align, PT_LOAD_L.p_align, round_up(*dest, align)+PT_LOAD_L.p_align);
     *dest = memmove(round_up(*dest, align)+PT_LOAD_L.p_align, *dest, requested_len);
-    if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "dest = %014p\n", *dest);
+    if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "dest = %014p\n", *dest);
     *dest = memmove(*dest-PT_LOAD_L.p_align, *dest, PT_LOAD_F.p_memsz);
-    if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "dest = %014p\n", *dest);
+    if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "dest = %014p\n", *dest);
     return requested_len;
 }
 
@@ -2136,7 +2136,7 @@ void lseek_stringc(char **src, int len, int offset, int offsetT) {
     char *p = malloc(len);
     int off;
     off=((len*offsetT));
-    if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "off = %d * %d, = %d\n", len, offsetT, off);
+    if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "off = %d * %d, = %d\n", len, offsetT, off);
     memcpy(p, *src+offset+off, strlen(*src));
     *src = p;
 }
@@ -2145,17 +2145,17 @@ void lseek_stringc(char **src, int len, int offset, int offsetT) {
 // [ The function fread() reads nmemb elements of data, each size bytes long, from the stream pointed to by stream, storing them at the location given by ptr. ]
 // basically means if i do [ fread(ptr, 5, 5, stdin); ] it would read the first 25 bytes from stdin into ptr
 size_t fread_(void **dest, size_t size, size_t num, const char *src) {
-    if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "1\n");
+    if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "1\n");
     size_t len = size;
-    if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "2\n");
+    if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "2\n");
     char *p = malloc(len + 1);
-    if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "3\n");
+    if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "3\n");
     memcpy(p, src, len);
-    if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "4\n");
+    if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "4\n");
     p[len] = 0;
-    if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "5\n");
+    if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "5\n");
     *dest = p;
-    if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "6, dest = %c\n", *p);
+    if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "6, dest = %c\n", *p);
     sleep(1);
     lseek_stringc(&src, 1, 0, 1);
     return num;
@@ -2187,7 +2187,7 @@ int stream__(char *file, char **p, int *q, int LINES_TO_READ) {
             const char *filename = file;
             int fd = open(filename, O_RDONLY);
             if (fd < 0) {
-                if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "cannot open \"%s\", returned %i\n", filename, fd);
+                if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "cannot open \"%s\", returned %i\n", filename, fd);
                 return -1;
             }
             char * array;
@@ -2199,10 +2199,10 @@ int stream__(char *file, char **p, int *q, int LINES_TO_READ) {
             array = malloc(sizeof(char) * 2048);
             char *array_tmp;
             while (read(fd, &ch, 1) == 1) {
-            if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "\rbytes read: %'i", bytes);
+            if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "\rbytes read: %'i", bytes);
                 if (count == 1024) { array_tmp = realloc(array, bytes+1024);
                     if (array_tmp == NULL) {
-                        if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "failed to allocate array to new size");
+                        if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "failed to allocate array to new size");
                         free(array);
                         exit(1);
                     } else {
@@ -2223,13 +2223,13 @@ int stream__(char *file, char **p, int *q, int LINES_TO_READ) {
             bytes--;
             array_tmp = realloc(array, bytes);
             if (array_tmp == NULL) {
-                if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "failed to allocate array to new size");
+                if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "failed to allocate array to new size");
                 free(array);
                 exit(1);
             } else {
                 array = array_tmp;
             }
-            if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "\rbytes read: %'i\n", bytes);
+            if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "\rbytes read: %'i\n", bytes);
     *p = array;
     *q = bytes;
     return bytes;
@@ -2240,7 +2240,7 @@ int stream__o(char *file, char **p, int *q, int LINES_TO_READ) {
             const char *filename = file;
             int fd = open(filename, O_RDONLY);
             if (fd < 0) {
-                if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "cannot open \"%s\", returned %i\n", filename, fd);
+                if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "cannot open \"%s\", returned %i\n", filename, fd);
                 return -1;
             }
             char * array;
@@ -2254,10 +2254,10 @@ int stream__o(char *file, char **p, int *q, int LINES_TO_READ) {
             int count=1;
             array = malloc(sizeof(char) * 2048);
             while (read(fd, &ch, 1) == 1) {
-            if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "\rbytes read: %'i", bytes);
+            if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "\rbytes read: %'i", bytes);
                 if (count == 1024) { array_tmp = realloc(array, bytes+1024);
                     if (array_tmp == NULL) {
-                        if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "failed to allocate array to new size");
+                        if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "failed to allocate array to new size");
                         free(array);
                         exit(1);
                     } else {
@@ -2267,7 +2267,7 @@ int stream__o(char *file, char **p, int *q, int LINES_TO_READ) {
                 }
                 array[bytes-1] = ch;
                 if (ch == '\n') {
-                    if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "attempting to reset array\n");
+                    if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "attempting to reset array\n");
                     if (lines == LINES_TO_READ) {
                         break;
                     } else {
@@ -2289,13 +2289,13 @@ int stream__o(char *file, char **p, int *q, int LINES_TO_READ) {
             bytes--;
             array_tmp = realloc(array, bytes);
             if (array_tmp == NULL) {
-                if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "failed to allocate array to new size");
+                if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "failed to allocate array to new size");
                 free(array);
                 exit(1);
             } else {
                 array = array_tmp;
             }
-            if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "\rbytes read: %'i\n", bytes);
+            if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "\rbytes read: %'i\n", bytes);
     *p = array;
     *q = bytes;
     return bytes;
@@ -2309,7 +2309,7 @@ print_maps(void)
 
 	fd = open("/proc/self/maps", 0, 0);
 	while (0 < (cc = read(fd, rbuf, sizeof(rbuf))))
-		if (bytecmpq(global_quiet, "no") == 0) write(1, rbuf, cc);
+		if (bytecmpq(GQ2, "no") == 0) write(1, rbuf, cc);
 	close(fd);
 }
 
@@ -2320,20 +2320,20 @@ int read__(char *file, char **p, size_t *q) {
     char *o;
     if (!(fd = open(file, O_RDONLY)))
     {
-        if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "open() failure\n");
+        if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "open() failure\n");
         return (1);
     }
     len = lseek(fd, 0, SEEK_END);
     lseek(fd, 0, 0);
     if (!(o = malloc(len))) {
-        if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "failure to malloc()\n");
+        if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "failure to malloc()\n");
     }
     if ((read(fd, o, len)) == -1) {
-        if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "failure to read()\n");
+        if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "failure to read()\n");
     }
     int cl = close(fd);
     if (cl < 0) {
-        if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "cannot close \"%s\", returned %i\n", file, cl);
+        if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "cannot close \"%s\", returned %i\n", file, cl);
         return -1;
     }
     *p = o;
@@ -2364,9 +2364,9 @@ int find_yourself_(char *result, size_t size_of_result)
   result[0]=0;
 
   if(findyourself_save_argv0[0]==findyourself_path_separator) {
-    if(findyourself_debug) if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "  absolute path\n");
+    if(findyourself_debug) if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "  absolute path\n");
      realpath(findyourself_save_argv0, newpath);
-     if(findyourself_debug) if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "  newpath=\"%s\"\n", newpath);
+     if(findyourself_debug) if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "  newpath=\"%s\"\n", newpath);
      if(!access(newpath, F_OK)) {
         strncpy(result, newpath, size_of_result);
         result[size_of_result-1]=0;
@@ -2375,7 +2375,7 @@ int find_yourself_(char *result, size_t size_of_result)
     perror("access failed 1");
       }
   } else if( strchr(findyourself_save_argv0, findyourself_path_separator )) {
-    if(findyourself_debug) if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "  relative path to pwd\n");
+    if(findyourself_debug) if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "  relative path to pwd\n");
     strncpy(newpath2, findyourself_save_pwd, sizeof(newpath2));
     newpath2[sizeof(newpath2)-1]=0;
     strncat(newpath2, findyourself_path_separator_as_string, sizeof(newpath2));
@@ -2383,7 +2383,7 @@ int find_yourself_(char *result, size_t size_of_result)
     strncat(newpath2, findyourself_save_argv0, sizeof(newpath2));
     newpath2[sizeof(newpath2)-1]=0;
     realpath(newpath2, newpath);
-    if(findyourself_debug) if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "  newpath=\"%s\"\n", newpath);
+    if(findyourself_debug) if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "  newpath=\"%s\"\n", newpath);
     if(!access(newpath, F_OK)) {
         strncpy(result, newpath, size_of_result);
         result[size_of_result-1]=0;
@@ -2392,11 +2392,11 @@ int find_yourself_(char *result, size_t size_of_result)
     perror("access failed 2");
       }
   } else {
-    if(findyourself_debug) if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "  searching $PATH\n");
+    if(findyourself_debug) if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "  searching $PATH\n");
     char *saveptr;
     char *pathitem;
     for(pathitem=strtok_r(findyourself_save_path, findyourself_path_list_separator,  &saveptr); pathitem; pathitem=strtok_r(NULL, findyourself_path_list_separator, &saveptr) ) {
-       if(findyourself_debug>=2) if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "pathitem=\"%s\"\n", pathitem);
+       if(findyourself_debug>=2) if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "pathitem=\"%s\"\n", pathitem);
        strncpy(newpath2, pathitem, sizeof(newpath2));
        newpath2[sizeof(newpath2)-1]=0;
        strncat(newpath2, findyourself_path_separator_as_string, sizeof(newpath2));
@@ -2404,7 +2404,7 @@ int find_yourself_(char *result, size_t size_of_result)
        strncat(newpath2, findyourself_save_argv0, sizeof(newpath2));
        newpath2[sizeof(newpath2)-1]=0;
        realpath(newpath2, newpath);
-       if(findyourself_debug) if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "  newpath=\"%s\"\n", newpath);
+       if(findyourself_debug) if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "  newpath=\"%s\"\n", newpath);
       if(!access(newpath, F_OK)) {
           strncpy(result, newpath, size_of_result);
           result[size_of_result-1]=0;
@@ -2426,14 +2426,14 @@ char * get_full_path() {
     if(1 || strcmp((char *)getauxval(AT_EXECFN),newpath)) { }
     char *fullpath  = strdup( newpath );
     char *directorypath = dirname( strdup( newpath ) );
-    if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "current = %s\nfullpath = %s\ndirname = %s\n", auxAT, fullpath, directorypath);
+    if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "current = %s\nfullpath = %s\ndirname = %s\n", auxAT, fullpath, directorypath);
     return fullpath;
 }
 
 int *
 resolve_and_re_execute_debug (char * path)
 {
-if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "called resolve_debug()\n");
+if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "called resolve_debug()\n");
     if(!access(path, F_OK)) {
         } else {
         return -1;
@@ -2457,52 +2457,52 @@ if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "called resolve_debug()\n
         #include <sys/stat.h>
     char* resolvedir(const char * pathb)
     {
-        if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "chdir(%s)\n", pathb);
+        if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "chdir(%s)\n", pathb);
         chdir(pathb);
-        if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "getcwd(%s, sizeof(%s))\n", tmp_pwd, tmp_pwd);
+        if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "getcwd(%s, sizeof(%s))\n", tmp_pwd, tmp_pwd);
         getcwd(tmp_pwd, sizeof(tmp_pwd));
-        if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "%s points to %s\n\n", pathb, tmp_pwd);
-        if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "chdir(%s)\n", current_pwd);
+        if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "%s points to %s\n\n", pathb, tmp_pwd);
+        if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "chdir(%s)\n", current_pwd);
         chdir(current_pwd);
-        if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "return %s\n", tmp_pwd);
+        if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "return %s\n", tmp_pwd);
         return tmp_pwd;
     }
     char* resolvefile(char * pathb)
     {
-        if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "strncpyb(%s, %s, sizeof(%s)\n", linkb, pathb, linkb);
+        if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "strncpyb(%s, %s, sizeof(%s)\n", linkb, pathb, linkb);
         strncpyb(linkb, pathb, sizeof(linkb));
-        if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "linkb[sizeof(%s)-1]=0\n", linkb);
+        if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "linkb[sizeof(%s)-1]=0\n", linkb);
         linkb[sizeof(linkb)-1]=0;
-        if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "strncpyb(%s, %s, sizeof(%s)\n", linkd, pathb, linkb);
+        if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "strncpyb(%s, %s, sizeof(%s)\n", linkd, pathb, linkb);
         strncpyb(linkd, pathb, sizeof(linkb));
-        if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "linkb[sizeof(%s)-1]=0\n", linkb);
+        if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "linkb[sizeof(%s)-1]=0\n", linkb);
         linkb[sizeof(linkb)-1]=0;
-        if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "dirname(%s)\n", linkd);
+        if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "dirname(%s)\n", linkd);
         dirname(linkd);
-        if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "strncatb(%s, \"/\", sizeof(%s));\n", linkd, linkd);
+        if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "strncatb(%s, \"/\", sizeof(%s));\n", linkd, linkd);
         strncatb(linkd, "/", sizeof(linkd));
-        if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "linkd[sizeof(%s)-1]=0\n", linkd);
+        if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "linkd[sizeof(%s)-1]=0\n", linkd);
         linkd[sizeof(linkd)-1]=0;
-        if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "chdir(%s)\n", linkd);
+        if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "chdir(%s)\n", linkd);
         chdir(linkd);
-        if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "getcwd(%s, sizeof(%s))\n", tmp_pwd, tmp_pwd);
+        if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "getcwd(%s, sizeof(%s))\n", tmp_pwd, tmp_pwd);
         getcwd(tmp_pwd, sizeof(tmp_pwd));
-        if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "strncatb(%s, \"/\", sizeof(%s));\n", tmp_pwd, tmp_pwd);
+        if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "strncatb(%s, \"/\", sizeof(%s));\n", tmp_pwd, tmp_pwd);
         strncatb(tmp_pwd, "/", sizeof(tmp_pwd));
-        if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "tmp_pwd[sizeof(%s)-1]=0\n", tmp_pwd);
+        if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "tmp_pwd[sizeof(%s)-1]=0\n", tmp_pwd);
         tmp_pwd[sizeof(tmp_pwd)-1]=0;
-        if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "strncpyb(%s, %s, sizeof(%s));\n", linkb, basename(pathb), linkb);
+        if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "strncpyb(%s, %s, sizeof(%s));\n", linkb, basename(pathb), linkb);
         strncpyb(linkb, basename(pathb), sizeof(linkb));
-        if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "linkb[sizeof(%s)-1]=0\n", linkb);
+        if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "linkb[sizeof(%s)-1]=0\n", linkb);
         linkb[sizeof(linkb)-1]=0;
-        if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "strncatb(%s, %s, sizeof(%s));\n", tmp_pwd, linkb, tmp_pwd);
+        if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "strncatb(%s, %s, sizeof(%s));\n", tmp_pwd, linkb, tmp_pwd);
         strncatb(tmp_pwd, linkb, sizeof(tmp_pwd));
-        if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "tmp_pwd[sizeof(%s)-1]=0\n", tmp_pwd);
+        if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "tmp_pwd[sizeof(%s)-1]=0\n", tmp_pwd);
         tmp_pwd[sizeof(tmp_pwd)-1]=0;
-        if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "%s points to %s\n\n", pathb, tmp_pwd);
-        if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "chdir(%s)\n", current_pwd);
+        if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "%s points to %s\n\n", pathb, tmp_pwd);
+        if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "chdir(%s)\n", current_pwd);
         chdir(current_pwd);
-        if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "return %s\n", tmp_pwd);
+        if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "return %s\n", tmp_pwd);
         return tmp_pwd;
     }
     #include <sys/types.h>
@@ -2511,13 +2511,13 @@ if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "called resolve_debug()\n
     {
         struct stat p_statbuf;
         if (lstat(link,&p_statbuf)==0) {
-                if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "%s type is <int>\n",link, S_ISLNK(p_statbuf.st_mode));
+                if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "%s type is <int>\n",link, S_ISLNK(p_statbuf.st_mode));
             if (S_ISLNK(p_statbuf.st_mode)==1)
             {
-                if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "%s is symbolic link \n", link);
+                if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "%s is symbolic link \n", link);
             } else
             {
-                if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "%s is not symbolic link \n", link);
+                if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "%s is not symbolic link \n", link);
                 return 0;
             }
         }
@@ -2550,7 +2550,7 @@ if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "called resolve_debug()\n
 
         linkname[sb.st_size] = '\0';
 
-        if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "\"%s\" points to '%s'\n", link, linkname);
+        if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "\"%s\" points to '%s'\n", link, linkname);
 
         path = linkname;
         char * checkifsymlink(const char * tlink)
@@ -2558,25 +2558,25 @@ if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "called resolve_debug()\n
             struct stat p_statbuf;
             if (lstat(tlink,&p_statbuf)==0)
             {
-                    if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "%s type is <int>\n",tlink, S_ISLNK(p_statbuf.st_mode));
+                    if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "%s type is <int>\n",tlink, S_ISLNK(p_statbuf.st_mode));
                 if (S_ISLNK(p_statbuf.st_mode)==1)
                 {
-                        if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "%s is symbolic link \n", tlink);
-                        if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "called getlink()\n");
+                        if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "%s is symbolic link \n", tlink);
+                        if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "called getlink()\n");
                     getlink(tlink);
                 } else
                 {
-                        if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "%s is not symbolic link \n", tlink);
+                        if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "%s is not symbolic link \n", tlink);
                     return 0;
                 }
             }
         return 0;
         }
-        if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "called checkifsymlink()\n");
+        if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "called checkifsymlink()\n");
         checkifsymlink(path);
         return 0;
     }
-    if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "called getlink()\n");
+    if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "called getlink()\n");
     getlink(path);
     char * testtype(const char * patha)
     {
@@ -2595,91 +2595,91 @@ if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "called resolve_debug()\n
         }
         if (is_regular_file(patha)==1)
         {
-        if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "%s is file \n", patha);
+        if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "%s is file \n", patha);
             if (path[0]==path_separator)
             {
                 if ( strstrb(path, relpathdot_separator ))
                 {
-                    if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "%s is an absolute path which contains a dot relative path\n", path);
-                    if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "called Rresolvefile()\n");
+                    if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "%s is an absolute path which contains a dot relative path\n", path);
+                    if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "called Rresolvefile()\n");
                     return resolvefile(path);
                 } else if ( strstrb(path, relpathdotdor_separator ))
                 {
-                    if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "%s is an absolute path which contains a dot dot relative path\n", path);
-                    if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "called resolvefile()\n");
+                    if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "%s is an absolute path which contains a dot dot relative path\n", path);
+                    if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "called resolvefile()\n");
                 return resolvefile(path);
                 } else
                 {
-                    if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "%s is an absolute path with no relative paths\n", path);
+                    if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "%s is an absolute path with no relative paths\n", path);
                     return path;
                 }
             } else if ( strchrb(path, path_separator ))
             {
-                if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "%s is a relative path\n", path);
+                if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "%s is a relative path\n", path);
                 strncpyb(newpathb, current_pwd, sizeof(newpathb));
                 newpathb[sizeof(newpathb)-1]=0;
                 strncatb(newpathb, "/", sizeof(newpathb));
                 newpathb[sizeof(newpathb)-1]=0;
                 strncatb(newpathb, path, sizeof(newpathb));
                 newpathb[sizeof(newpathb)-1]=0;
-                    if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "called resolvefile()\n");
-                if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "need to re execute\n");
+                    if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "called resolvefile()\n");
+                if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "need to re execute\n");
                 char * new_aux = resolvefile(newpathb);
-                if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "executing with %s\n\n\n\n", new_aux);
+                if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "executing with %s\n\n\n\n", new_aux);
                 int ret = execv(new_aux, NULL);
-                if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "ret = %d\n\n", ret);
+                if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "ret = %d\n\n", ret);
                 return "ERROR";
             } else
             {
-                    if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "could not determine path type of %s\n", path);
+                    if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "could not determine path type of %s\n", path);
                 return "NULL";
             }
         } else if (isDirectory(patha)==1)
         {
-                if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "%s is a directory \n", patha);
+                if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "%s is a directory \n", patha);
             if (path[0]==path_separator)
             {
                 if ( strstrb(path, relpathdot_separator ))
                 {
-                        if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "%s is an absolute path which contains a dot relative path\n", path);
-                        if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "called resolvedir()\n");
+                        if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "%s is an absolute path which contains a dot relative path\n", path);
+                        if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "called resolvedir()\n");
                     resolvedir(path);
                 } else if ( strstrb(path, relpathdotdor_separator ))
                 {
-                        if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "%s is an absolute path which contains a dot dot relative path\n", path);
-                        if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "called resolvedir()\n");
+                        if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "%s is an absolute path which contains a dot dot relative path\n", path);
+                        if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "called resolvedir()\n");
                     resolvedir(path);
                 } else
                 {
-                        if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "%s is an absolute path with no relative paths\n", path);
+                        if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "%s is an absolute path with no relative paths\n", path);
                     return path;
                 }
             } else if ( strchrb(path, path_separator ))
             {
-                if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "%s is a relative path\n", path);
-                if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "strncpyb(%s, %s, sizeof(%s));\n", newpathc, current_pwd, newpathc);
+                if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "%s is a relative path\n", path);
+                if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "strncpyb(%s, %s, sizeof(%s));\n", newpathc, current_pwd, newpathc);
                 strncpyb(newpathc, current_pwd, sizeof(newpathc));
-                if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "newpath2[sizeof(%s)-1]=0;\n", newpathc);
+                if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "newpath2[sizeof(%s)-1]=0;\n", newpathc);
                 newpathc[sizeof(newpathc)-1]=0;
-                if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "strncatb(%s, %s, sizeof(%s));\n", newpathc, "/", newpathc);
+                if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "strncatb(%s, %s, sizeof(%s));\n", newpathc, "/", newpathc);
                 strncatb(newpathc, "/", sizeof(newpathc));
-                if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "newpathc[sizeof(%s)-1]=0;\n", newpathc);
+                if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "newpathc[sizeof(%s)-1]=0;\n", newpathc);
                 newpathc[sizeof(newpathc)-1]=0;
-                if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "strncatb(%s, %s, sizeof(%s));\n", newpathc, path, newpathc);
+                if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "strncatb(%s, %s, sizeof(%s));\n", newpathc, path, newpathc);
                 strncatb(newpathc, path, sizeof(newpathc));
-                if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "newpathc[sizeof(%s)-1]=0;\n", newpathc);
+                if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "newpathc[sizeof(%s)-1]=0;\n", newpathc);
                 newpathc[sizeof(newpathc)-1]=0;
-                if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "called resolvedir()\n");
+                if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "called resolvedir()\n");
                 return resolvedir(newpathc);
             } else
             {
-                if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "could not determine path type of %s\n", path);
+                if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "could not determine path type of %s\n", path);
                 return "NULL";
             }
         }
         return "FAILED";
     }
-if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "called testtype()\n");
+if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "called testtype()\n");
     return testtype(path);
 }
 

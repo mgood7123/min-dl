@@ -88,7 +88,7 @@ else
 a=1
 fi
 if [[ $a == 0 ]] ; then
-g++ -g3 -O0 patchelf.cc -o files/patchelf ./files/libstring.so -DM
+g++ -g3 -O0 patchelf.cc -o files/patchelf ./files/libstring.a -DM
 a=$?
 else
 a=1
@@ -106,11 +106,12 @@ fi
 # a=1
 # fi
 if [[ $a == 0 ]] ; then
-cd examples/example1
-make
-#LD_PRELOAD=../../files/patchelf.so:../../files/libstring.so:../../files/readelf_.so ./example1
-cd ../../
 ./files/loader
+cd examples/example1
+rm example1 hello.so
+make
+LD_PRELOAD=../../files/libstring.so:../../files/patchelf.so:../../files/readelf_.so ./example1
+cd ../../
 a=$?
 set +v
 else

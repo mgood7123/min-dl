@@ -1,3 +1,44 @@
+    /*
+
+    printf resolution:
+    
+    initialization:
+    in during relocation JMP_SLOT relocations are preformed, which write directly to the GOT, in this case "printf" is translated directly to "puts" at compile time
+    ->
+    R_X86_64_JUMP_SLOT           calculation: S (symbol value)
+    library[library_index].mappingb    = 0x7ffff0000000
+    reloc->r_offset = 0x7ffff0000000+0x000000201018=0x7ffff0201018
+    attempting to look up symbol, index = 2
+    looking up index 2 of table 3
+    requested symbol name for index 2 is puts
+    symbol = 0 (         (nil))
+    0x7ffff0201018 = 0x7ffff0000000
+
+    in gdb tracing/examining the calls:
+    callq  540 <puts@plt>
+    ->
+    jmpq   *0x200ad2(%rip)        # 201018 <puts@GLIBC_2.2.5>
+    ->
+    retrieves the _GLOBAL_OFFSET_TABLE_ as an array called GOT
+    
+    address of GOT[3] = 0x7ffff0000000
+    (
+        pwndbg> x /g 0x7ffff0201000+0x8+0x10
+        0x7ffff0201018: 0x00007ffff0000000
+    )
+    ->
+    jumps to 0x00007ffff0000000 wich is incorrect as it is not the location of printf
+    
+    ► 0x7ffff0000540    jmp    qword ptr [rip + 0x200ad2] // callq  540 <puts@plt>
+        ↓
+    0x7ffff0000000    jg     0x7ffff0000047
+    
+    
+    since the jump can be modified we can make it jump to whatever we like wich would be bad in normal cases but usefull in specific cases, but for now we will try to make it jump to the actual location of puts in the libc library
+    
+    "ld.so takes the first symbol it finds"
+
+    */
 char ** argv;
 #if __PIC__ == 0
 // compiled without -fpic or -fPIC
@@ -10,11 +51,13 @@ int main() {
 }
 #else
 // compiled with -fpic or -fPIC
-const char * global_quiet = "no";
-const char * symbol_quiet = "yes";
-const char * relocation_quiet = "yes";
+const char * GQ = "no";
+const char * symbol_quiet = "no";
+const char * relocation_quiet = "no";
 const char * analysis_quiet = "no";
-const char * ldd_quiet = "yes";
+const char * ldd_quiet = "no";
+
+const int do_tests = 0; // tests are REQUIRED to be done, cannot be skipped
 
 // define all headers first
 
@@ -49,6 +92,7 @@ int
 init_struct() {
     library[library_index].struct_init = "initialized";
     library[library_index].library_name;
+    library[library_index].parent = "-1";
     library[library_index].NEEDED = malloc(sizeof(library[library_index].NEEDED));
     library[library_index].library_first_character;
     library[library_index].library_len;
@@ -68,6 +112,7 @@ init_struct() {
     library[library_index].mappingb_end = 0x00000000;
     library[library_index].init__ = 0;
     library[library_index].PT_DYNAMIC_ = NULL;
+    library[library_index].interp = "";
     library[library_index].tmp99D;
     library[library_index].First_Load_Header_index = NULL;
     library[library_index].Last_Load_Header_index = NULL;
@@ -138,28 +183,28 @@ int flags = DMGL_PARAMS | DMGL_ANSI | DMGL_VERBOSE;
 int strip_underscore = 0;
 char * demangle_it (char *mangled_name)
 {
-  char *result;
-  unsigned int skip_first = 0;
+char *result;
+unsigned int skip_first = 0;
 
-  /* _ and $ are sometimes found at the start of function names
-     in assembler sources in order to distinguish them from other
-     names (eg register names).  So skip them here.  */
-  if (mangled_name[0] == '.' || mangled_name[0] == '$')
+/* _ and $ are sometimes found at the start of function names
+    in assembler sources in order to distinguish them from other
+    names (eg register names).  So skip them here.  */
+if (mangled_name[0] == '.' || mangled_name[0] == '$')
     ++skip_first;
-  if (strip_underscore && mangled_name[skip_first] == '_')
+if (strip_underscore && mangled_name[skip_first] == '_')
     ++skip_first;
 
-  result = cplus_demangle (mangled_name + skip_first, flags);
-//   bytecmp(mangled_name, mangled_name);
+result = cplus_demangle (mangled_name + skip_first, flags);
+//   bytecmpq(mangled_name, mangled_name);
 //   mangled_name[strlen(mangled_name)-2] = '\0';
-  int len = strlen(mangled_name);
+int len = strlen(mangled_name);
 //   for (int i = 0; i=len-2; i++)
-//   if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "trimming %s", mangled_name);
-  if (result == NULL) return mangled_name;
-  else {
-      if ( result[strlen(result)-2] == '(' && result[strlen(result)-1] == ')' ) result[strlen(result)-2] = '\0';
-      if (mangled_name[0] == '.') return strjoin_(".", result); else return result;
-  }
+//   if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "trimming %s", mangled_name);
+if (result == NULL) return mangled_name;
+else {
+    if ( result[strlen(result)-2] == '(' && result[strlen(result)-1] == ')' ) result[strlen(result)-2] = '\0';
+    if (mangled_name[0] == '.') return strjoin_(".", result); else return result;
+}
 }
 
 char * __print_quoted_string__(const char *str, unsigned int size, const unsigned int style, const char * return_type);
@@ -172,115 +217,16 @@ char * __print_quoted_string__(const char *str, unsigned int size, const unsigne
 
 //sig handling
 jmp_buf restore_point;
-jmp_buf restore_pointb;
-struct sigaction sa, sab;
-void Handlerb(int sig, siginfo_t *si, ucontext_t *unused)
-{
-//     if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "received signal (%d)\n", sig);
-    if (sig == SIGSEGV)
-    {
-        if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "\r    NOTICE\n");
-        void * h_ = &Handlerb;
-        if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "    received SegFault (%d)\n", sig);
-        if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "    addr:   %014p\n", si->si_addr);
-        if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "    arch:   %d\n", si->si_arch);
-        if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "    signo:  %d\n", si->si_signo);
-        if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "    errno:  %d\n", si->si_errno);
-        if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "    code:   %d (If this is less than or equal to 0, then the signal was generated by a process)\n", si->si_code);
-        if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "    pid:    %d\n", (pid_t) si->si_pid);
-        if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "    uid:    %d\n", (uid_t) si->si_uid);
-//         if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "    value:  %d\n", (sigval_t) si->si_value); // not in musl
-        if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "    status: %d\n", si->si_status);
-        if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "    aquiring ucontext_t\n");
-//         getcontext(unused); // not used and not in musl
-        signal(SIGSEGV, h_);
-        longjmp(restore_pointb, SIGSEGV);
-    }
-}
-
-void
-init_handlerb() {
-    sab.sa_flags = SA_SIGINFO|SA_NODEFER;
-    sigemptyset(&sab.sa_mask);
-    sab.sa_sigaction = Handlerb;
-    if (sigaction(SIGSEGV, &sab, NULL) == -1) {
-        perror("failed to set handler");
-        pause();
-    }
-}
-
+struct sigaction sa;
 void Handler(int sig, siginfo_t *si, ucontext_t *context)
 {
-//     init_handlerb();
-
-// dont print anything, silibrary[library_index].lently skip
-
-//     if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "                                                                                                                        received signal (%d)\n", sig);
     if (sig == SIGSEGV)
     {
-//         if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "NOTICE\n");
         void * h = &Handler;
-//         if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "received SegFault (%d)\n", sig);
-//         if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "addr:   %014p\n", si->si_addr);
-//         int fault_code = setjmp(restore_pointb);
-//         if (fault_code == 0) if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "arch:   %d\n", si->si_arch);
-//         else  if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "arch:   NULL (recovered from a fault, code = %d)\n", fault_code);
-//         if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "signo:  %d\n", si->si_signo);
-//         if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "errno:  %d\n", si->si_errno);
-//         if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "code:   %d (If this is less than or equal to 0, then the signal was generated by a process)\n", si->si_code);
-//         if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "pid:    %d\n", (pid_t) si->si_pid);
-//         if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "uid:    %d\n", (uid_t) si->si_uid);
-//         if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "value:  %d\n", (sigval_t) si->si_value);
-//         if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "status: %d\n", si->si_status);
-//         if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "aquiring ucontext_t\n");
-//         if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "Address of crash:          %x\n",context->uc_mcontext.gregs[REG_RIP]);
-//  RAX  0xbc748
-//  RBX  0x2
-//  RCX  0x40bbba (__libc_sigaction+266) ◂— cmp    rax, -0x1000 /* 'H=' */
-//  RDX  0x86d3373220279bca
-//  RDI  0x6bbe00 (restore_point) ◂— 0x2
-//  RSI  0x0
-//  R8   0x0
-//  R9   0x33
-//  R10  0x8
-//  R11  0x246
-//  R12  0x0
-//  R13  0x6ba340 (_dl_main_map) ◂— 0
-//  R14  0x6b9018 (_GLOBAL_OFFSET_TABLE_+24) —▸ 0x432240 (__strcpy_ssse3) ◂— mov    rcx, rsi
-//  R15  0x0
-//  RBP  0x7fffffffe0b0 —▸ 0x7fffffffe0f0 —▸ 0x4012d9 (callback) ◂— push   rbp
-//  RSP  0x7fffffffe090 —▸ 0x7fffffffe1d0 —▸ 0x7fffffffe200 —▸ 0x404f10 (__libc_csu_init) ◂— ...
-//  RIP  0x4012a0 (test+50) ◂— mov    eax, dword ptr [rax]
-//         if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "RAX:                       %x\n",context->uc_mcontext.gregs[REG_RAX]);
-//         if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "RBX:                       %x\n",context->uc_mcontext.gregs[REG_RBX]);
-//         if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "RCX:                       %x\n",context->uc_mcontext.gregs[REG_RCX]);
-//         if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "RDX:                       %x\n",context->uc_mcontext.gregs[REG_RDX]);
-//         if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "RDI:                       %x\n",context->uc_mcontext.gregs[REG_RDI]);
-//         if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "RSI:                       %x\n",context->uc_mcontext.gregs[REG_RSI]);
-//         if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "R8:                        %x\n",context->uc_mcontext.gregs[REG_R8]);
-//         if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "R9:                        %x\n",context->uc_mcontext.gregs[REG_R9]);
-//         if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "R10:                       %x\n",context->uc_mcontext.gregs[REG_R10]);
-//         if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "R11:                       %x\n",context->uc_mcontext.gregs[REG_R11]);
-//         if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "R12:                       %x\n",context->uc_mcontext.gregs[REG_R12]);
-//         if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "R13:                       %x\n",context->uc_mcontext.gregs[REG_R13]);
-//         if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "R14:                       %x\n",context->uc_mcontext.gregs[REG_R14]);
-//         if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "R15:                       %x\n",context->uc_mcontext.gregs[REG_R15]);
-//         if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "RBP:                       %x\n",context->uc_mcontext.gregs[REG_RBP]);
-//         if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "RSP:                       %x\n",context->uc_mcontext.gregs[REG_RSP]);
-//         if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "RIP:                       %x\n",context->uc_mcontext.gregs[REG_RIP]);
-//         if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "EFL:                       %x\n",context->uc_mcontext.gregs[REG_EFL]);
-//         if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "CSGSFS:                    %x\n",context->uc_mcontext.gregs[REG_CSGSFS]);
-//         if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "ERR:                       %x\n",context->uc_mcontext.gregs[REG_ERR]);
-//         if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "TRAPNO:                    %x\n",context->uc_mcontext.gregs[REG_TRAPNO]);
-//         if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "OLDMASK:                   %x\n",context->uc_mcontext.gregs[REG_OLDMASK]);
-//         if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "CR2:                       %x\n",context->uc_mcontext.gregs[REG_CR2]);
-//         context->uc_mcontext.gregs[REG_RIP] = context->uc_mcontext.gregs[REG_RIP] + 0x02 ;
-//         if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "Next Address:              %x\n",context->uc_mcontext.gregs[REG_RIP]);
         signal(SIGSEGV, h);
         longjmp(restore_point, SIGSEGV);
     }
 }
-
 void
 init_handler() {
     sa.sa_flags = SA_SIGINFO|SA_NODEFER;
@@ -288,127 +234,56 @@ init_handler() {
     sa.sa_sigaction = Handler;
     if (sigaction(SIGSEGV, &sa, NULL) == -1)
         perror("failed to set handler");
-//     if (sigaction(SIGHUP, &sa, NULL) == -1)
-//         perror("failed to set handler");
-//     if (sigaction(SIGINT, &sa, NULL) == -1)
-//         perror("failed to set handler");
-//     if (sigaction(SIGQUIT, &sa, NULL) == -1)
-//         perror("failed to set handler");
-//     if (sigaction(SIGILL, &sa, NULL) == -1)
-//         perror("failed to set handler");
-//     if (sigaction(SIGTRAP, &sa, NULL) == -1)
-//         perror("failed to set handler");
-//     if (sigaction(SIGABRT, &sa, NULL) == -1)
-//         perror("failed to set handler");
-//     if (sigaction(SIGBUS, &sa, NULL) == -1)
-//         perror("failed to set handler");
-//     if (sigaction(SIGFPE, &sa, NULL) == -1)
-//         perror("failed to set handler");
-//     if (sigaction(SIGKILL, &sa, NULL) == -1)
-//         perror("failed to set handler");
-//     if (sigaction(SIGUSR1, &sa, NULL) == -1)
-//         perror("failed to set handler");
-//     if (sigaction(SIGUSR2, &sa, NULL) == -1)
-//         perror("failed to set handler");
-//     if (sigaction(SIGPIPE, &sa, NULL) == -1)
-//         perror("failed to set handler");
-//     if (sigaction(SIGALRM, &sa, NULL) == -1)
-//         perror("failed to set handler");
-//     if (sigaction(SIGTERM, &sa, NULL) == -1)
-//         perror("failed to set handler");
-//     if (sigaction(SIGSTKFLT, &sa, NULL) == -1)
-//         perror("failed to set handler");
-//     if (sigaction(SIGCLD, &sa, NULL) == -1)
-//         perror("failed to set handler");
-//     if (sigaction(SIGCONT, &sa, NULL) == -1)
-//         perror("failed to set handler");
-//     if (sigaction(SIGSTOP, &sa, NULL) == -1)
-//         perror("failed to set handler");
-//     if (sigaction(SIGTSTP, &sa, NULL) == -1)
-//         perror("failed to set handler");
-//     if (sigaction(SIGTTIN, &sa, NULL) == -1)
-//         perror("failed to set handler");
-//     if (sigaction(SIGTTOU, &sa, NULL) == -1)
-//         perror("failed to set handler");
-//     if (sigaction(SIGURG, &sa, NULL) == -1)
-//         perror("failed to set handler");
-//     if (sigaction(SIGXCPU, &sa, NULL) == -1)
-//         perror("failed to set handler");
-//     if (sigaction(SIGXFSZ, &sa, NULL) == -1)
-//         perror("failed to set handler");
-//     if (sigaction(SIGVTALRM, &sa, NULL) == -1)
-//         perror("failed to set handler");
-//     if (sigaction(SIGPROF, &sa, NULL) == -1)
-//         perror("failed to set handler");
-//     if (sigaction(SIGWINCH, &sa, NULL) == -1)
-//         perror("failed to set handler");
-//     if (sigaction(SIGPOLL, &sa, NULL) == -1)
-//         perror("failed to set handler");
-//     if (sigaction(SIGPWR, &sa, NULL) == -1)
-//         perror("failed to set handler");
-//     if (sigaction(SIGSYS, &sa, NULL) == -1)
-//         perror("failed to set handler");
 }
 
 int test(char * address)
 {
-    init_handler();
-    int fault_code = setjmp(restore_point);
-    if (fault_code == 0)
+    if (do_tests == 1) {
+        if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "TESTS DISABLED");
+        return -1;
+    }
+    if (!(*(int*)address == NULL))
     {
-        /*
-        if this seg faults in gdb, pass "handle SIGSEGV nostop pass noprint" to gdb command line to allow the hander init_handler() to handle this instead of gdb:
-        (gdb) handle SIGSEGV nostop pass noprint
-        <enter>
-        (gdb) r
-        <enter>
-        
-        if u use pwndbg the instructions are the same:
-        pwndbg> handle SIGSEGV nostop pass noprint
-        <enter>
-        pwndbg> r
-        <enter>
-            
-        alternatively start gdb like this (this assumes this is run inside a script and the executable this is compiled into is named ./loader and compiled with  test_loader.c containing a
-        main() { 
-            ... ;
-            return 0;
-        }
-        with return 0; being on line 22, note the ... signifies a variable amount of text as we do not know what code main() {} can contain) :
-
-        gdb ./loader -ex "set args $1" -ex "break test_loader.c:22" -ex "handle SIGSEGV nostop pass noprint" -ex "r"
-
-        else this works fine:
-
-        gdb <file> -ex "handle SIGSEGV nostop pass noprint" -ex "r"
-
-
-        */
-        if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "value: %15d\t", *(int*)address);
+        if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "value: %15d\t", *(int*)address);
         return 0;
     }
     else
     {
-        if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "value: %s\t", "     is not int");
+        if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "value: %s\t", "     is not int");
         return -1;
     }
 }
 
 int pointers=0;
 
+int is_pointer_valid(void *p) {
+    int page_size = getpagesize();                                                            
+    void *aligned = (void *)((uintptr_t)p & ~(page_size - 1));                           
+    if (msync(aligned, page_size, MS_ASYNC) == -1) {
+        if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "Seg faulted, restoring\n");
+        longjmp(restore_point, -1);
+    }
+    return 0;
+}
+
 int test_address(char ** addr)
 {
+    if (do_tests == 1) {
+        if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "TESTS DISABLED");
+        return -1;
+    }
     init_handler();
     int fault_code = setjmp(restore_point);
     if (fault_code == 0)
     {
-        fprintf(stderr, "%014p = %014p\n", addr, *addr);
+//         is_pointer_valid(addr);
+        if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "%014p = %014p\n", addr, *addr);
         pointers++;
         return 0;
     }
     else
     {
-        fprintf(stderr, "%014p = %s\n", addr, "INVALID");
+        if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "%014p = %s\n", addr, "INVALID");
         pointers--;
         return -1;
     }
@@ -416,44 +291,52 @@ int test_address(char ** addr)
 
 int test_string(char * addr)
 {
+    if (do_tests == 1) {
+        if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "TESTS DISABLED");
+        return -1;
+    }
     init_handler();
     int fault_code = setjmp(restore_point);
     if (fault_code == 0)
     {
-        fprintf(stderr, "%s", addr);
+        if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "%s", addr);
         return 0;
     }
     else
     {
-        fprintf(stderr, "INVALID");
+        if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "INVALID");
         return -1;
     }
 }
 
 char * analyse_address(char ** addr, char * name)
 {
-    if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(analysis_quiet, "no") == 0) fprintf(stderr, "analysing address %014p\n", addr);
+    if (do_tests == 1) {
+        if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "CANNOT ALALYSE: TESTS DISABLED");
+        return addr;
+    }
+    if (bytecmpq(GQ, "no") == 0) if (bytecmpq(analysis_quiet, "no") == 0) fprintf(stderr, "analysing address %014p\n", addr);
     char ** addr_original = addr;
     pointers = 0;
     while( test_address(addr) == 0) addr = *addr;
 
-    if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(analysis_quiet, "no") == 0) fprintf(stderr, "pointers: %d\n", pointers);
+    if (bytecmpq(GQ, "no") == 0) if (bytecmpq(analysis_quiet, "no") == 0) fprintf(stderr, "pointers: %d\n", pointers);
 
-    if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(analysis_quiet, "no") == 0) {
-        fprintf(stderr, "data ");
+    if (bytecmpq(GQ, "no") == 0) if (bytecmpq(analysis_quiet, "no") == 0) {
+        if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "data ");
         for (int i = 1; i<=pointers; i++) fprintf(stderr, "*");
-        fprintf(stderr, " %s\n", name);
+        if (bytecmpq(GQ, "no") == 0) fprintf(stderr, " %s\n", name);
     }
     if (pointers == 0)
     {
         pointers = 0;
-        if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(analysis_quiet, "no") == 0) fprintf(stderr, "returning %014p\n", addr_original);
+        if (bytecmpq(GQ, "no") == 0) if (bytecmpq(analysis_quiet, "no") == 0) fprintf(stderr, "returning %014p\n", addr_original);
         return addr_original;
     }
     else 
     {
         pointers = 0;
-        if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(analysis_quiet, "no") == 0) fprintf(stderr, "returning %014p\n", *addr_original);
+        if (bytecmpq(GQ, "no") == 0) if (bytecmpq(analysis_quiet, "no") == 0) fprintf(stderr, "returning %014p\n", *addr_original);
         return *addr_original;
     }
 }
@@ -492,12 +375,12 @@ int testh(char * address)
 
 
         */
-        if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "value: %15x\t", *(int*)address);
+        if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "value: %15x\t", *(int*)address);
         return 0;
     }
     else
     {
-        if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "value: %s\t", "     is not hex");
+        if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "value: %s\t", "     is not hex");
         return -1;
     }
 }
@@ -515,19 +398,19 @@ int search(const char * lib) {
     while(1)
     {
         if (library[i].struct_init == "initialized") {
-            fprintf(stderr, "current index %d holds \"%s\"\n", i, library[i].last_lib);
+            if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "current index %d holds \"%s\"\n", i, library[i].last_lib);
             if ( bytecmpq(lib, library[i].last_lib) == -1 && bytecmpq("NULL", library[i].last_lib) == -1 ) i++;
             else if ( bytecmpq("NULL", library[i].last_lib) == -1 )
-                 {
-                     fprintf(stderr, "index %d holds desired library \"%s\"\n", i, lib); // bugs
-                     break;
-                 }
+                {
+                    if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "index %d holds desired library \"%s\"\n", i, lib); // bugs
+                    break;
+                }
             else {
-                fprintf(stderr, "attempting to save to index %d\n", i);
+                if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "attempting to save to index %d\n", i);
                 break;
             }
         } else {
-            fprintf(stderr, "WARNING: index %d is %s\n", i, library[i].struct_init);
+            if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "WARNING: index %d is %s\n", i, library[i].struct_init);
             break;
         }
     }
@@ -542,14 +425,14 @@ int searchq(const char * lib) {
         if (library[i].struct_init == "initialized") {
             if ( bytecmpq(lib, library[i].last_lib) == -1 && bytecmpq("NULL", library[i].last_lib) == -1 ) i++;
             else if ( bytecmpq("NULL", library[i].last_lib) == -1 )
-                 {
-                     break;
-                 }
+                {
+                    break;
+                }
             else {
                 break;
             }
         } else {
-            fprintf(stderr, "WARNING: index %d is %s\n", i, library[i].struct_init);
+            if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "WARNING: index %d is %s\n", i, library[i].struct_init);
             break;
         }
     }
@@ -558,7 +441,7 @@ int searchq(const char * lib) {
 
 int init(char * lib) {
     if (library[library_index].struct_init != "initialized") init_struct();
-    fprintf(stderr, "current index %d holds \"%s\"\nsearching indexes for \"%s\" incase it has already been loaded\n", library_index, library[library_index].last_lib, lib);
+    if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "current index %d holds \"%s\"\nsearching indexes for \"%s\" incase it has already been loaded\n", library_index, library[library_index].last_lib, lib);
     
     library_index = search(lib);
     library[library_index].last_lib = lib;
@@ -566,7 +449,7 @@ int init(char * lib) {
     if (library[library_index].array == NULL) {
         int fd = open(lib, O_RDONLY);
         if (fd < 0) {
-            if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "cannot open \"%s\", returned %i\n", lib, fd);
+            if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "cannot open \"%s\", returned %i\n", lib, fd);
             return -1;
         }
         library[library_index].len = 0;
@@ -574,10 +457,10 @@ int init(char * lib) {
         lseek(fd, 0, 0);
         library[library_index].array = mmap (NULL, library[library_index].len, PROT_READ, MAP_PRIVATE, fd, 0);
         if (library[library_index].array == MAP_FAILED) {
-            if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "map failed\n");
+            if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "map failed\n");
             exit;
         } else {
-            if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "map succeded with address: %014p\n", library[library_index].array);
+            if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "map succeded with address: %014p\n", library[library_index].array);
             return 0;
         }
     } else return 0;
@@ -589,17 +472,17 @@ int prot_from_phdr(const int p_flags)
     int prot = 0;
     if (p_flags & PF_R)
     {
-        if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "PROT_READ|");
+        if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "PROT_READ|");
         prot |= PROT_READ;
     }
     if (p_flags & PF_W)
     {
-        if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "PROT_WRITE|");
+        if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "PROT_WRITE|");
         prot |= PROT_WRITE;
     }
     if (p_flags & PF_X)
     {
-        if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "PROT_EXEC|");
+        if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "PROT_EXEC|");
         prot |= PROT_EXEC;
     }
     return prot;
@@ -641,14 +524,14 @@ void map() {
             switch(library[library_index]._elf_program_header[i].p_type)
             {
                 case PT_LOAD:
-//                         if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "i = %d\n", i);
-//                         if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "PT_LOADS = %d\n", PT_LOADS);
+//                         if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "i = %d\n", i);
+//                         if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "PT_LOADS = %d\n", PT_LOADS);
                     if (!PT_LOADS)  {
-//                             if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "saving first load\n");
+//                             if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "saving first load\n");
                         library[library_index].First_Load_Header_index = i;
                     }
                     if (PT_LOADS) {
-//                             if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "saving last load\n");
+//                             if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "saving last load\n");
                         library[library_index].Last_Load_Header_index = i;
                     }
                     PT_LOADS=PT_LOADS+1;
@@ -665,10 +548,10 @@ void map() {
         library[library_index].base_address = library[library_index].mappingb - library[library_index].align;
         library[library_index].mappingb_end = library[library_index].mappingb+span;
 
-//             if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "base address range = %014p - %014p\nmapping = %014p\n", library[library_index].mappingb, library[library_index].mappingb_end, mapping);
+//             if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "base address range = %014p - %014p\nmapping = %014p\n", library[library_index].mappingb, library[library_index].mappingb_end, mapping);
 
 // base address aquired, map all PT_LOAD segments adjusting by base address then continue with the rest
-        if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "\n\n\nfind %014p, %014p, (int) 1239\n\n\n\n", library[library_index].mappingb, library[library_index].mappingb_end);
+        if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "\n\n\nfind %014p, %014p, (int) 1239\n\n\n\n", library[library_index].mappingb, library[library_index].mappingb_end);
 
         if (library[library_index].mappingb == 0x00000000) abort_();
         int PT_LOADS_CURRENT = 0;
@@ -677,36 +560,36 @@ void map() {
             {
                 case PT_LOAD:
                     PT_LOADS_CURRENT = PT_LOADS_CURRENT + 1;
-//                         if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "mapping PT_LOAD number %d\n", PT_LOADS_CURRENT);
-//                         if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "\t\tp_flags:  %014p\n", library[library_index]._elf_program_header[i].p_flags);
-//                         if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "\t\tp_offset: %014p\n", library[library_index]._elf_program_header[i].p_offset);
-//                         if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "\t\tp_vaddr:  %014p\n", library[library_index]._elf_program_header[i].p_vaddr+library[library_index].mappingb);
-//                         if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "\t\tp_paddr:  %014p\n", library[library_index]._elf_program_header[i].p_paddr);
-//                         if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "\t\tp_filesz: %014p\n", library[library_index]._elf_program_header[i].p_filesz);
-//                         if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "\t\tp_memsz:  %014p\n", library[library_index]._elf_program_header[i].p_memsz);
-//                         if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "\t\tp_align:  %014p\n\n", library[library_index]._elf_program_header[i].p_align);
+//                         if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "mapping PT_LOAD number %d\n", PT_LOADS_CURRENT);
+//                         if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "\t\tp_flags:  %014p\n", library[library_index]._elf_program_header[i].p_flags);
+//                         if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "\t\tp_offset: %014p\n", library[library_index]._elf_program_header[i].p_offset);
+//                         if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "\t\tp_vaddr:  %014p\n", library[library_index]._elf_program_header[i].p_vaddr+library[library_index].mappingb);
+//                         if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "\t\tp_paddr:  %014p\n", library[library_index]._elf_program_header[i].p_paddr);
+//                         if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "\t\tp_filesz: %014p\n", library[library_index]._elf_program_header[i].p_filesz);
+//                         if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "\t\tp_memsz:  %014p\n", library[library_index]._elf_program_header[i].p_memsz);
+//                         if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "\t\tp_align:  %014p\n\n", library[library_index]._elf_program_header[i].p_align);
 // 
-//                         if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "\tp_flags: %014p", library[library_index]._elf_program_header[i].p_flags);
-//                         if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, " p_offset: %014p", library[library_index]._elf_program_header[i].p_offset);
-//                         if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, " p_vaddr: %014p", library[library_index]._elf_program_header[i].p_vaddr+library[library_index].mappingb);
-//                         if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, " p_paddr: %014p", library[library_index]._elf_program_header[i].p_paddr);
-//                         if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, " p_filesz: %014p", library[library_index]._elf_program_header[i].p_filesz);
-//                         if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, " p_memsz: %014p", library[library_index]._elf_program_header[i].p_memsz);
-//                         if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, " p_align: %014p\n\n\n", library[library_index]._elf_program_header[i].p_align);
+//                         if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "\tp_flags: %014p", library[library_index]._elf_program_header[i].p_flags);
+//                         if (bytecmpq(GQ, "no") == 0) fprintf(stderr, " p_offset: %014p", library[library_index]._elf_program_header[i].p_offset);
+//                         if (bytecmpq(GQ, "no") == 0) fprintf(stderr, " p_vaddr: %014p", library[library_index]._elf_program_header[i].p_vaddr+library[library_index].mappingb);
+//                         if (bytecmpq(GQ, "no") == 0) fprintf(stderr, " p_paddr: %014p", library[library_index]._elf_program_header[i].p_paddr);
+//                         if (bytecmpq(GQ, "no") == 0) fprintf(stderr, " p_filesz: %014p", library[library_index]._elf_program_header[i].p_filesz);
+//                         if (bytecmpq(GQ, "no") == 0) fprintf(stderr, " p_memsz: %014p", library[library_index]._elf_program_header[i].p_memsz);
+//                         if (bytecmpq(GQ, "no") == 0) fprintf(stderr, " p_align: %014p\n\n\n", library[library_index]._elf_program_header[i].p_align);
 
-                    if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "mprotect(%014p+round_down(%014p, %014p), %014p, ", library[library_index].mappingb, library[library_index]._elf_program_header[i].p_vaddr, library[library_index]._elf_program_header[i].p_align, library[library_index]._elf_program_header[i].p_memsz);
+                    if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "mprotect(%014p+round_down(%014p, %014p), %014p, ", library[library_index].mappingb, library[library_index]._elf_program_header[i].p_vaddr, library[library_index]._elf_program_header[i].p_align, library[library_index]._elf_program_header[i].p_memsz);
                     prot_from_phdr(library[library_index]._elf_program_header[i].p_flags);
-                    if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, ");\n");
+                    if (bytecmpq(GQ, "no") == 0) fprintf(stderr, ");\n");
                     errno = 0;
                     int check_mprotect_success = mprotect(library[library_index].mappingb+round_down(library[library_index]._elf_program_header[i].p_vaddr, library[library_index]._elf_program_header[i].p_align), round_up(library[library_index]._elf_program_header[i].p_memsz, library[library_index]._elf_program_header[i].p_align), library[library_index]._elf_program_header[i].p_flags);
                     if (errno == 0)
                     {
-                        if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "mprotect on %014p succeded with size: %014p\n", library[library_index].mappingb+round_down(library[library_index]._elf_program_header[i].p_vaddr, library[library_index]._elf_program_header[i].p_align), round_up(library[library_index]._elf_program_header[i].p_memsz, library[library_index]._elf_program_header[i].p_align));
+                        if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "mprotect on %014p succeded with size: %014p\n", library[library_index].mappingb+round_down(library[library_index]._elf_program_header[i].p_vaddr, library[library_index]._elf_program_header[i].p_align), round_up(library[library_index]._elf_program_header[i].p_memsz, library[library_index]._elf_program_header[i].p_align));
                         print_maps();
                     }
                     else
                     {
-                        if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "mprotect failed with: %s (errno: %d, check_mprotect_success = %d)\n", strerror(errno), errno, check_mprotect_success);
+                        if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "mprotect failed with: %s (errno: %d, check_mprotect_success = %d)\n", strerror(errno), errno, check_mprotect_success);
                         print_maps();
                         abort_();
                     }
@@ -735,7 +618,7 @@ int __stream__(char *file, char **p, int *q, int LINES_TO_READ) {
             const char *filename = file;
             int fd = open(filename, O_RDONLY);
             if (fd < 0) {
-                if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "cannot open \"%s\", returned %i\n", filename, fd);
+                if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "cannot open \"%s\", returned %i\n", filename, fd);
                 return -1;
             }
             char * array;
@@ -747,10 +630,10 @@ int __stream__(char *file, char **p, int *q, int LINES_TO_READ) {
             array = malloc(sizeof(char) * 2048);
             char *array_tmp;
             while (read(fd, &ch, 1) == 1) {
-            if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "\rbytes read: %'i", bytes);
+            if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "\rbytes read: %'i", bytes);
                 if (count == 1024) { array_tmp = realloc(array, bytes+1024);
                     if (array_tmp == NULL) {
-                        if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "failed to allocate array to new size");
+                        if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "failed to allocate array to new size");
                         free(array);
                         exit(1);
                     } else {
@@ -771,13 +654,13 @@ int __stream__(char *file, char **p, int *q, int LINES_TO_READ) {
             bytes--;
             array_tmp = realloc(array, bytes);
             if (array_tmp == NULL) {
-                if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "failed to allocate array to new size");
+                if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "failed to allocate array to new size");
                 free(array);
                 exit(1);
             } else {
                 array = array_tmp;
             }
-            if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "\rbytes read: %'i\n", bytes);
+            if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "\rbytes read: %'i\n", bytes);
     *p = array;
     *q = bytes;
     return bytes;
@@ -788,7 +671,7 @@ int __streamb__(char *file, char **p, int *q, int LINES_TO_READ) {
             const char *filename = file;
             int fd = open(filename, O_RDONLY);
             if (fd < 0) {
-                if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "cannot open \"%s\", returned %i\n", filename, fd);
+                if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "cannot open \"%s\", returned %i\n", filename, fd);
                 return -1;
             }
             char * array;
@@ -802,10 +685,10 @@ int __streamb__(char *file, char **p, int *q, int LINES_TO_READ) {
             int count=1;
             array = malloc(sizeof(char) * 2048);
             while (read(fd, &ch, 1) == 1) {
-            if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "\rbytes read: %'i", bytes);
+            if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "\rbytes read: %'i", bytes);
                 if (count == 1024) { array_tmp = realloc(array, bytes+1024);
                     if (array_tmp == NULL) {
-                        if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "failed to allocate array to new size");
+                        if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "failed to allocate array to new size");
                         free(array);
                         exit(1);
                     } else {
@@ -815,7 +698,7 @@ int __streamb__(char *file, char **p, int *q, int LINES_TO_READ) {
                 }
                 array[bytes-1] = ch;
                 if (ch == '\n') {
-                    if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "attempting to reset array\n");
+                    if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "attempting to reset array\n");
                     if (lines == LINES_TO_READ) {
                         break;
                     } else {
@@ -837,13 +720,13 @@ int __streamb__(char *file, char **p, int *q, int LINES_TO_READ) {
             bytes--;
             array_tmp = realloc(array, bytes);
             if (array_tmp == NULL) {
-                if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "failed to allocate array to new size");
+                if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "failed to allocate array to new size");
                 free(array);
                 exit(1);
             } else {
                 array = array_tmp;
             }
-            if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "\rbytes read: %'i\n", bytes);
+            if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "\rbytes read: %'i\n", bytes);
     *p = array;
     *q = bytes;
     return bytes;
@@ -856,20 +739,20 @@ int __readb__(char *file, char **p, size_t *q) {
     char *o;
     if (!(fd = open(file, O_RDONLY)))
     {
-        if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "open() failure\n");
+        if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "open() failure\n");
         return (1);
     }
     len = lseek(fd, 0, SEEK_END);
     lseek(fd, 0, 0);
     if (!(o = malloc(len))) {
-        if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "failure to malloc()\n");
+        if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "failure to malloc()\n");
     }
     if ((read(fd, o, len)) == -1) {
-        if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "failure to read()\n");
+        if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "failure to read()\n");
     }
     int cl = close(fd);
     if (cl < 0) {
-        if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "cannot close \"%s\", returned %i\n", file, cl);
+        if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "cannot close \"%s\", returned %i\n", file, cl);
         return -1;
     }
     *p = o;
@@ -899,7 +782,7 @@ __print_quoted_string__(const char *str, unsigned int size, const unsigned int s
     alloc_size = 4 * size;
     if (alloc_size / 4 != size) {
         error_msg("Out of memory");
-        if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "???");
+        if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "???");
         return "-1";
     }
     alloc_size += 1 + (style & QUOTE_OMIT_LEADING_TRAILING_QUOTES ? 0 : 2);
@@ -911,7 +794,7 @@ __print_quoted_string__(const char *str, unsigned int size, const unsigned int s
         outstr = buf = malloc(alloc_size);
         if (!buf) {
             error_msg("Out of memory");
-            if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "???");
+            if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "???");
             return "-1";
         }
     }
@@ -921,7 +804,7 @@ __print_quoted_string__(const char *str, unsigned int size, const unsigned int s
     if ( return_type == "return") {
         return outstr;
     } else if ( return_type == "print") {
-        if (bytecmpq(global_quiet, "no") == 0) printf(outstr);
+        if (bytecmpq(GQ, "no") == 0) printf(outstr);
     }
 
     free(buf);
@@ -936,7 +819,7 @@ int read_section_header_table_(const char * arrayb, Elf64_Ehdr * eh, Elf64_Shdr 
 {
     *sh_table = (Elf64_Shdr *)(arrayb + eh->e_shoff);
     if(!sh_table) {
-        if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "Failed to read table\n");
+        if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "Failed to read table\n");
         return -1;
     }
     return 0;
@@ -953,31 +836,31 @@ char * obtain_rela_plt_size(char * sourcePtr, Elf64_Ehdr * eh, Elf64_Shdr sh_tab
 }
 
 char * print_section_headers_(char * sourcePtr, Elf64_Ehdr * eh, Elf64_Shdr sh_table[]) {
-    if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "\n");
-    if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "eh->e_shstrndx = 0x%x (%d)\n", eh->e_shstrndx+library[library_index].mappingb, eh->e_shstrndx);
+    if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "\n");
+    if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "eh->e_shstrndx = 0x%x (%d)\n", eh->e_shstrndx+library[library_index].mappingb, eh->e_shstrndx);
     char * sh_str;
     sh_str = read_section_(sourcePtr, sh_table[eh->e_shstrndx]); // will fail untill section header table can be read
-    if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "\t========================================");
-    if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "========================================\n");
-    if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "\tidx offset     load-addr  size       algn type       flags      section\n");
-    if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "\t========================================");
-    if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "========================================\n");
+    if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "\t========================================");
+    if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "========================================\n");
+    if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "\tidx offset     load-addr  size       algn type       flags      section\n");
+    if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "\t========================================");
+    if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "========================================\n");
 
     for(int i=0; i<eh->e_shnum; i++) { // will fail untill section header table can be read
-        if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "\t%03d ", i);
-        if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "%014p ", library[library_index]._elf_symbol_table[i].sh_offset); // not sure if this should be adjusted to base address
-        if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "%014p ", library[library_index]._elf_symbol_table[i].sh_addr+library[library_index].mappingb);
-        if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "%014p ", library[library_index]._elf_symbol_table[i].sh_size);
-        if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "%4d ", library[library_index]._elf_symbol_table[i].sh_addralign);
-        if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "%014p ", library[library_index]._elf_symbol_table[i].sh_type);
-        if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "%014p ", library[library_index]._elf_symbol_table[i].sh_flags);
-        if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "%s\t", (sh_str + sh_table[i].sh_name));
-        if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "\n");
+        if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "\t%03d ", i);
+        if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "%014p ", library[library_index]._elf_symbol_table[i].sh_offset); // not sure if this should be adjusted to base address
+        if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "%014p ", library[library_index]._elf_symbol_table[i].sh_addr+library[library_index].mappingb);
+        if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "%014p ", library[library_index]._elf_symbol_table[i].sh_size);
+        if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "%4d ", library[library_index]._elf_symbol_table[i].sh_addralign);
+        if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "%014p ", library[library_index]._elf_symbol_table[i].sh_type);
+        if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "%014p ", library[library_index]._elf_symbol_table[i].sh_flags);
+        if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "%s\t", (sh_str + sh_table[i].sh_name));
+        if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "\n");
         if (bytecmpq((sh_str + sh_table[i].sh_name), ".rela.plt") == 0) library[library_index].RELA_PLT_SIZE=library[library_index]._elf_symbol_table[i].sh_size;
     }
-    if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "\t========================================");
-    if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "========================================\n");
-    if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "\n");
+    if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "\t========================================");
+    if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "========================================\n");
+    if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "\n");
 }
 
 int symbol1(char * arrayc, Elf64_Sym sym_tbl[], uint64_t symbol_table) {
@@ -991,8 +874,8 @@ int symbol1(char * arrayc, Elf64_Sym sym_tbl[], uint64_t symbol_table) {
 //   Elf64_Addr	st_value;		/* Symbol value */
 //   Elf64_Xword	st_size;		/* Symbol size */
     for(int i=0; i< 40; i++) {
-        if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "index: %d\t", i);
-        if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "size: %d \t", sym_tbl[i].st_size);
+        if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "index: %d\t", i);
+        if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "size: %d \t", sym_tbl[i].st_size);
 // /* Legal values for ST_BIND subfield of st_info (symbol binding).  */
 // 
 // #define STB_LOCAL	0		/* Local symbol */
@@ -1004,19 +887,19 @@ int symbol1(char * arrayc, Elf64_Sym sym_tbl[], uint64_t symbol_table) {
 // #define STB_HIOS	12		/* End of OS-specific */
 // #define STB_LOPROC	13		/* Start of processor-specific */
 // #define STB_HIPROC	15		/* End of processor-specific */
-        if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "binding: ");
+        if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "binding: ");
         switch (ELF64_ST_BIND(sym_tbl[i].st_info)) {
             case STB_LOCAL:
-                if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "LOCAL  ( Local  symbol )   ");
+                if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "LOCAL  ( Local  symbol )   ");
                 break;
             case STB_GLOBAL:
-                if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "GLOBAL ( Global symbol )   ");
+                if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "GLOBAL ( Global symbol )   ");
                 break;
             case STB_WEAK:
-                if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "WEAK   (  Weak symbol  )   ");
+                if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "WEAK   (  Weak symbol  )   ");
                 break;
             default:
-                if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "UNKNOWN (%d)               ", ELF64_ST_BIND(sym_tbl[i].st_info));
+                if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "UNKNOWN (%d)               ", ELF64_ST_BIND(sym_tbl[i].st_info));
                 break;
         }
 // /* Legal values for ST_TYPE subfield of st_info (symbol type).  */
@@ -1039,53 +922,53 @@ int symbol1(char * arrayc, Elf64_Sym sym_tbl[], uint64_t symbol_table) {
 // #define STV_INTERNAL	1		/* Processor specific hidden class */
 // #define STV_HIDDEN	2		/* Sym unavailable in other modules */
 // #define STV_PROTECTED	3		/* Not preemptible, not exported */
-        if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "visibility: ");
+        if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "visibility: ");
         switch (ELF64_ST_VISIBILITY(sym_tbl[i].st_other)) {
             case STV_DEFAULT:
-                if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "default (Default symbol visibility rules)        ");
+                if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "default (Default symbol visibility rules)        ");
                 break;
             case STV_INTERNAL:
-                if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "internal (Processor specific hidden class)       ");
+                if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "internal (Processor specific hidden class)       ");
                 break;
             case STV_HIDDEN:
-                if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "hidden (Symbol unavailable in other modules)     ");
+                if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "hidden (Symbol unavailable in other modules)     ");
                 break;
             case STV_PROTECTED:
-                if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "protected (Not preemptible, not exported)        ");
+                if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "protected (Not preemptible, not exported)        ");
                 break;
         }
-        if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "type: ");
+        if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "type: ");
         switch (ELF64_ST_TYPE(sym_tbl[i].st_info)) {
             case STT_NOTYPE:
-                if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "NOTYPE   (Symbol type is unspecified)             ");
+                if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "NOTYPE   (Symbol type is unspecified)             ");
                 break;
             case STT_OBJECT:
-                if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "OBJECT   (Symbol is a data object)                ");
+                if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "OBJECT   (Symbol is a data object)                ");
                 break;
                 case STT_FUNC:
-                if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "FUNCTION (Symbol is a code object)                ");
+                if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "FUNCTION (Symbol is a code object)                ");
                 break;
                 case STT_SECTION:
-                if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "SECTION  (Symbol associated with a section)       ");
+                if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "SECTION  (Symbol associated with a section)       ");
                 break;
                 case STT_FILE:
-                if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "FILE     (Symbol's name is file name)             ");
+                if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "FILE     (Symbol's name is file name)             ");
                 break;
                 case STT_COMMON:
-                if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "COMMON   (Symbol is a common data object)         ");
+                if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "COMMON   (Symbol is a common data object)         ");
                 break;
                 case STT_TLS:
-                if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "TLS      (Symbol is thread-local data object)     ");
+                if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "TLS      (Symbol is thread-local data object)     ");
                 break;
             default:
-                if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "UNKNOWN (%d)                                      ", ELF64_ST_TYPE(sym_tbl[i].st_info));
+                if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "UNKNOWN (%d)                                      ", ELF64_ST_TYPE(sym_tbl[i].st_info));
                 break;
         }
         if ( ELF64_ST_TYPE(sym_tbl[i].st_info) == STT_FUNC)
-            if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "address: %014p\t", sym_tbl[i].st_value+library[library_index].mappingb+library[library_index].align);
+            if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "address: %014p\t", sym_tbl[i].st_value+library[library_index].mappingb+library[library_index].align);
         else
-            if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "address: %014p\t", sym_tbl[i].st_value+library[library_index].mappingb);
-        if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "name: [Not obtained due to unavailability]\n");
+            if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "address: %014p\t", sym_tbl[i].st_value+library[library_index].mappingb);
+        if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "name: [Not obtained due to unavailability]\n");
     }
 }
 
@@ -1093,7 +976,7 @@ int symbol(char * arrayc, Elf64_Shdr sh_table[], uint64_t symbol_table) {
     char *str_tbl;
     Elf64_Sym* sym_tbl;
     uint64_t i, symbol_count;
-    if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "symbol_table = %d\n", symbol_table);
+    if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "symbol_table = %d\n", symbol_table);
     sym_tbl = (Elf64_Sym*)read_section_(arrayc, sh_table[symbol_table]);
 
     /* Read linked string-table
@@ -1101,7 +984,7 @@ int symbol(char * arrayc, Elf64_Shdr sh_table[], uint64_t symbol_table) {
     * symbols of this section
     */
     uint64_t str_tbl_ndx = sh_table[symbol_table].sh_link;
-    if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "string/symbol table index = %d\n", str_tbl_ndx);
+    if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "string/symbol table index = %d\n", str_tbl_ndx);
     str_tbl = read_section_(arrayc, sh_table[str_tbl_ndx]);
 
     symbol_count = (sh_table[symbol_table].sh_size/sizeof(Elf64_Sym));
@@ -1112,8 +995,8 @@ int symbol(char * arrayc, Elf64_Shdr sh_table[], uint64_t symbol_table) {
         link_ = sh_table[link_].sh_link;
         linkn++;
     }
-    if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "links: %d\n", linkn);
-    if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "%d symbols\n", symbol_count);
+    if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "links: %d\n", linkn);
+    if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "%d symbols\n", symbol_count);
 
 //   Elf64_Word	st_name;		/* Symbol name (string tbl index) */
 //   unsigned char	st_info;		/* Symbol type and binding */
@@ -1122,8 +1005,8 @@ int symbol(char * arrayc, Elf64_Shdr sh_table[], uint64_t symbol_table) {
 //   Elf64_Addr	st_value;		/* Symbol value */
 //   Elf64_Xword	st_size;		/* Symbol size */
     for(int i=0; i< symbol_count; i++) {
-        if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "index: %d\t", i);
-        if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "size: %10d \t", sym_tbl[i].st_size);
+        if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "index: %d\t", i);
+        if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "size: %10d \t", sym_tbl[i].st_size);
 // /* Legal values for ST_BIND subfield of st_info (symbol binding).  */
 // 
 // #define STB_LOCAL	0		/* Local symbol */
@@ -1135,19 +1018,19 @@ int symbol(char * arrayc, Elf64_Shdr sh_table[], uint64_t symbol_table) {
 // #define STB_HIOS	12		/* End of OS-specific */
 // #define STB_LOPROC	13		/* Start of processor-specific */
 // #define STB_HIPROC	15		/* End of processor-specific */
-        if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "binding: ");
+        if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "binding: ");
         switch (ELF64_ST_BIND(sym_tbl[i].st_info)) {
             case STB_LOCAL:
-                if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "LOCAL   ( Local  symbol )  ");
+                if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "LOCAL   ( Local  symbol )  ");
                 break;
             case STB_GLOBAL:
-                if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "GLOBAL  ( Global symbol )  ");
+                if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "GLOBAL  ( Global symbol )  ");
                 break;
             case STB_WEAK:
-                if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "WEAK    (  Weak symbol  )  ");
+                if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "WEAK    (  Weak symbol  )  ");
                 break;
             default:
-                if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "UNKNOWN (%d)                ", ELF64_ST_BIND(sym_tbl[i].st_info));
+                if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "UNKNOWN (%d)                ", ELF64_ST_BIND(sym_tbl[i].st_info));
                 break;
         }
 // /* Legal values for ST_TYPE subfield of st_info (symbol type).  */
@@ -1170,78 +1053,78 @@ int symbol(char * arrayc, Elf64_Shdr sh_table[], uint64_t symbol_table) {
 // #define STV_INTERNAL	1		/* Processor specific hidden class */
 // #define STV_HIDDEN	2		/* Sym unavailable in other modules */
 // #define STV_PROTECTED	3		/* Not preemptible, not exported */
-        if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "visibility: ");
+        if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "visibility: ");
         switch (ELF64_ST_VISIBILITY(sym_tbl[i].st_other)) {
             case STV_DEFAULT:
-                if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "default   (Default symbol visibility rules)      ");
+                if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "default   (Default symbol visibility rules)      ");
                 break;
             case STV_INTERNAL:
-                if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "internal  (Processor specific hidden class)      ");
+                if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "internal  (Processor specific hidden class)      ");
                 break;
             case STV_HIDDEN:
-                if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "hidden    (Symbol unavailable in other modules)  ");
+                if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "hidden    (Symbol unavailable in other modules)  ");
                 break;
             case STV_PROTECTED:
-                if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "protected (Not preemptible, not exported)        ");
+                if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "protected (Not preemptible, not exported)        ");
                 break;
         }
         char * address = sym_tbl[i].st_value+library[library_index].mappingb;
-        if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "address: %014p\t", address);
+        if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "address: %014p\t", address);
         if ( address > library[library_index].mappingb && address < library[library_index].mappingb_end ) test(address);
-        else if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "value: %015p\t", sym_tbl[i].st_value);
-        if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "type: ");
+        else if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "value: %015p\t", sym_tbl[i].st_value);
+        if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "type: ");
         switch (ELF64_ST_TYPE(sym_tbl[i].st_info)) {
             case STT_NOTYPE:
-                if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "NOTYPE   (Symbol type is unspecified)             ");
+                if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "NOTYPE   (Symbol type is unspecified)             ");
                 break;
             case STT_OBJECT:
-                if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "OBJECT   (Symbol is a data object)                ");
+                if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "OBJECT   (Symbol is a data object)                ");
                 break;
                 case STT_FUNC:
-                if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "FUNCTION (Symbol is a code object)                ");
+                if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "FUNCTION (Symbol is a code object)                ");
                 break;
                 case STT_SECTION:
-                if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "SECTION  (Symbol associated with a section)       ");
+                if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "SECTION  (Symbol associated with a section)       ");
                 break;
                 case STT_FILE:
-                if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "FILE     (Symbol's name is file name)             ");
+                if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "FILE     (Symbol's name is file name)             ");
                 break;
                 case STT_COMMON:
-                if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "COMMON   (Symbol is a common data object)         ");
+                if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "COMMON   (Symbol is a common data object)         ");
                 break;
                 case STT_TLS:
-                if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "TLS      (Symbol is thread-local data object)     ");
+                if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "TLS      (Symbol is thread-local data object)     ");
                 break;
             default:
-                if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "UNKNOWN  (%d)                                     ", ELF64_ST_TYPE(sym_tbl[i].st_info));
+                if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "UNKNOWN  (%d)                                     ", ELF64_ST_TYPE(sym_tbl[i].st_info));
                 break;
         }
         char * name = str_tbl + sym_tbl[i].st_name;
-        if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "name: %s\n", demangle_it(name));
-        if (bytecmpq(global_quiet, "no") == 0) nl();
-//         if (bytecmp(name,"t") == 0) {
+        if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "name: %s\n", demangle_it(name));
+        if (bytecmpq(GQ, "no") == 0) nl();
+//         if (bytecmpq(name,"t") == 0) {
 // 
-//             if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "t found\n");
+//             if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "t found\n");
 //                         
 // // #define JMP_ADDR(x) asm("\tjmp  *%0\n" :: "r" (x))
-// //             if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "(%014p+%014p=%014p)\n", library[library_index].mappingb, sym_tbl[i].st_value, sym_tbl[i].st_value+library[library_index].mappingb);
-// //             if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "JMP_ADDR(%014p);\n", address);
+// //             if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "(%014p+%014p=%014p)\n", library[library_index].mappingb, sym_tbl[i].st_value, sym_tbl[i].st_value+library[library_index].mappingb);
+// //             if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "JMP_ADDR(%014p);\n", address);
 // //             JMP_ADDR(address);
-//                         if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "int (*testb)()                               =%014p\n", address);
+//                         if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "int (*testb)()                               =%014p\n", address);
 // // 
-//             if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "(%014p+%014p=%014p)\n", library[library_index].mappingb, sym_tbl[i].st_value, sym_tbl[i].st_value+library[library_index].mappingb);
+//             if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "(%014p+%014p=%014p)\n", library[library_index].mappingb, sym_tbl[i].st_value, sym_tbl[i].st_value+library[library_index].mappingb);
 // // 
 //             int (*testb)() = lookup_symbol_by_name_("/chakra/home/universalpackagemanager/chroot/arch-chroot/arch-pkg-build/packages/glibc/repos/core-x86_64/min-dl/loader/files/test_lib.so", "t");
-//             if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "testb = %014p\n", testb);
-//             if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "testb() returned %d;\n",
+//             if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "testb = %014p\n", testb);
+//             if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "testb() returned %d;\n",
 //             testb()
 //             );
 // 
-//             if (bytecmpq(global_quiet, "no") == 0) nl();
+//             if (bytecmpq(GQ, "no") == 0) nl();
 // //             int (*testc)() = library[library_index].mappingb+sym_tbl[i].st_value;
-// //             if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "int (*testc)()                =%014p ; testc();\n", library[library_index].mappingb+sym_tbl[i].st_value);
+// //             if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "int (*testc)()                =%014p ; testc();\n", library[library_index].mappingb+sym_tbl[i].st_value);
 // //             testc();
-// //             if (bytecmpq(global_quiet, "no") == 0) nl();
+// //             if (bytecmpq(GQ, "no") == 0) nl();
 // //             int foo(int i){ return i + 1;}
 // // 
 // //             typedef int (*g)(int);  // Declare typedef
@@ -1249,7 +1132,7 @@ int symbol(char * arrayc, Elf64_Shdr sh_table[], uint64_t symbol_table) {
 // //             g func = library[library_index].mappingb+sym_tbl[i].st_value;          // Define function-pointer variable, and initialise
 // // 
 // //             int hvar = func(3);     // Call function through pointer
-//             if (bytecmpq(global_quiet, "no") == 0) nl();
+//             if (bytecmpq(GQ, "no") == 0) nl();
 //             print_maps();
 //         }
     }
@@ -1267,7 +1150,7 @@ int relocation(char * arrayc, Elf64_Shdr sh_table[], uint64_t symbol_table) {
     * symbols of this section
     */
     uint64_t str_tbl_ndx = sh_table[symbol_table].sh_link;
-    if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "string/symbol table index = %d\n", str_tbl_ndx);
+    if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "string/symbol table index = %d\n", str_tbl_ndx);
     str_tbl = read_section_(arrayc, sh_table[str_tbl_ndx]);
 
     symbol_count = (sh_table[symbol_table].sh_size/sizeof(Elf64_Sym));
@@ -1278,8 +1161,8 @@ int relocation(char * arrayc, Elf64_Shdr sh_table[], uint64_t symbol_table) {
         link_ = sh_table[link_].sh_link;
         linkn++;
     }
-    if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "links: %d\n", linkn);
-    if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "%d symbols\n", symbol_count);
+    if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "links: %d\n", linkn);
+    if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "%d symbols\n", symbol_count);
 
 //   Elf64_Word	st_name;		/* Symbol name (string tbl index) */
 //   unsigned char	st_info;		/* Symbol type and binding */
@@ -1288,8 +1171,8 @@ int relocation(char * arrayc, Elf64_Shdr sh_table[], uint64_t symbol_table) {
 //   Elf64_Addr	st_value;		/* Symbol value */
 //   Elf64_Xword	st_size;		/* Symbol size */
     for(int i=0; i< symbol_count; i++) {
-        if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "index: %d\t", i);
-        if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "size: %10d \t", sym_tbl[i].st_size);
+        if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "index: %d\t", i);
+        if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "size: %10d \t", sym_tbl[i].st_size);
 // /* Legal values for ST_BIND subfield of st_info (symbol binding).  */
 // 
 // #define STB_LOCAL	0		/* Local symbol */
@@ -1301,19 +1184,19 @@ int relocation(char * arrayc, Elf64_Shdr sh_table[], uint64_t symbol_table) {
 // #define STB_HIOS	12		/* End of OS-specific */
 // #define STB_LOPROC	13		/* Start of processor-specific */
 // #define STB_HIPROC	15		/* End of processor-specific */
-        if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "binding: ");
+        if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "binding: ");
         switch (ELF64_ST_BIND(sym_tbl[i].st_info)) {
             case STB_LOCAL:
-                if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "LOCAL   ( Local  symbol )  ");
+                if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "LOCAL   ( Local  symbol )  ");
                 break;
             case STB_GLOBAL:
-                if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "GLOBAL  ( Global symbol )  ");
+                if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "GLOBAL  ( Global symbol )  ");
                 break;
             case STB_WEAK:
-                if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "WEAK    (  Weak symbol  )  ");
+                if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "WEAK    (  Weak symbol  )  ");
                 break;
             default:
-                if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "UNKNOWN (%d)                ", ELF64_ST_BIND(sym_tbl[i].st_info));
+                if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "UNKNOWN (%d)                ", ELF64_ST_BIND(sym_tbl[i].st_info));
                 break;
         }
 // /* Legal values for ST_TYPE subfield of st_info (symbol type).  */
@@ -1336,63 +1219,63 @@ int relocation(char * arrayc, Elf64_Shdr sh_table[], uint64_t symbol_table) {
 // #define STV_INTERNAL	1		/* Processor specific hidden class */
 // #define STV_HIDDEN	2		/* Sym unavailable in other modules */
 // #define STV_PROTECTED	3		/* Not preemptible, not exported */
-        if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "visibility: ");
+        if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "visibility: ");
         switch (ELF64_ST_VISIBILITY(sym_tbl[i].st_other)) {
             case STV_DEFAULT:
-                if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "default   (Default symbol visibility rules)      ");
+                if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "default   (Default symbol visibility rules)      ");
                 break;
             case STV_INTERNAL:
-                if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "internal  (Processor specific hidden class)      ");
+                if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "internal  (Processor specific hidden class)      ");
                 break;
             case STV_HIDDEN:
-                if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "hidden    (Symbol unavailable in other modules)  ");
+                if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "hidden    (Symbol unavailable in other modules)  ");
                 break;
             case STV_PROTECTED:
-                if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "protected (Not preemptible, not exported)        ");
+                if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "protected (Not preemptible, not exported)        ");
                 break;
         }
         char * address;
         if ( ELF64_ST_TYPE(sym_tbl[i].st_info) == STT_FUNC)
         {
             address = sym_tbl[i].st_value+library[library_index].mappingb+library[library_index].align;
-            if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "address: %014p\t", address);
+            if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "address: %014p\t", address);
         }
         else
         {
             address = sym_tbl[i].st_value+library[library_index].mappingb;
-            if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "address: %014p\t", address);
+            if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "address: %014p\t", address);
         }
         if ( address > library[library_index].mappingb && address < library[library_index].mappingb_end ) test(address);
-        else if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "value: %15s\t", "invalid range");
-        if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "type: ");
+        else if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "value: %15s\t", "invalid range");
+        if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "type: ");
         switch (ELF64_ST_TYPE(sym_tbl[i].st_info)) {
             case STT_NOTYPE:
-                if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "NOTYPE   (Symbol type is unspecified)             ");
+                if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "NOTYPE   (Symbol type is unspecified)             ");
                 break;
             case STT_OBJECT:
-                if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "OBJECT   (Symbol is a data object)                ");
+                if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "OBJECT   (Symbol is a data object)                ");
                 break;
                 case STT_FUNC:
-                if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "FUNCTION (Symbol is a code object)                ");
+                if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "FUNCTION (Symbol is a code object)                ");
                 break;
                 case STT_SECTION:
-                if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "SECTION  (Symbol associated with a section)       ");
+                if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "SECTION  (Symbol associated with a section)       ");
                 break;
                 case STT_FILE:
-                if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "FILE     (Symbol's name is file name)             ");
+                if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "FILE     (Symbol's name is file name)             ");
                 break;
                 case STT_COMMON:
-                if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "COMMON   (Symbol is a common data object)         ");
+                if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "COMMON   (Symbol is a common data object)         ");
                 break;
                 case STT_TLS:
-                if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "TLS      (Symbol is thread-local data object)     ");
+                if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "TLS      (Symbol is thread-local data object)     ");
                 break;
             default:
-                if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "UNKNOWN  (%d)                                     ", ELF64_ST_TYPE(sym_tbl[i].st_info));
+                if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "UNKNOWN  (%d)                                     ", ELF64_ST_TYPE(sym_tbl[i].st_info));
                 break;
         }
-        if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "name: [Not obtained due to it may crash this program]\n");
-//         if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "\n");
+        if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "name: [Not obtained due to it may crash this program]\n");
+//         if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "\n");
     }
 }
 
@@ -1500,7 +1383,7 @@ void print_elf_symbol_table(char * arrayc, Elf64_Ehdr * eh, Elf64_Shdr sh_table[
                 if (level == 3) relocation(arrayc, sh_table, symbol_table);
                 break;
             default:
-                if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "UNKNOWN ");
+                if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "UNKNOWN ");
                 break;
         }
 }
@@ -1547,123 +1430,213 @@ void print_symbols(char * arrayd, Elf64_Ehdr * eh, Elf64_Shdr sh_table[])
 // #define SHT_HIUSER	  0x8fffffff	/* End of application-specific */
     int ii = 0;
     for(int i=0; i<eh->e_shnum; i++) {
-        if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "\n[");
+        if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "\n[");
         switch(sh_table[i].sh_type) {
             case SHT_NULL:
-                if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "NULL                     (Section header table entry unused)                   ");
+                if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "NULL                     (Section header table entry unused)                   ");
                 break;
             case SHT_PROGBITS:
-                if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "PROGBITS                 (Program data)                                        ");
+                if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "PROGBITS                 (Program data)                                        ");
                 break;
             case SHT_SYMTAB: 
-                if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "SYMTAB                   (Symbol table)                                        ");
+                if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "SYMTAB                   (Symbol table)                                        ");
                 break;
             case SHT_STRTAB:
-                if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "STRTAB                   (String table)                                        ");
+                if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "STRTAB                   (String table)                                        ");
                 break;
             case SHT_RELA:
-                if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "RELA                     (Relocation entries with addends)                     ");
+                if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "RELA                     (Relocation entries with addends)                     ");
                 break;
             case SHT_HASH:
-                if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "HASH                     (Symbol hash table)                                   ");
+                if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "HASH                     (Symbol hash table)                                   ");
                 break;
             case SHT_DYNAMIC:
-                if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "DYNAMIC                  (Dynamic linking information)                         ");
+                if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "DYNAMIC                  (Dynamic linking information)                         ");
                 break;
             case SHT_NOTE:
-                if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "NOTE                     (Notes)                                               ");
+                if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "NOTE                     (Notes)                                               ");
                 break;
             case SHT_NOBITS:
-                if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "NOBITS                   (Program space with no data (bss))                    ");
+                if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "NOBITS                   (Program space with no data (bss))                    ");
                 break;
             case SHT_REL:
-                if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "REL                      (Relocation entries, no addends)                      ");
+                if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "REL                      (Relocation entries, no addends)                      ");
                 break;
             case SHT_SHLIB:
-                if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "SHLIB                    (Reserved)                                            ");
+                if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "SHLIB                    (Reserved)                                            ");
                 break;
             case SHT_DYNSYM:
-                if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "DYNSYM                   (Dynamic linker symbol table)                         ");
+                if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "DYNSYM                   (Dynamic linker symbol table)                         ");
                 break;
             case SHT_INIT_ARRAY:
-                if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "INIT_ARRAY               (Array of constructors)                               ");
+                if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "INIT_ARRAY               (Array of constructors)                               ");
                 break;
             case SHT_FINI_ARRAY:
-                if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "FINI_ARRAY               (Array of destructors)                                ");
+                if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "FINI_ARRAY               (Array of destructors)                                ");
                 break;
             case SHT_PREINIT_ARRAY:
-                if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "PREINIT_ARRAY            (Array of pre-constructors)                           ");
+                if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "PREINIT_ARRAY            (Array of pre-constructors)                           ");
                 break;
             case SHT_GROUP:
-                if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "GROUP                    (Section group)                                       ");
+                if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "GROUP                    (Section group)                                       ");
                 break;
             case SHT_SYMTAB_SHNDX:
-                if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "SYMTAB_SHNDX             (Extended section indeces)                            ");
+                if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "SYMTAB_SHNDX             (Extended section indeces)                            ");
                 break;
             case SHT_NUM:
-                if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "NUM                      (Number of defined types)                             ");
+                if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "NUM                      (Number of defined types)                             ");
                 break;
             case SHT_LOOS:
-                if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "LOOS                     (Start OS-specific)                                   ");
+                if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "LOOS                     (Start OS-specific)                                   ");
                 break;
             case SHT_GNU_ATTRIBUTES:
-                if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "GNU_ATTRIBUTES           (Object attributes)                                   ");
+                if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "GNU_ATTRIBUTES           (Object attributes)                                   ");
                 break;
             case SHT_GNU_HASH:
-                if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "GNU_HASH                 (GNU-style hash table)                                ");
+                if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "GNU_HASH                 (GNU-style hash table)                                ");
                 break;
             case SHT_GNU_LIBLIST:
-                if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "GNU_LIBLIST              (Prelink library list)                                ");
+                if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "GNU_LIBLIST              (Prelink library list)                                ");
                 break;
             case SHT_CHECKSUM:
-                if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "CHECKSUM                 (Checksum for DSO content)                            ");
+                if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "CHECKSUM                 (Checksum for DSO content)                            ");
                 break;
             case SHT_LOSUNW:
-                if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "LOSUNW or SUNW_move                                                            ");
+                if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "LOSUNW or SUNW_move                                                            ");
                 break;
             case SHT_SUNW_COMDAT:
-                if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "SUNW_COMDAT                                                                    ");
+                if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "SUNW_COMDAT                                                                    ");
                 break;
             case SHT_SUNW_syminfo:
-                if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "SUNW_syminfo                                                                   ");
+                if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "SUNW_syminfo                                                                   ");
                 break;
             case SHT_GNU_verdef:
-                if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "GNU_verdef               (Version definition section)                          ");
+                if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "GNU_verdef               (Version definition section)                          ");
                 break;
             case SHT_GNU_verneed:
-                if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "GNU_verneed              (Version needs section)                               ");
+                if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "GNU_verneed              (Version needs section)                               ");
                 break;
             case SHT_GNU_versym:
-                if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "GNU_versym               (Version symbol table) or HISUNW (Sun-specific high bound) or HIOS (End OS-specific type) ");
+                if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "GNU_versym               (Version symbol table) or HISUNW (Sun-specific high bound) or HIOS (End OS-specific type) ");
                 break;
             case SHT_LOPROC:
-                if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "LOPROC                   (Start of processor-specific)                         ");
+                if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "LOPROC                   (Start of processor-specific)                         ");
                 break;
             case SHT_HIPROC:
-                if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "HIPROC                   (End of processor-specific)                           ");
+                if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "HIPROC                   (End of processor-specific)                           ");
                 break;
             case SHT_LOUSER:
-                if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "LOUSER                   (Start of application-specific)                       ");
+                if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "LOUSER                   (Start of application-specific)                       ");
                 break;
             case SHT_HIUSER:
-                if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "HIUSER                   (End of application-specific)                         ");
+                if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "HIUSER                   (End of application-specific)                         ");
                 break;
             default:
-                if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "UNKNOWN                                                                        ");
+                if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "UNKNOWN                                                                        ");
         }
-        if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "Section %d, Index %d]\n", ii, i);
+        if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "Section %d, Index %d]\n", ii, i);
         print_elf_symbol_table(arrayd, eh, sh_table, i);
         ii++;
     }
 }
 
-char * symbol_lookup(char * arrayc, Elf64_Shdr sh_table[], uint64_t symbol_table, int index, int mode, const char * am_i_quiet) {
-    if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) fprintf(stderr, "looking up index %d of table %d\n", index, symbol_table);
+char *
+find_needed(const char * lib, const char * symbol);
+
+int a = 0;
+
+char * lib_origin = "";
+const char * interp = "./supplied/lib/ld-2.26.so";
+const char * libc = "./supplied/lib/libc-2.26.so";
+
+char * symbol_lookup(char * arrayc, Elf64_Shdr sh_table[], uint64_t symbol_table, int index, int mode, const char * am_i_quiet, const char * is_jump) {
+    char * k = library[library_index].last_lib;
+    if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "%s:%d:%s: finding index %d\n", __FILE__, __LINE__, __func__, index);
+    if (bytecmpq(GQ, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) fprintf(stderr, "looking up index %d of table %d\n", index, symbol_table);
     Elf64_Sym* sym_tbl = (Elf64_Sym*)read_section_(arrayc, sh_table[symbol_table]);
     uint64_t str_tbl_ndx = sh_table[symbol_table].sh_link;
     char *str_tbl = read_section_(arrayc, sh_table[str_tbl_ndx]);
     uint64_t symbol_count = (sh_table[symbol_table].sh_size/sizeof(Elf64_Sym));
-    if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) fprintf(stderr, "requested symbol name for index %d is %s\n", index, demangle_it(str_tbl + sym_tbl[index].st_name));
+    
+    if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "searching for %s in %s\n", demangle_it(str_tbl + sym_tbl[index].st_name), library[library_index].last_lib);
+    
+    if (bytecmpq(am_i_quiet, "no") == 0) fprintf(stderr, "requested symbol name for index %d of %s is %s\n", index, library[library_index].last_lib, demangle_it(str_tbl + sym_tbl[index].st_name));
+
+    if (bytecmpq(is_jump, "yes") == 0 && a == 0) {
+        lib_origin = library[library_index].last_lib;
+        if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "lib_origin = %s\n", lib_origin);
+        char * sym;
+        sym = find_needed(lib_origin, demangle_it(str_tbl + sym_tbl[index].st_name));
+        if (sym == NULL && bytecmpq(lib_origin, "/lib/ld-linux-x86-64.so.2") == -1) {
+            if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "%s not found, searching interpreter %s\n", demangle_it(str_tbl + sym_tbl[index].st_name), interp);
+            sym = find_needed(interp, demangle_it(str_tbl + sym_tbl[index].st_name));
+            if (sym == NULL) {
+                lib_origin = k;
+                if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "%s still not found, trying %s\n", demangle_it(str_tbl + sym_tbl[index].st_name), lib_origin);
+                a = 1;
+                sym = lookup_symbol_by_name_(lib_origin, demangle_it(str_tbl + sym_tbl[index].st_name));
+                a = 0;
+                if (sym == NULL) {
+                    if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "%s still not found, aborting\n", demangle_it(str_tbl + sym_tbl[index].st_name));
+                    if (!(bytecmpq(library[library_index].last_lib, interp) == 0 || bytecmpq(library[library_index].last_lib, libc) == 0)) abort_();
+                }
+            }
+        }
+        if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "found %014p for symbol %s in %s\n", sym, demangle_it(str_tbl + sym_tbl[index].st_name), library[library_index].last_lib);
+        if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "%s:%d:%s: returning %014p\n", __FILE__, __LINE__, __func__, sym);
+        if (sym != NULL && mode == 1) return sym;
+    }
+    if ( mode == 1) return sym_tbl[index].st_value;
+    else if (mode == 2) return sym_tbl[index].st_size;
+}
+
+char * symbol_lookupb(char * arrayc, Elf64_Shdr sh_table[], uint64_t symbol_table, int index, int mode, const char * am_i_quiet, const char * is_jump) {
+    char * k = library[library_index].last_lib;
+    if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "%s:%d:%s: finding index %d\n", __FILE__, __LINE__, __func__, index);
+    if (bytecmpq(GQ, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) fprintf(stderr, "looking up index %d of table %d\n", index, symbol_table);
+    Elf64_Sym* sym_tbl = (Elf64_Sym*)read_section_(arrayc, sh_table[symbol_table]);
+    uint64_t str_tbl_ndx = sh_table[symbol_table].sh_link;
+    char *str_tbl = read_section_(arrayc, sh_table[str_tbl_ndx]);
+    uint64_t symbol_count = (sh_table[symbol_table].sh_size/sizeof(Elf64_Sym));
+    
+    if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "searching for %s in %s\n", demangle_it(str_tbl + sym_tbl[index].st_name), library[library_index].last_lib);
+    
+    if (bytecmpq(am_i_quiet, "no") == 0) fprintf(stderr, "requested symbol name for index %d of %s is %s\n", index, library[library_index].last_lib, demangle_it(str_tbl + sym_tbl[index].st_name));
+
+    if (bytecmpq(is_jump, "yes") == 0 && a == 0) {
+        lib_origin = library[library_index].last_lib;
+        if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "lib_origin = %s\n", lib_origin);
+        char * sym;
+        sym = find_needed(lib_origin, demangle_it(str_tbl + sym_tbl[index].st_name));
+        if (sym == NULL && bytecmpq(lib_origin, interp) == -1) {
+            if (bytecmpq(library[library_index].last_lib, interp) == 0) {
+                if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "%s not found, searching libc %s\n", demangle_it(str_tbl + sym_tbl[index].st_name), libc);
+                sym = lookup_symbol_by_name_(libc, demangle_it(str_tbl + sym_tbl[index].st_name));
+                lib_origin = k;
+            }
+            else if (bytecmpq(library[library_index].last_lib, libc) == 0) {
+                if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "%s not found, searching interpreter %s\n", demangle_it(str_tbl + sym_tbl[index].st_name), interp);
+                sym = lookup_symbol_by_name_(interp, demangle_it(str_tbl + sym_tbl[index].st_name));
+                lib_origin = k;
+            }
+            if (sym == NULL) {
+                lib_origin = k;
+                if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "%s still not found, trying self (%s)\n", demangle_it(str_tbl + sym_tbl[index].st_name), lib_origin);
+                a = 1;
+                sym = lookup_symbol_by_name_(lib_origin, demangle_it(str_tbl + sym_tbl[index].st_name));
+                a = 0;
+                if (sym == NULL) {
+                    if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "%s still not found, aborting\n", demangle_it(str_tbl + sym_tbl[index].st_name));
+                    if (bytecmpq(library[library_index].last_lib, interp) == 0 || bytecmpq(library[library_index].last_lib, libc) == 0) sleep(4);
+                    else abort_();
+                }
+            }
+        }
+        if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "found %014p for symbol %s in %s\n", sym, demangle_it(str_tbl + sym_tbl[index].st_name), library[library_index].last_lib);
+        if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "%s:%d:%s: returning %014p\n", __FILE__, __LINE__, __func__, sym);
+        if (bytecmpq(library[library_index].last_lib, interp) == 0 || bytecmpq(library[library_index].last_lib, libc) == 0) sleep(15);
+        if (sym != NULL && mode == 1) return sym;
+    }
     if ( mode == 1) return sym_tbl[index].st_value;
     else if (mode == 2) return sym_tbl[index].st_size;
 }
@@ -1683,23 +1656,41 @@ char * symbol_lookup_name(char * arrayc, Elf64_Shdr sh_table[], uint64_t symbol_
         char * name = demangle_it(str_tbl + sym_tbl[i].st_name);
         if (bytecmpq(name,name_) == 0) {
             char * address = sym_tbl[i].st_value+library[library_index].mappingb;
-            if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "requested symbol name \"%s\" found in table %d at address %014p is \"%s\"\n", name_, symbol_table, address, name);
+            if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "requested symbol name \"%s\" found in table %d at address %014p is \"%s\"\n", name_, symbol_table, address, name);
 
             return analyse_address(address, name);
         }
     }
-    if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "\nrequested symbol name \"%s\" could not be found in table %d\n\n", name_, symbol_table);
+    if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "\nrequested symbol name \"%s\" could not be found in table %d\n\n", name_, symbol_table);
     return NULL;
 }
 
-char * print_elf_symbol_table_lookup(char * arrayc, Elf64_Ehdr * eh, Elf64_Shdr sh_table[], uint64_t symbol_table, int index, int mode)
+char * print_elf_symbol_table_lookup(char * arrayc, Elf64_Ehdr * eh, Elf64_Shdr sh_table[], uint64_t symbol_table, int index, int mode, const char * is_jump)
 {
+        char * name_;
         switch(sh_table[symbol_table].sh_type) {
             case SHT_DYNSYM:
-                return symbol_lookup(arrayc, sh_table, symbol_table, index, mode, relocation_quiet);
+                name_ = symbol_lookup(arrayc, sh_table, symbol_table, index, mode, relocation_quiet, is_jump);
+                if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "%s:%d:%s: returning %014p\n", __FILE__, __LINE__, __func__, name_);
+                if (name_ != NULL) {
+                    return name_;
+                }
+                else {
+                    return NULL;
+                }
+                break;
+            case SHT_SYMTAB:
+                name_ = symbol_lookup(arrayc, sh_table, symbol_table, index, mode, relocation_quiet, is_jump);
+                if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "%s:%d:%s: returning %014p\n", __FILE__, __LINE__, __func__, name_);
+                if (name_ != NULL) {
+                    return name_;
+                }
+                else {
+                    return NULL;
+                }
                 break;
             default:
-                return (int) -1;
+                return NULL;
                 break;
         }
 }
@@ -1732,12 +1723,17 @@ char * print_elf_symbol_table_lookup_name(char * arrayc, Elf64_Ehdr * eh, Elf64_
         }
 }
 
-char * print_symbols_lookup(char * arrayd, Elf64_Ehdr * eh, Elf64_Shdr sh_table[], int index, int mode)
+char * print_symbols_lookup(char * arrayd, Elf64_Ehdr * eh, Elf64_Shdr sh_table[], int index, int mode, const char * is_jump)
 {
+    char * sym;
     for(int i=0; i<eh->e_shnum; i++) {
-        int value = print_elf_symbol_table_lookup(arrayd, eh, sh_table, i, index, mode);
-        if ( value != -1 ) return value;
+        sym = print_elf_symbol_table_lookup(arrayd, eh, sh_table, i, index, mode, is_jump);
+        if ( sym != NULL ) {
+            if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "%s:%d:%s: returning %014p\n", __FILE__, __LINE__, __func__, sym);
+            return sym;
+        }
     }
+    if (sym == NULL) return NULL;
 }
 
 char * print_symbols_lookup_name(char * arrayd, Elf64_Ehdr * eh, Elf64_Shdr sh_table[], char * index)
@@ -1761,6 +1757,7 @@ void * lookup_symbol_by_name(const char * arrayb, Elf64_Ehdr * eh, char * name) 
 }
 
 void * lookup_symbol_by_name_(const char * lib, const char * name) {
+        if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "attempting to look up symbol %s in lib %s\n", name, lib);    
         init_(lib);
         const char * arrayb = library[library_index].array;
         Elf64_Ehdr * eh = (Elf64_Ehdr *) arrayb;
@@ -1768,26 +1765,26 @@ void * lookup_symbol_by_name_(const char * lib, const char * name) {
         if(!strncmp((char*)eh->e_ident, "\177ELF", 4)) {
             if ( read_section_header_table_(arrayb, eh, &_elf_symbol_tableb) == 0) {
                 char * symbol = print_symbols_lookup_name(arrayb, eh, _elf_symbol_tableb, name);
-//                 fprintf(stderr, "returning %014p\n", symbol);
+                if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "returning %014p\n", symbol);
                 return symbol;
             }
         }
         else abort_();
 }
 
-void * lookup_symbol_by_index(const char * arrayb, Elf64_Ehdr * eh, int symbol_index, int mode, const char * am_i_quiet) {
-        if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) fprintf(stderr, "attempting to look up symbol, index = %d\n", symbol_index);
+void * lookup_symbol_by_index(const char * arrayb, Elf64_Ehdr * eh, int symbol_index, int mode, const char * am_i_quiet, const char * is_jump) {
+        if (bytecmpq(GQ, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) fprintf(stderr, "attempting to look up symbol, index = %d\n", symbol_index);
 
         read_section_header_table_(arrayb, eh, &library[library_index]._elf_symbol_table);
-        char * symbol = print_symbols_lookup(arrayb, eh, library[library_index]._elf_symbol_table, symbol_index, mode);
-        if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) fprintf(stderr, "symbol = %d (%014p)\n", symbol, symbol);
+        char * symbol = print_symbols_lookup(arrayb, eh, library[library_index]._elf_symbol_table, symbol_index, mode, is_jump);
+        if (bytecmpq(GQ, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) fprintf(stderr, "%s: symbol = %d (%014p)\n", __func__, symbol, symbol);
         return symbol;
 }
 
 Elf64_Word
 get_dynamic_entry(Elf64_Dyn *dynamic, int field)
 {
-    if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "called get_dynamic_entry\n");
+    if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "called get_dynamic_entry\n");
 
 // Name        Value       d_un        Executable      Shared Object
 // DT_NULL     0           ignored     mandatory       mandatory
@@ -1929,7 +1926,7 @@ get_dynamic_entry(Elf64_Dyn *dynamic, int field)
 
 
     for (; dynamic->d_tag != DT_NULL; dynamic++) {
-        if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "testing if ");
+        if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "testing if ");
 /* Legal values for d_tag (dynamic entry type).  */
 
 // #define DT_NULL		0		/* Marks end of dynamic section */
@@ -1974,310 +1971,310 @@ get_dynamic_entry(Elf64_Dyn *dynamic, int field)
 // #define	DT_PROCNUM	DT_MIPS_NUM	/* Most used by any processor */
         switch (dynamic->d_tag) {
             case DT_NULL:
-                if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "DT_NULL");
+                if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "DT_NULL");
                 break;
             case DT_NEEDED:
-                if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "DT_NEEDED");
+                if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "DT_NEEDED");
                 break;
             case DT_PLTRELSZ:
-                if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "DT_PLTRELSZ");
+                if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "DT_PLTRELSZ");
                 break;
             case DT_PLTGOT:
-                if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "DT_PLTGOT");
+                if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "DT_PLTGOT");
                 break;
             case DT_HASH:
-                if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "DT_HASH");
+                if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "DT_HASH");
                 break;
             case DT_STRTAB:
-                if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "DT_STRTAB");
+                if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "DT_STRTAB");
                 break;
             case DT_SYMTAB:
-                if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "DT_SYMTAB");
+                if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "DT_SYMTAB");
                 break;
             case DT_RELA:
-                if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "DT_RELA");
+                if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "DT_RELA");
                 break;
             case DT_RELASZ:
-                if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "DT_RELASZ");
+                if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "DT_RELASZ");
                 break;
             case DT_RELAENT:
-                if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "DT_RELAENT");
+                if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "DT_RELAENT");
                 break;
             case DT_STRSZ:
-                if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "DT_STRSZ");
+                if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "DT_STRSZ");
                 break;
             case DT_SYMENT:
-                if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "DT_SYMENT");
+                if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "DT_SYMENT");
                 break;
             case DT_INIT:
-                if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "DT_INIT");
+                if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "DT_INIT");
                 break;
             case DT_FINI:
-                if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "DT_FINI");
+                if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "DT_FINI");
                 break;
             case DT_SONAME:
-                if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "DT_SONAME");
+                if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "DT_SONAME");
                 break;
             case DT_RPATH:
-                if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "DT_RPATH");
+                if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "DT_RPATH");
                 break;
             case DT_SYMBOLIC:
-                if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "DT_SYMBOLIC");
+                if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "DT_SYMBOLIC");
                 break;
             case DT_REL:
-                if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "DT_REL");
+                if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "DT_REL");
                 break;
             case DT_RELSZ:
-                if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "DT_RELSZ");
+                if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "DT_RELSZ");
                 break;
             case DT_RELENT:
-                if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "DT_RELENT");
+                if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "DT_RELENT");
                 break;
             case DT_PLTREL:
-                if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "DT_PLTREL");
+                if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "DT_PLTREL");
                 break;
             case DT_DEBUG:
-                if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "DT_DEBUG");
+                if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "DT_DEBUG");
                 break;
             case DT_TEXTREL:
-                if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "DT_TEXTREL");
+                if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "DT_TEXTREL");
                 break;
             case DT_JMPREL:
-                if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "DT_JMPREL");
+                if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "DT_JMPREL");
                 break;
             case DT_BIND_NOW:
-                if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "DT_BIND_NOW");
+                if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "DT_BIND_NOW");
                 break;
             case DT_INIT_ARRAY:
-                if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "DT_INIT_ARRAY");
+                if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "DT_INIT_ARRAY");
                 break;
             case DT_FINI_ARRAY:
-                if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "DT_FINI_ARRAY");
+                if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "DT_FINI_ARRAY");
                 break;
             case DT_INIT_ARRAYSZ:
-                if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "DT_INIT_ARRAYSZ");
+                if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "DT_INIT_ARRAYSZ");
                 break;
             case DT_FINI_ARRAYSZ:
-                if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "DT_FINI_ARRAYSZ");
+                if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "DT_FINI_ARRAYSZ");
                 break;
             case DT_RUNPATH:
-                if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "DT_RUNPATH");
+                if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "DT_RUNPATH");
                 break;
             case DT_FLAGS:
-                if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "DT_FLAGS");
+                if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "DT_FLAGS");
                 break;
             case DT_ENCODING:
-                if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "DT_ENCODING (or DT_PREINIT_ARRAY)");
+                if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "DT_ENCODING (or DT_PREINIT_ARRAY)");
                 break;
             case DT_PREINIT_ARRAYSZ:
-                if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "DT_PREINIT_ARRAYSZ");
+                if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "DT_PREINIT_ARRAYSZ");
                 break;
             case DT_NUM:
-                if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "DT_NUM");
+                if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "DT_NUM");
                 break;
             case DT_LOOS:
-                if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "DT_LOOS");
+                if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "DT_LOOS");
                 break;
             case DT_HIOS:
-                if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "DT_HIOS");
+                if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "DT_HIOS");
                 break;
             case DT_LOPROC:
-                if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "DT_LOPROC");
+                if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "DT_LOPROC");
                 break;
             case DT_HIPROC:
-                if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "DT_HIPROC (or DT_FILTER)");
+                if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "DT_HIPROC (or DT_FILTER)");
                 break;
             case DT_PROCNUM:
-                if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "DT_PROCNUM");
+                if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "DT_PROCNUM");
                 break;
             case DT_VERSYM:
-                if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "DT_VERSYM");
+                if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "DT_VERSYM");
                 break;
             case DT_RELACOUNT:
-                if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "DT_RELACOUNT");
+                if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "DT_RELACOUNT");
                 break;
             case DT_RELCOUNT:
-                if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "DT_RELCOUNT");
+                if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "DT_RELCOUNT");
                 break;
             case DT_FLAGS_1:
-                if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "DT_FLAGS_1");
+                if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "DT_FLAGS_1");
                 break;
             case DT_VERDEF:
-                if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "DT_VERDEF");
+                if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "DT_VERDEF");
                 break;
             case DT_VERDEFNUM:
-                if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "DT_VERDEFNUM");
+                if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "DT_VERDEFNUM");
                 break;
             case DT_VERNEED:
-                if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "DT_VERNEED");
+                if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "DT_VERNEED");
                 break;
             case DT_VERNEEDNUM:
-                if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "DT_VERNEEDNUM");
+                if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "DT_VERNEEDNUM");
                 break;
             case DT_AUXILIARY:
-                if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "DT_AUXILIARY");
+                if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "DT_AUXILIARY");
                 break;
             default:
-                if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "%d", dynamic->d_tag);
+                if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "%d", dynamic->d_tag);
                 break;
         }
-        if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, " == ");
+        if (bytecmpq(GQ, "no") == 0) fprintf(stderr, " == ");
         switch (field) {
             case DT_NULL:
-                if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "DT_NULL");
+                if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "DT_NULL");
                 break;
             case DT_NEEDED:
-                if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "DT_NEEDED");
+                if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "DT_NEEDED");
                 break;
             case DT_PLTRELSZ:
-                if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "DT_PLTRELSZ");
+                if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "DT_PLTRELSZ");
                 break;
             case DT_PLTGOT:
-                if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "DT_PLTGOT");
+                if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "DT_PLTGOT");
                 break;
             case DT_HASH:
-                if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "DT_HASH");
+                if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "DT_HASH");
                 break;
             case DT_STRTAB:
-                if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "DT_STRTAB");
+                if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "DT_STRTAB");
                 break;
             case DT_SYMTAB:
-                if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "DT_SYMTAB");
+                if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "DT_SYMTAB");
                 break;
             case DT_RELA:
-                if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "DT_RELA");
+                if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "DT_RELA");
                 break;
             case DT_RELASZ:
-                if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "DT_RELASZ");
+                if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "DT_RELASZ");
                 break;
             case DT_RELAENT:
-                if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "DT_RELAENT");
+                if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "DT_RELAENT");
                 break;
             case DT_STRSZ:
-                if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "DT_STRSZ");
+                if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "DT_STRSZ");
                 break;
             case DT_SYMENT:
-                if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "DT_SYMENT");
+                if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "DT_SYMENT");
                 break;
             case DT_INIT:
-                if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "DT_INIT");
+                if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "DT_INIT");
                 break;
             case DT_FINI:
-                if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "DT_FINI");
+                if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "DT_FINI");
                 break;
             case DT_SONAME:
-                if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "DT_SONAME");
+                if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "DT_SONAME");
                 break;
             case DT_RPATH:
-                if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "DT_RPATH");
+                if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "DT_RPATH");
                 break;
             case DT_SYMBOLIC:
-                if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "DT_SYMBOLIC");
+                if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "DT_SYMBOLIC");
                 break;
             case DT_REL:
-                if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "DT_REL");
+                if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "DT_REL");
                 break;
             case DT_RELSZ:
-                if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "DT_RELSZ");
+                if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "DT_RELSZ");
                 break;
             case DT_RELENT:
-                if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "DT_RELENT");
+                if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "DT_RELENT");
                 break;
             case DT_PLTREL:
-                if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "DT_PLTREL");
+                if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "DT_PLTREL");
                 break;
             case DT_DEBUG:
-                if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "DT_DEBUG");
+                if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "DT_DEBUG");
                 break;
             case DT_TEXTREL:
-                if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "DT_TEXTREL");
+                if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "DT_TEXTREL");
                 break;
             case DT_JMPREL:
-                if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "DT_JMPREL");
+                if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "DT_JMPREL");
                 break;
             case DT_BIND_NOW:
-                if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "DT_BIND_NOW");
+                if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "DT_BIND_NOW");
                 break;
             case DT_INIT_ARRAY:
-                if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "DT_INIT_ARRAY");
+                if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "DT_INIT_ARRAY");
                 break;
             case DT_FINI_ARRAY:
-                if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "DT_FINI_ARRAY");
+                if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "DT_FINI_ARRAY");
                 break;
             case DT_INIT_ARRAYSZ:
-                if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "DT_INIT_ARRAYSZ");
+                if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "DT_INIT_ARRAYSZ");
                 break;
             case DT_FINI_ARRAYSZ:
-                if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "DT_FINI_ARRAYSZ");
+                if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "DT_FINI_ARRAYSZ");
                 break;
             case DT_RUNPATH:
-                if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "DT_RUNPATH");
+                if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "DT_RUNPATH");
                 break;
             case DT_FLAGS:
-                if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "DT_FLAGS");
+                if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "DT_FLAGS");
                 break;
             case DT_ENCODING:
-                if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "DT_ENCODING (or DT_PREINIT_ARRAY)");
+                if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "DT_ENCODING (or DT_PREINIT_ARRAY)");
                 break;
             case DT_PREINIT_ARRAYSZ:
-                if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "DT_PREINIT_ARRAYSZ");
+                if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "DT_PREINIT_ARRAYSZ");
                 break;
             case DT_NUM:
-                if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "DT_NUM");
+                if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "DT_NUM");
                 break;
             case DT_LOOS:
-                if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "DT_LOOS");
+                if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "DT_LOOS");
                 break;
             case DT_HIOS:
-                if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "DT_HIOS");
+                if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "DT_HIOS");
                 break;
             case DT_LOPROC:
-                if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "DT_LOPROC");
+                if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "DT_LOPROC");
                 break;
             case DT_HIPROC:
-                if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "DT_HIPROC (or DT_FILTER)");
+                if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "DT_HIPROC (or DT_FILTER)");
                 break;
             case DT_PROCNUM:
-                if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "DT_PROCNUM");
+                if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "DT_PROCNUM");
                 break;
             case DT_VERSYM:
-                if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "DT_VERSYM");
+                if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "DT_VERSYM");
                 break;
             case DT_RELACOUNT:
-                if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "DT_RELACOUNT");
+                if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "DT_RELACOUNT");
                 break;
             case DT_RELCOUNT:
-                if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "DT_RELCOUNT");
+                if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "DT_RELCOUNT");
                 break;
             case DT_FLAGS_1:
-                if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "DT_FLAGS_1");
+                if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "DT_FLAGS_1");
                 break;
             case DT_VERDEF:
-                if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "DT_VERDEF");
+                if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "DT_VERDEF");
                 break;
             case DT_VERDEFNUM:
-                if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "DT_VERDEFNUM");
+                if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "DT_VERDEFNUM");
                 break;
             case DT_VERNEED:
-                if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "DT_VERNEED");
+                if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "DT_VERNEED");
                 break;
             case DT_VERNEEDNUM:
-                if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "DT_VERNEEDNUM");
+                if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "DT_VERNEEDNUM");
                 break;
             case DT_AUXILIARY:
-                if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "DT_AUXILIARY");
+                if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "DT_AUXILIARY");
                 break;
             default:
-                if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "%d (unknown)", field);
+                if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "%d (unknown)", field);
                 break;
         }
-        if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "\n");
+        if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "\n");
         if (dynamic->d_tag == field) {
-            if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "returning %014p\n", dynamic->d_un.d_val);
+            if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "returning %014p\n", dynamic->d_un.d_val);
             return dynamic->d_un.d_val;
         }
     }
-    if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "returning 0\n");
+    if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "returning 0\n");
     return 0;
 }
 
@@ -2298,14 +2295,64 @@ void *
 dlopen_(const char * cc);
 
 void *
-dlsym(const char * cc1, const char * cc2);
-Elf64_Word
-get_needed(const char * lib)
-{
-     if (bytecmpq(ldd_quiet, "no") == 0) fprintf(stderr, "\n\naquiring \"%s\"\n", lib);
+dlsym_(const char * cc1, const char * cc2);
 
-     if (library[library_index].struct_init != "initialized") init_struct();
-     if (bytecmpq(ldd_quiet, "no") == 0) fprintf(stderr, "current index %d holds \"%s\"\nsearching indexes for \"%s\" incase it has already been loaded\n", library_index, library[library_index].last_lib, lib);
+Elf64_Word
+get_needed(const char * lib, const char * parent);
+
+char *
+find_needed(const char * lib, const char * symbol)
+{
+    char * sym;
+    if (bytecmpq(ldd_quiet, "no") == 1) fprintf(stderr, "\n\naquiring symbol \"%s\"\n", symbol);
+    if (bytecmpq(ldd_quiet, "no") == 0) fprintf(stderr, "current index %d holds \"%s\"\nsearching indexes for \"%s\" incase it has already been loaded\n", library_index, library[library_index].last_lib, lib);
+    library_index = searchq(lib);
+    int local_index = library_index;
+    int local_indexb = library_index;
+    if ( if_valid(lib) == -1) {
+        if (bytecmpq(ldd_quiet, "no") == 0) fprintf(stderr, "\"%s\" not found\n", lib);
+        errno = 0;
+        return "-1";
+    }
+    if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "looking in %s for \"%s\"\n", lib, symbol);
+    if (bytecmpq(lib_origin, lib) == -1) sym = lookup_symbol_by_name_(lib, symbol);
+    else sym = NULL;
+    library_index = searchq(lib);
+    if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "checking symbol \"%s\" has been found in %s\n", symbol, lib);
+    if(sym == NULL)
+    {
+        if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "symbol has not been found in %s, searching dependancies of %s\n", lib, lib);
+
+        if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "\n\nneeded for %s: %d\n", library[library_index].last_lib, library[library_index].NEEDED_COUNT);
+        for (int i = 0; i<=library[library_index].NEEDED_COUNT-1; i++) {
+            if (bytecmpq(lib, libc) == 0) {
+                library[library_index].NEEDED[i] = interp;
+                if (bytecmpq(ldd_quiet, "no") == 0) fprintf(stderr, "gnu libc detected, redirecting needed %s to %s\n", "ld-linux-x86-64.so.2", library[library_index].NEEDED[i]);
+                if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "looking in %s for \"%s\"\n", library[library_index].NEEDED[i], symbol);
+            }
+            if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "looking in %s for \"%s\"\n", library[library_index].NEEDED[i], symbol);
+            sym = find_needed(library[library_index].NEEDED[i], symbol);
+            library_index = searchq(lib);
+            if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "checking symbol \"%s\" has been found in %s of %s\n", symbol, library[library_index].NEEDED[i], lib);
+            if(sym == NULL) {
+                if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "symbol \"%s\" has not been found in %s of %s\n", symbol, library[library_index].NEEDED[i], lib);
+                return NULL;
+            }
+            else return sym;
+        }
+        if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "error, %s has no dependancies, parent dependancy is %s\n", lib, library[library_index].parent);
+        return NULL; // has no dependancies
+    }
+    else return sym;
+}
+
+Elf64_Word
+get_needed(const char * lib, const char * parent)
+{
+    if (bytecmpq(ldd_quiet, "no") == 0) fprintf(stderr, "\n\naquiring \"%s\"\n", lib);
+
+    if (library[library_index].struct_init != "initialized") init_struct();
+    if (bytecmpq(ldd_quiet, "no") == 0) fprintf(stderr, "current index %d holds \"%s\"\nsearching indexes for \"%s\" incase it has already been loaded\n", library_index, library[library_index].last_lib, lib);
     
     library_index = searchq(lib);
     int local_index = library_index;
@@ -2313,44 +2360,44 @@ get_needed(const char * lib)
     library[library_index].last_lib = lib;
     library[library_index].current_lib = lib;
 
-     if (bytecmpq(ldd_quiet, "no") == 0) fprintf(stderr, "checking if %s index %d is locked\n", library[library_index].last_lib, library_index);
+    if (bytecmpq(ldd_quiet, "no") == 0) fprintf(stderr, "checking if %s index %d is locked\n", library[library_index].last_lib, library_index);
     if (library[library_index].init_lock == 1) {
-         if (bytecmpq(ldd_quiet, "no") == 0) fprintf(stderr, "get_needed: LOCKED\n");
+        if (bytecmpq(ldd_quiet, "no") == 0) fprintf(stderr, "get_needed: LOCKED\n");
     }
     else {
-         if (bytecmpq(ldd_quiet, "no") == 0) fprintf(stderr, "get_needed: UNLOCKED\n");
+        if (bytecmpq(ldd_quiet, "no") == 0) fprintf(stderr, "get_needed: UNLOCKED\n");
     }
     if ( if_valid(lib) == -1) {
-         if (bytecmpq(ldd_quiet, "no") == 0) fprintf(stderr, "\"%s\" not found\n", lib);
+        if (bytecmpq(ldd_quiet, "no") == 0) fprintf(stderr, "\"%s\" not found\n", lib);
         errno = 0;
         return "-1";
     }
-     if (bytecmpq(ldd_quiet, "no") == 0) fprintf(stderr, "init\n");
+    if (bytecmpq(ldd_quiet, "no") == 0) fprintf(stderr, "init\n");
     if (library[library_index].array != NULL) {
-         if (bytecmpq(ldd_quiet, "no") == 0) fprintf(stderr, "%s has a non null array\n", library[library_index].last_lib);
-         if (bytecmpq(ldd_quiet, "no") == 0) fprintf(stderr, "index %d get_needed: LOCKING\n", library_index);
+        if (bytecmpq(ldd_quiet, "no") == 0) fprintf(stderr, "%s has a non null array\n", library[library_index].last_lib);
+        if (bytecmpq(ldd_quiet, "no") == 0) fprintf(stderr, "index %d get_needed: LOCKING\n", library_index);
         library[library_index].init_lock = 1;
         if (library[library_index].init_lock == 1) {
-             if (bytecmpq(ldd_quiet, "no") == 0) fprintf(stderr, "status: LOCKED\n");
+            if (bytecmpq(ldd_quiet, "no") == 0) fprintf(stderr, "status: LOCKED\n");
         }
         else {
-             if (bytecmpq(ldd_quiet, "no") == 0) fprintf(stderr, "status: UNLOCKED\n");
+            if (bytecmpq(ldd_quiet, "no") == 0) fprintf(stderr, "status: UNLOCKED\n");
         }
     } else {
-         if (bytecmpq(ldd_quiet, "no") == 0) fprintf(stderr, "%s has a null array\n", library[library_index].last_lib);
-         if (bytecmpq(ldd_quiet, "no") == 0) fprintf(stderr, "index %d get_needed: UNLOCKING\n", library_index);
+        if (bytecmpq(ldd_quiet, "no") == 0) fprintf(stderr, "%s has a null array\n", library[library_index].last_lib);
+        if (bytecmpq(ldd_quiet, "no") == 0) fprintf(stderr, "index %d get_needed: UNLOCKING\n", library_index);
         library[library_index].init_lock = 0;
         if (library[library_index].init_lock == 1) {
-             if (bytecmpq(ldd_quiet, "no") == 0) fprintf(stderr, "status: LOCKED\n");
+            if (bytecmpq(ldd_quiet, "no") == 0) fprintf(stderr, "status: LOCKED\n");
         }
         else {
-             if (bytecmpq(ldd_quiet, "no") == 0) fprintf(stderr, "status: UNLOCKED\n");
+            if (bytecmpq(ldd_quiet, "no") == 0) fprintf(stderr, "status: UNLOCKED\n");
         }
     }
     dlopen_(lib);
-    dlsym(lib, "");
-     if (bytecmpq(ldd_quiet, "no") == 0) fprintf(stderr, "init done\n");
-     if (bytecmpq(ldd_quiet, "no") == 0) fprintf(stderr, "current index %d holds \"%s\"\nsearching indexes for \"%s\" incase it has already been loaded\n", library_index, library[library_index].last_lib, lib);
+    dlsym_(lib, "");
+    if (bytecmpq(ldd_quiet, "no") == 0) fprintf(stderr, "init done\n");
+    if (bytecmpq(ldd_quiet, "no") == 0) fprintf(stderr, "current index %d holds \"%s\"\nsearching indexes for \"%s\" incase it has already been loaded\n", library_index, library[library_index].last_lib, lib);
     
     library_index = searchq(lib);
     local_index = library_index;
@@ -2360,16 +2407,16 @@ get_needed(const char * lib)
     Elf64_Dyn *dynamic = library[library_index].dynamic;
     Elf64_Dyn *dynamicb = library[library_index].dynamic;
     const char * arrayb = library[library_index].array;
-    print_needed(lib, depth_default, LDD);
-    for (int i = 0; i<=library[library_index].NEEDED_COUNT-1; i++) get_needed(library[library_index].NEEDED[i]);
+    print_needed(lib, parent,depth_default, LDD);
+    for (int i = 0; i<=library[library_index].NEEDED_COUNT-1; i++) get_needed(library[library_index].NEEDED[i], lib);
     local_index = local_indexb;
-     if (bytecmpq(ldd_quiet, "no") == 0) fprintf(stderr, "index %d get_needed: UNLOCKING\n", local_index);
+    if (bytecmpq(ldd_quiet, "no") == 0) fprintf(stderr, "index %d get_needed: UNLOCKING\n", local_index);
     library[local_index].init_lock = 0;
     if (library[local_index].init_lock == 1) {
-         if (bytecmpq(ldd_quiet, "no") == 0) fprintf(stderr, "status: LOCKED\n");
+        if (bytecmpq(ldd_quiet, "no") == 0) fprintf(stderr, "status: LOCKED\n");
     }
     else {
-         if (bytecmpq(ldd_quiet, "no") == 0) fprintf(stderr, "status: UNLOCKED\n");
+        if (bytecmpq(ldd_quiet, "no") == 0) fprintf(stderr, "status: UNLOCKED\n");
     }
 }
 
@@ -2442,9 +2489,9 @@ appear in the lower box corners).
 word32      This specifies a 32-bit field occupying 4 bytes with arbitrary byte alignment. These
             values use the same byte order as other word values in the Intel architecture.
 
-                         3    2    1    0
+                        3    2    1    0
 0x01020304           01   02   03   04
-                 31                     0
+                31                     0
 
 Calculations below assume the actions are transforming a relocatable file into either an
 executable or a shared object file. Conceptually, the link editor merges one or more relocatable
@@ -2532,16 +2579,16 @@ Relocation Types
 Relocation entries describe how to alter the following instruction and data fields (bit numbers
 appear in the lower box corners).
 
-              word8  
+            word8  
             7       0
             
-                  word16
+                word16
             15              0
             
-                          word32
+                        word32
             31                              0
 
-                                          word64
+                                        word64
             63                                                              0
 
 word8       This specifies a 8-bit field occupying 1 byte.
@@ -2681,302 +2728,309 @@ R_386_GOTPC         This relocation type resembles R_386_PC32, except it uses th
         for (int i = 0; i < relocs_size  / sizeof(Elf64_Rela); i++) {
             Elf64_Rela *reloc = &relocs[i];
             int reloc_type = ELF64_R_TYPE(reloc->r_info);
-            if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) fprintf(stderr, "i = %d,\t\tELF64_R_TYPE(reloc->r_info)\t= ", i);
+            if (bytecmpq(GQ, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) fprintf(stderr, "i = %d,\t\tELF64_R_TYPE(reloc->r_info)\t= ", i);
             switch (reloc_type) {
                 #if defined(__x86_64__)
                 case R_X86_64_NONE:
                 {
-                    if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) fprintf(stderr, "\n\n\nR_X86_64_NONE                calculation: none\n");
+                    if (bytecmpq(GQ, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) fprintf(stderr, "\n\n\nR_X86_64_NONE                calculation: none\n");
                     library[library_index]._R_X86_64_NONE++;
                     break;
                 }
                 case R_X86_64_64:
                 {
-                    if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) fprintf(stderr, "\n\n\nR_X86_64_64                  calculation: S + A (symbol value + r_addend)\n");
-                    if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) fprintf(stderr, "reloc->r_offset = %014p\n", reloc->r_offset);
-                    *((char**)((char*)library[library_index].mappingb + reloc->r_offset)) = lookup_symbol_by_index(library[library_index].array, library[library_index]._elf_header, ELF64_R_SYM(reloc->r_info), symbol_mode_S, symbol_quiet) + reloc->r_addend+library[library_index].mappingb;
-                    if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) fprintf(stderr, "((char*)library[library_index].mappingb + reloc->r_offset)            = %014p\n", ((char*)library[library_index].mappingb + reloc->r_offset));
+                    if (bytecmpq(GQ, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) fprintf(stderr, "\n\n\nR_X86_64_64                  calculation: S + A (symbol value + r_addend)\n");
+                    if (bytecmpq(GQ, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) fprintf(stderr, "reloc->r_offset = %014p\n", reloc->r_offset);
+                    *((char**)((char*)library[library_index].mappingb + reloc->r_offset)) = lookup_symbol_by_index(library[library_index].array, library[library_index]._elf_header, ELF64_R_SYM(reloc->r_info), symbol_mode_S, symbol_quiet, "no") + reloc->r_addend+library[library_index].mappingb;
+                    if (bytecmpq(GQ, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) fprintf(stderr, "((char*)library[library_index].mappingb + reloc->r_offset)            = %014p\n", ((char*)library[library_index].mappingb + reloc->r_offset));
                     library[library_index]._R_X86_64_64++;
                     break;
                 }
                 case R_X86_64_PC32:
                 {
-                    if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) fprintf(stderr, "\n\n\nR_X86_64_PC32                calculation: S + A - P (symbol value + r_addend - (P: This means the place (section offset or address) of the storage unit being relocated (computed using r_offset ).)\n");
-                    if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) fprintf(stderr, "reloc->r_offset = %014p\n", reloc->r_offset);
-                    *((char**)((char*)library[library_index].mappingb + reloc->r_offset)) = lookup_symbol_by_index(library[library_index].array, library[library_index]._elf_header, ELF64_R_SYM(reloc->r_info), symbol_mode_S, symbol_quiet) + reloc->r_addend+library[library_index].mappingb;
-                    if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) fprintf(stderr, "((char*)library[library_index].mappingb + reloc->r_offset)            = %014p\n", ((char*)library[library_index].mappingb + reloc->r_offset));
+                    if (bytecmpq(GQ, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) fprintf(stderr, "\n\n\nR_X86_64_PC32                calculation: S + A - P (symbol value + r_addend - (P: This means the place (section offset or address) of the storage unit being relocated (computed using r_offset ).)\n");
+                    if (bytecmpq(GQ, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) fprintf(stderr, "reloc->r_offset = %014p\n", reloc->r_offset);
+                    *((char**)((char*)library[library_index].mappingb + reloc->r_offset)) = lookup_symbol_by_index(library[library_index].array, library[library_index]._elf_header, ELF64_R_SYM(reloc->r_info), symbol_mode_S, symbol_quiet, "no") + reloc->r_addend+library[library_index].mappingb;
+                    if (bytecmpq(GQ, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) fprintf(stderr, "((char*)library[library_index].mappingb + reloc->r_offset)            = %014p\n", ((char*)library[library_index].mappingb + reloc->r_offset));
                     library[library_index]._R_X86_64_PC32++;
                     break;
                 }
                 case R_X86_64_GOT32:
                 {
-                    if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) fprintf(stderr, "\n\n\nR_X86_64_GOT32               calculation: G + A (address of global offset table + r_addend)\n");
+                    if (bytecmpq(GQ, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) fprintf(stderr, "\n\n\nR_X86_64_GOT32               calculation: G + A (address of global offset table + r_addend)\n");
                     Elf64_Addr * GOT = lookup_symbol_by_name(library[library_index].array, library[library_index]._elf_header, "_GLOBAL_OFFSET_TABLE_");
                     library[library_index]._R_X86_64_GOT32++;
                     break;
                 }
                 case R_X86_64_PLT32:
                 {
-                    if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) fprintf(stderr, "\n\n\nR_X86_64_PLT32               calculation: L + A - P ((L: This means the place (section offset or address) of the procedure linkage table entry for a symbol) + r_addend - (P: This means the place (section offset or address) of the storage unit being relocated (computed using r_offset ).) \n");
+                    if (bytecmpq(GQ, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) fprintf(stderr, "\n\n\nR_X86_64_PLT32               calculation: L + A - P ((L: This means the place (section offset or address) of the procedure linkage table entry for a symbol) + r_addend - (P: This means the place (section offset or address) of the storage unit being relocated (computed using r_offset ).) \n");
                     library[library_index]._R_X86_64_PLT32++;
                     break;
                 }
                 case R_X86_64_COPY:
                 {
-                    if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) fprintf(stderr, "\n\n\nR_X86_64_COPY                calculation: none\n");
+                    if (bytecmpq(GQ, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) fprintf(stderr, "\n\n\nR_X86_64_COPY                calculation: none\n");
                     library[library_index]._R_X86_64_COPY++;
                     break;
                 }
                 case R_X86_64_GLOB_DAT:
                 {
-                    if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) fprintf(stderr, "\n\n\nR_X86_64_GLOB_DAT            calculation: S (symbol value)\n");
-                    if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) fprintf(stderr, "reloc->r_offset = %014p+%014p=%014p\n", library[library_index].mappingb, reloc->r_offset, library[library_index].mappingb+reloc->r_offset);
-                    *((char**)((char*)library[library_index].mappingb + reloc->r_offset)) = lookup_symbol_by_index(library[library_index].array, library[library_index]._elf_header, ELF64_R_SYM(reloc->r_info), symbol_mode_S, symbol_quiet)+library[library_index].mappingb;
+                    if (bytecmpq(GQ, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) fprintf(stderr, "\n\n\nR_X86_64_GLOB_DAT            calculation: S (symbol value)\n");
+                    if (bytecmpq(GQ, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) fprintf(stderr, "reloc->r_offset = %014p+%014p=%014p\n", library[library_index].mappingb, reloc->r_offset, library[library_index].mappingb+reloc->r_offset);
+                    *((char**)((char*)library[library_index].mappingb + reloc->r_offset)) = lookup_symbol_by_index(library[library_index].array, library[library_index]._elf_header, ELF64_R_SYM(reloc->r_info), symbol_mode_S, symbol_quiet, "no")+library[library_index].mappingb;
                     char ** addr = reloc->r_offset + library[library_index].mappingb;
-                    if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) test_address(addr);
+                    test_address(addr);
                     library[library_index]._R_X86_64_GLOB_DAT++;
                     break;
                 }
                 case R_X86_64_JUMP_SLOT:
                 {
-                    if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) fprintf(stderr, "\n\n\nR_X86_64_JUMP_SLOT           calculation: S (symbol value)\n");
-                    if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) fprintf(stderr, "library[library_index].mappingb    = %014p\n", library[library_index].mappingb);
-                    if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) fprintf(stderr, "reloc->r_offset = %014p+%014p=%014p\n", library[library_index].mappingb, reloc->r_offset, library[library_index].mappingb+reloc->r_offset);
-                    *((char**)((char*)library[library_index].mappingb + reloc->r_offset)) = lookup_symbol_by_index(library[library_index].array, library[library_index]._elf_header, ELF64_R_SYM(reloc->r_info), symbol_mode_S, symbol_quiet)+library[library_index].mappingb;
+                    if (bytecmpq(GQ, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) fprintf(stderr, "\n\n\nR_X86_64_JUMP_SLOT           calculation: S (symbol value)\n");
+                    
+                    if (bytecmpq(GQ, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) fprintf(stderr, "library[library_index].mappingb    = %014p\n", library[library_index].mappingb);
+                    
+                    if (bytecmpq(GQ, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) fprintf(stderr, "reloc->r_offset = %014p+%014p=%014p\n", library[library_index].mappingb, reloc->r_offset, library[library_index].mappingb+reloc->r_offset);
+                    
+                    *((char**)((char*)library[library_index].mappingb + reloc->r_offset)) = lookup_symbol_by_index(library[library_index].array, library[library_index]._elf_header, ELF64_R_SYM(reloc->r_info), symbol_mode_S, symbol_quiet, "yes");
+                    
                     char ** addr = reloc->r_offset + library[library_index].mappingb;
-                    if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) test_address(addr);
+                    
+                    test_address(addr);
+                    
                     library[library_index]._R_X86_64_JUMP_SLOT++;
+                    
                     break;
                 }
                 case R_X86_64_RELATIVE:
                 {
-                    if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) fprintf(stderr, "\n\n\nR_X86_64_RELATIVE            calculation: B + A (base address + r_addend)\n");
-                    if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) fprintf(stderr, "library[library_index].mappingb    = %014p\n", library[library_index].mappingb);
-                    if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) fprintf(stderr, "reloc->r_offset = %014p+%014p=%014p\n", library[library_index].mappingb, reloc->r_offset, library[library_index].mappingb+reloc->r_offset);
-                    if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) fprintf(stderr, "reloc->r_addend = %014p+%014p=%014p\n", library[library_index].mappingb, reloc->r_addend, ((char*)library[library_index].mappingb + reloc->r_addend) );
+                    if (bytecmpq(GQ, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) fprintf(stderr, "\n\n\nR_X86_64_RELATIVE            calculation: B + A (base address + r_addend)\n");
+                    if (bytecmpq(GQ, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) fprintf(stderr, "library[library_index].mappingb    = %014p\n", library[library_index].mappingb);
+                    if (bytecmpq(GQ, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) fprintf(stderr, "reloc->r_offset = %014p+%014p=%014p\n", library[library_index].mappingb, reloc->r_offset, library[library_index].mappingb+reloc->r_offset);
+                    if (bytecmpq(GQ, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) fprintf(stderr, "reloc->r_addend = %014p+%014p=%014p\n", library[library_index].mappingb, reloc->r_addend, ((char*)library[library_index].mappingb + reloc->r_addend) );
                     *((char**)((char*)library[library_index].mappingb + reloc->r_offset)) = ((char*)library[library_index].mappingb + reloc->r_addend);
                     char ** addr = reloc->r_offset + library[library_index].mappingb;
-                    if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) test_address(addr);
-                    if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) fprintf(stderr, "((char*)library[library_index].mappingb + reloc->r_offset)            = %014p\n", ((char*)library[library_index].mappingb + reloc->r_offset));
+                    test_address(addr);
+                    if (bytecmpq(GQ, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) fprintf(stderr, "((char*)library[library_index].mappingb + reloc->r_offset)            = %014p\n", ((char*)library[library_index].mappingb + reloc->r_offset));
                     library[library_index]._R_X86_64_RELATIVE++;
                     break;
                 }
                 case R_X86_64_GOTPCREL:
                 {
-//                     if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) fprintf(stderr, "\n\naddress of GOT[0] = %014p\n", ((Elf64_Addr *) lookup_symbol_by_name(library[library_index].array, library[library_index]._elf_header, "_GLOBAL_OFFSET_TABLE_"))[0]);
-                    if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) fprintf(stderr, "\n\n\nR_X86_64_GOTPCREL            calculation: (_GOTPC: GOT + A - P (address of global offset table + r_addend - (P: This means the place (section offset or address) of the storage unit being relocated (computed using r_offset ).))) \n");
+//                     if (bytecmpq(GQ, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) fprintf(stderr, "\n\naddress of GOT[0] = %014p\n", ((Elf64_Addr *) lookup_symbol_by_name(library[library_index].array, library[library_index]._elf_header, "_GLOBAL_OFFSET_TABLE_"))[0]);
+                    if (bytecmpq(GQ, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) fprintf(stderr, "\n\n\nR_X86_64_GOTPCREL            calculation: (_GOTPC: GOT + A - P (address of global offset table + r_addend - (P: This means the place (section offset or address) of the storage unit being relocated (computed using r_offset ).))) \n");
                     Elf64_Addr * GOT = lookup_symbol_by_name(library[library_index].array, library[library_index]._elf_header, "_GLOBAL_OFFSET_TABLE_");
                     library[library_index]._R_X86_64_GOTPCREL++;
                     break;
                 }
                 case R_X86_64_32:
                 {
-                    if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) fprintf(stderr, "\n\n\nR_X86_64_32                  calculation: S + A (symbol value + r_addend)\n");
-                    if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) fprintf(stderr, "reloc->r_offset = %014p\n", reloc->r_offset);
-                    *((char**)((char*)library[library_index].mappingb + reloc->r_offset)) = lookup_symbol_by_index(library[library_index].array, library[library_index]._elf_header, ELF64_R_SYM(reloc->r_info), symbol_mode_S, symbol_quiet) + reloc->r_addend+library[library_index].mappingb;
-                    if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) fprintf(stderr, "((char*)library[library_index].mappingb + reloc->r_offset)            = %014p\n", ((char*)library[library_index].mappingb + reloc->r_offset));
+                    if (bytecmpq(GQ, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) fprintf(stderr, "\n\n\nR_X86_64_32                  calculation: S + A (symbol value + r_addend)\n");
+                    if (bytecmpq(GQ, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) fprintf(stderr, "reloc->r_offset = %014p\n", reloc->r_offset);
+                    *((char**)((char*)library[library_index].mappingb + reloc->r_offset)) = lookup_symbol_by_index(library[library_index].array, library[library_index]._elf_header, ELF64_R_SYM(reloc->r_info), symbol_mode_S, symbol_quiet, "no") + reloc->r_addend+library[library_index].mappingb;
+                    if (bytecmpq(GQ, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) fprintf(stderr, "((char*)library[library_index].mappingb + reloc->r_offset)            = %014p\n", ((char*)library[library_index].mappingb + reloc->r_offset));
                     library[library_index]._R_X86_64_32++;
                     break;
                 }
                 case R_X86_64_32S:
                 {
-                    if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) fprintf(stderr, "\n\n\nR_X86_64_32S                 calculation: S + A (symbol value + r_addend)\n");
-                    if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) fprintf(stderr, "reloc->r_offset = %014p\n", reloc->r_offset);
-                    *((char**)((char*)library[library_index].mappingb + reloc->r_offset)) = lookup_symbol_by_index(library[library_index].array, library[library_index]._elf_header, ELF64_R_SYM(reloc->r_info), symbol_mode_S, symbol_quiet) + reloc->r_addend+library[library_index].mappingb;
-                    if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) fprintf(stderr, "((char*)library[library_index].mappingb + reloc->r_offset)            = %014p\n", ((char*)library[library_index].mappingb + reloc->r_offset));
+                    if (bytecmpq(GQ, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) fprintf(stderr, "\n\n\nR_X86_64_32S                 calculation: S + A (symbol value + r_addend)\n");
+                    if (bytecmpq(GQ, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) fprintf(stderr, "reloc->r_offset = %014p\n", reloc->r_offset);
+                    *((char**)((char*)library[library_index].mappingb + reloc->r_offset)) = lookup_symbol_by_index(library[library_index].array, library[library_index]._elf_header, ELF64_R_SYM(reloc->r_info), symbol_mode_S, symbol_quiet, "no") + reloc->r_addend+library[library_index].mappingb;
+                    if (bytecmpq(GQ, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) fprintf(stderr, "((char*)library[library_index].mappingb + reloc->r_offset)            = %014p\n", ((char*)library[library_index].mappingb + reloc->r_offset));
                     library[library_index]._R_X86_64_32S++;
                     break;
                 }
                 case R_X86_64_16:
                 {
-                    if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) fprintf(stderr, "\n\n\nR_X86_64_16                  calculation: S + A (symbol value + r_addend)\n");
-                    if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) fprintf(stderr, "reloc->r_offset = %014p\n", reloc->r_offset);
-                    *((char**)((char*)library[library_index].mappingb + reloc->r_offset)) = lookup_symbol_by_index(library[library_index].array, library[library_index]._elf_header, ELF64_R_SYM(reloc->r_info), symbol_mode_S, symbol_quiet) + reloc->r_addend+library[library_index].mappingb;
-                    if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) fprintf(stderr, "((char*)library[library_index].mappingb + reloc->r_offset)            = %014p\n", ((char*)library[library_index].mappingb + reloc->r_offset));
+                    if (bytecmpq(GQ, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) fprintf(stderr, "\n\n\nR_X86_64_16                  calculation: S + A (symbol value + r_addend)\n");
+                    if (bytecmpq(GQ, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) fprintf(stderr, "reloc->r_offset = %014p\n", reloc->r_offset);
+                    *((char**)((char*)library[library_index].mappingb + reloc->r_offset)) = lookup_symbol_by_index(library[library_index].array, library[library_index]._elf_header, ELF64_R_SYM(reloc->r_info), symbol_mode_S, symbol_quiet, "no") + reloc->r_addend+library[library_index].mappingb;
+                    if (bytecmpq(GQ, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) fprintf(stderr, "((char*)library[library_index].mappingb + reloc->r_offset)            = %014p\n", ((char*)library[library_index].mappingb + reloc->r_offset));
                     library[library_index]._R_X86_64_16++;
                     break;
                 }
                 case R_X86_64_PC16:
                 {
-                    if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) fprintf(stderr, "\n\n\nR_X86_64_PC16                calculation: S + A - P (symbol value + r_addend - (P: This means the place (section offset or address) of the storage unit being relocated (computed using r_offset ).))\n");
-                    if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) fprintf(stderr, "reloc->r_offset = %014p\n", reloc->r_offset);
-                    *((char**)((char*)library[library_index].mappingb + reloc->r_offset)) = lookup_symbol_by_index(library[library_index].array, library[library_index]._elf_header, ELF64_R_SYM(reloc->r_info), symbol_mode_S, symbol_quiet) + reloc->r_addend+library[library_index].mappingb;
-                    if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) fprintf(stderr, "((char*)library[library_index].mappingb + reloc->r_offset)            = %014p\n", ((char*)library[library_index].mappingb + reloc->r_offset));
+                    if (bytecmpq(GQ, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) fprintf(stderr, "\n\n\nR_X86_64_PC16                calculation: S + A - P (symbol value + r_addend - (P: This means the place (section offset or address) of the storage unit being relocated (computed using r_offset ).))\n");
+                    if (bytecmpq(GQ, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) fprintf(stderr, "reloc->r_offset = %014p\n", reloc->r_offset);
+                    *((char**)((char*)library[library_index].mappingb + reloc->r_offset)) = lookup_symbol_by_index(library[library_index].array, library[library_index]._elf_header, ELF64_R_SYM(reloc->r_info), symbol_mode_S, symbol_quiet, "no") + reloc->r_addend+library[library_index].mappingb;
+                    if (bytecmpq(GQ, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) fprintf(stderr, "((char*)library[library_index].mappingb + reloc->r_offset)            = %014p\n", ((char*)library[library_index].mappingb + reloc->r_offset));
                     library[library_index]._R_X86_64_PC16++;
                     break;
                 }
                 case R_X86_64_8:
                 {
-                    if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) fprintf(stderr, "\n\n\nR_X86_64_8                   calculation: S + A (symbol value + r_addend)\n");
-                    if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) fprintf(stderr, "reloc->r_offset = %014p\n", reloc->r_offset);
-                    *((char**)((char*)library[library_index].mappingb + reloc->r_offset)) = lookup_symbol_by_index(library[library_index].array, library[library_index]._elf_header, ELF64_R_SYM(reloc->r_info), symbol_mode_S, symbol_quiet) + reloc->r_addend+library[library_index].mappingb;
-                    if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) fprintf(stderr, "((char*)library[library_index].mappingb + reloc->r_offset)            = %014p\n", ((char*)library[library_index].mappingb + reloc->r_offset));
+                    if (bytecmpq(GQ, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) fprintf(stderr, "\n\n\nR_X86_64_8                   calculation: S + A (symbol value + r_addend)\n");
+                    if (bytecmpq(GQ, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) fprintf(stderr, "reloc->r_offset = %014p\n", reloc->r_offset);
+                    *((char**)((char*)library[library_index].mappingb + reloc->r_offset)) = lookup_symbol_by_index(library[library_index].array, library[library_index]._elf_header, ELF64_R_SYM(reloc->r_info), symbol_mode_S, symbol_quiet, "no") + reloc->r_addend+library[library_index].mappingb;
+                    if (bytecmpq(GQ, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) fprintf(stderr, "((char*)library[library_index].mappingb + reloc->r_offset)            = %014p\n", ((char*)library[library_index].mappingb + reloc->r_offset));
                     library[library_index]._R_X86_64_8++;
                     break;
                 }
                 case R_X86_64_PC8:
                 {
-                    if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) fprintf(stderr, "\n\n\nR_X86_64_PC8                 calculation: S + A - P (symbol value + r_addend - (P: This means the place (section offset or address) of the storage unit being relocated (computed using r_offset ).))\n");
-                    if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) fprintf(stderr, "reloc->r_offset = %014p\n", reloc->r_offset);
-                    *((char**)((char*)library[library_index].mappingb + reloc->r_offset)) = lookup_symbol_by_index(library[library_index].array, library[library_index]._elf_header, ELF64_R_SYM(reloc->r_info), symbol_mode_S, symbol_quiet) + reloc->r_addend+library[library_index].mappingb;
-                    if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) fprintf(stderr, "((char*)library[library_index].mappingb + reloc->r_offset)            = %014p\n", ((char*)library[library_index].mappingb + reloc->r_offset));
+                    if (bytecmpq(GQ, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) fprintf(stderr, "\n\n\nR_X86_64_PC8                 calculation: S + A - P (symbol value + r_addend - (P: This means the place (section offset or address) of the storage unit being relocated (computed using r_offset ).))\n");
+                    if (bytecmpq(GQ, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) fprintf(stderr, "reloc->r_offset = %014p\n", reloc->r_offset);
+                    *((char**)((char*)library[library_index].mappingb + reloc->r_offset)) = lookup_symbol_by_index(library[library_index].array, library[library_index]._elf_header, ELF64_R_SYM(reloc->r_info), symbol_mode_S, symbol_quiet, "no") + reloc->r_addend+library[library_index].mappingb;
+                    if (bytecmpq(GQ, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) fprintf(stderr, "((char*)library[library_index].mappingb + reloc->r_offset)            = %014p\n", ((char*)library[library_index].mappingb + reloc->r_offset));
                     library[library_index]._R_X86_64_PC8++;
                     break;
                 }
                 case R_X86_64_DTPMOD64:
                 {
-                    if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) fprintf(stderr, "\n\n\nR_X86_64_DTPMOD64\n");
+                    if (bytecmpq(GQ, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) fprintf(stderr, "\n\n\nR_X86_64_DTPMOD64\n");
                     library[library_index]._R_X86_64_DTPMOD64++;
                     break;
                 }
                 case R_X86_64_DTPOFF64:
                 {
-                    if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) fprintf(stderr, "\n\n\nR_X86_64_DTPOFF64\n");
+                    if (bytecmpq(GQ, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) fprintf(stderr, "\n\n\nR_X86_64_DTPOFF64\n");
                     library[library_index]._R_X86_64_DTPOFF64++;
                     break;
                 }
                 case R_X86_64_TPOFF64:
                 {
-                    if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) fprintf(stderr, "\n\n\nR_X86_64_TPOFF64\n");
+                    if (bytecmpq(GQ, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) fprintf(stderr, "\n\n\nR_X86_64_TPOFF64\n");
                     library[library_index]._R_X86_64_TPOFF64++;
                     break;
                 }
                 case R_X86_64_TLSGD:
                 {
-                    if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) fprintf(stderr, "\n\n\nR_X86_64_TLSGD\n");
+                    if (bytecmpq(GQ, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) fprintf(stderr, "\n\n\nR_X86_64_TLSGD\n");
                     library[library_index]._R_X86_64_TLSGD++;
                     break;
                 }
                 case R_X86_64_TLSLD:
                 {
-                    if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) fprintf(stderr, "\n\n\nR_X86_64_TLSLD\n");
+                    if (bytecmpq(GQ, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) fprintf(stderr, "\n\n\nR_X86_64_TLSLD\n");
                     library[library_index]._R_X86_64_TLSLD++;
                     break;
                 }
                 case R_X86_64_DTPOFF32:
                 {
-                    if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) fprintf(stderr, "\n\n\nR_X86_64_DTPOFF32\n");
+                    if (bytecmpq(GQ, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) fprintf(stderr, "\n\n\nR_X86_64_DTPOFF32\n");
                     library[library_index]._R_X86_64_DTPOFF32++;
                     break;
                 }
                 case R_X86_64_GOTTPOFF:
                 {
-                    if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) fprintf(stderr, "\n\n\nR_X86_64_GOTTPOFF\n");
+                    if (bytecmpq(GQ, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) fprintf(stderr, "\n\n\nR_X86_64_GOTTPOFF\n");
                     Elf64_Addr * GOT = lookup_symbol_by_name(library[library_index].array, library[library_index]._elf_header, "_GLOBAL_OFFSET_TABLE_");
                     library[library_index]._R_X86_64_GOTTPOFF++;
                     break;
                 }
                 case R_X86_64_TPOFF32:
                 {
-                    if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) fprintf(stderr, "\n\n\nR_X86_64_TPOFF32\n");
+                    if (bytecmpq(GQ, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) fprintf(stderr, "\n\n\nR_X86_64_TPOFF32\n");
                     library[library_index]._R_X86_64_TPOFF32++;
                     break;
                 }
                 case R_X86_64_PC64:
                 {
-                    if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) fprintf(stderr, "\n\n\nR_X86_64_PC64                calculation: S + A - P (symbol value + r_addend - (P: This means the place (section offset or address) of the storage unit being relocated (computed using r_offset ).))\n");
-                    if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) fprintf(stderr, "reloc->r_offset = %014p\n", reloc->r_offset);
-                    *((char**)((char*)library[library_index].mappingb + reloc->r_offset)) = lookup_symbol_by_index(library[library_index].array, library[library_index]._elf_header, ELF64_R_SYM(reloc->r_info), symbol_mode_S, symbol_quiet) + reloc->r_addend+library[library_index].mappingb;
-                    if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) fprintf(stderr, "((char*)library[library_index].mappingb + reloc->r_offset)            = %014p\n", ((char*)library[library_index].mappingb + reloc->r_offset));
+                    if (bytecmpq(GQ, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) fprintf(stderr, "\n\n\nR_X86_64_PC64                calculation: S + A - P (symbol value + r_addend - (P: This means the place (section offset or address) of the storage unit being relocated (computed using r_offset ).))\n");
+                    if (bytecmpq(GQ, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) fprintf(stderr, "reloc->r_offset = %014p\n", reloc->r_offset);
+                    *((char**)((char*)library[library_index].mappingb + reloc->r_offset)) = lookup_symbol_by_index(library[library_index].array, library[library_index]._elf_header, ELF64_R_SYM(reloc->r_info), symbol_mode_S, symbol_quiet, "no") + reloc->r_addend+library[library_index].mappingb;
+                    if (bytecmpq(GQ, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) fprintf(stderr, "((char*)library[library_index].mappingb + reloc->r_offset)            = %014p\n", ((char*)library[library_index].mappingb + reloc->r_offset));
                     library[library_index]._R_X86_64_PC64++;
                     break;
                 }
                 case R_X86_64_GOTOFF64:
                 {
-                    if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) fprintf(stderr, "\n\n\nR_X86_64_GOTOFF64            calculation: S + A - GOT (symbol value + r_addend - address of global offset table)\n");
-                    if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) fprintf(stderr, "reloc->r_offset = %014p\n", reloc->r_offset);
-                    *((char**)((char*)library[library_index].mappingb + reloc->r_offset)) = lookup_symbol_by_index(library[library_index].array, library[library_index]._elf_header, ELF64_R_SYM(reloc->r_info), symbol_mode_S, symbol_quiet) + reloc->r_addend+library[library_index].mappingb;
-                    if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) fprintf(stderr, "((char*)library[library_index].mappingb + reloc->r_offset)            = %014p\n", ((char*)library[library_index].mappingb + reloc->r_offset));
+                    if (bytecmpq(GQ, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) fprintf(stderr, "\n\n\nR_X86_64_GOTOFF64            calculation: S + A - GOT (symbol value + r_addend - address of global offset table)\n");
+                    if (bytecmpq(GQ, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) fprintf(stderr, "reloc->r_offset = %014p\n", reloc->r_offset);
+                    *((char**)((char*)library[library_index].mappingb + reloc->r_offset)) = lookup_symbol_by_index(library[library_index].array, library[library_index]._elf_header, ELF64_R_SYM(reloc->r_info), symbol_mode_S, symbol_quiet, "no") + reloc->r_addend+library[library_index].mappingb;
+                    if (bytecmpq(GQ, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) fprintf(stderr, "((char*)library[library_index].mappingb + reloc->r_offset)            = %014p\n", ((char*)library[library_index].mappingb + reloc->r_offset));
                     Elf64_Addr * GOT = lookup_symbol_by_name(library[library_index].array, library[library_index]._elf_header, "_GLOBAL_OFFSET_TABLE_");
                     library[library_index]._R_X86_64_GOTOFF64++;
                     break;
                 }
                 case R_X86_64_GOTPC32:
                 {
-                    if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) fprintf(stderr, "\n\n\nR_X86_64_GOTPC32             calculation: (_GOTPC: GOT + A - P (address of global offset table + r_addend - (P: This means the place (section offset or address) of the storage unit being relocated (computed using r_offset ).)))\n");
+                    if (bytecmpq(GQ, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) fprintf(stderr, "\n\n\nR_X86_64_GOTPC32             calculation: (_GOTPC: GOT + A - P (address of global offset table + r_addend - (P: This means the place (section offset or address) of the storage unit being relocated (computed using r_offset ).)))\n");
                     Elf64_Addr * GOT = lookup_symbol_by_name(library[library_index].array, library[library_index]._elf_header, "_GLOBAL_OFFSET_TABLE_");
                     library[library_index]._R_X86_64_GOTPC32++;
                     break;
                 }
                 case R_X86_64_GOT64:
                 {
-                    if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) fprintf(stderr, "\n\n\nR_X86_64_GOT64               calculation: (_GOTPC: GOT + A - P (address of global offset table + r_addend - (P: This means the place (section offset or address) of the storage unit being relocated (computed using r_offset ).)))\n");
+                    if (bytecmpq(GQ, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) fprintf(stderr, "\n\n\nR_X86_64_GOT64               calculation: (_GOTPC: GOT + A - P (address of global offset table + r_addend - (P: This means the place (section offset or address) of the storage unit being relocated (computed using r_offset ).)))\n");
                     Elf64_Addr * GOT = lookup_symbol_by_name(library[library_index].array, library[library_index]._elf_header, "_GLOBAL_OFFSET_TABLE_");
                     library[library_index]._R_X86_64_GOT64++;
                     break;
                 }
                 case R_X86_64_GOTPCREL64:
                 {
-                    if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) fprintf(stderr, "\n\n\nR_X86_64_GOTPCREL64          calculation: (_GOTPC: GOT + A - P (address of global offset table + r_addend - (P: This means the place (section offset or address) of the storage unit being relocated (computed using r_offset ).)))\n");
+                    if (bytecmpq(GQ, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) fprintf(stderr, "\n\n\nR_X86_64_GOTPCREL64          calculation: (_GOTPC: GOT + A - P (address of global offset table + r_addend - (P: This means the place (section offset or address) of the storage unit being relocated (computed using r_offset ).)))\n");
                     Elf64_Addr * GOT = lookup_symbol_by_name(library[library_index].array, library[library_index]._elf_header, "_GLOBAL_OFFSET_TABLE_");
                     library[library_index]._R_X86_64_GOTPCREL64++;
                     break;
                 }
                 case R_X86_64_GOTPC64:
                 {
-                    if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) fprintf(stderr, "\n\n\nR_X86_64_GOTPC64             calculation: (_GOTPC: GOT + A - P (address of global offset table + r_addend - (P: This means the place (section offset or address) of the storage unit being relocated (computed using r_offset ).)))\n");
+                    if (bytecmpq(GQ, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) fprintf(stderr, "\n\n\nR_X86_64_GOTPC64             calculation: (_GOTPC: GOT + A - P (address of global offset table + r_addend - (P: This means the place (section offset or address) of the storage unit being relocated (computed using r_offset ).)))\n");
                     Elf64_Addr * GOT = lookup_symbol_by_name(library[library_index].array, library[library_index]._elf_header, "_GLOBAL_OFFSET_TABLE_");
                     library[library_index]._R_X86_64_GOTPC64++;
                     break;
                 }
                 case R_X86_64_GOTPLT64:
                 {
-                    if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) fprintf(stderr, "\n\n\nR_X86_64_GOTPLT64            calculation: (_GOTPC: GOT + A - P (address of global offset table + r_addend - (P: This means the place (section offset or address) of the storage unit being relocated (computed using r_offset ).)))\n");
+                    if (bytecmpq(GQ, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) fprintf(stderr, "\n\n\nR_X86_64_GOTPLT64            calculation: (_GOTPC: GOT + A - P (address of global offset table + r_addend - (P: This means the place (section offset or address) of the storage unit being relocated (computed using r_offset ).)))\n");
                     Elf64_Addr * GOT = lookup_symbol_by_name(library[library_index].array, library[library_index]._elf_header, "_GLOBAL_OFFSET_TABLE_");
                     library[library_index]._R_X86_64_GOTPLT64++;
                     break;
                 }
                 case R_X86_64_PLTOFF64:
                 {
-                    if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) fprintf(stderr, "\n\n\nR_X86_64_PLTOFF64\n");
+                    if (bytecmpq(GQ, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) fprintf(stderr, "\n\n\nR_X86_64_PLTOFF64\n");
                     Elf64_Addr * GOT = lookup_symbol_by_name(library[library_index].array, library[library_index]._elf_header, "_GLOBAL_OFFSET_TABLE_");
                     library[library_index]._R_X86_64_PLTOFF64++;
                     break;
                 }
                 case R_X86_64_SIZE32:
                 {
-                    if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) fprintf(stderr, "\n\n\nR_X86_64_SIZE32                 calculation: Z + A (symbol size + r_addend)\n");
-                    if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) fprintf(stderr, "reloc->r_offset = %014p\n", reloc->r_offset);
-                    *((char**)((char*)library[library_index].mappingb + reloc->r_offset)) = lookup_symbol_by_index(library[library_index].array, library[library_index]._elf_header, ELF64_R_SYM(reloc->r_info), symbol_mode_Z, symbol_quiet) + reloc->r_addend+library[library_index].mappingb;
-                    if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) fprintf(stderr, "((char*)library[library_index].mappingb + reloc->r_offset)            = %014p\n", ((char*)library[library_index].mappingb + reloc->r_offset));
+                    if (bytecmpq(GQ, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) fprintf(stderr, "\n\n\nR_X86_64_SIZE32                 calculation: Z + A (symbol size + r_addend)\n");
+                    if (bytecmpq(GQ, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) fprintf(stderr, "reloc->r_offset = %014p\n", reloc->r_offset);
+                    *((char**)((char*)library[library_index].mappingb + reloc->r_offset)) = lookup_symbol_by_index(library[library_index].array, library[library_index]._elf_header, ELF64_R_SYM(reloc->r_info), symbol_mode_Z, symbol_quiet, "no") + reloc->r_addend+library[library_index].mappingb;
+                    if (bytecmpq(GQ, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) fprintf(stderr, "((char*)library[library_index].mappingb + reloc->r_offset)            = %014p\n", ((char*)library[library_index].mappingb + reloc->r_offset));
                     library[library_index]._R_X86_64_SIZE32++;
                     break;
                 }
                 case R_X86_64_SIZE64:
                 {
-                    if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) fprintf(stderr, "\n\n\nR_X86_64_SIZE64                 calculation: Z + A (symbol size + r_addend)\n");
-                    if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) fprintf(stderr, "reloc->r_offset = %014p\n", reloc->r_offset);
-                    *((char**)((char*)library[library_index].mappingb + reloc->r_offset)) = lookup_symbol_by_index(library[library_index].array, library[library_index]._elf_header, ELF64_R_SYM(reloc->r_info), symbol_mode_Z, symbol_quiet) + reloc->r_addend+library[library_index].mappingb;
-                    if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) fprintf(stderr, "((char*)library[library_index].mappingb + reloc->r_offset)            = %014p\n", ((char*)library[library_index].mappingb + reloc->r_offset));
+                    if (bytecmpq(GQ, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) fprintf(stderr, "\n\n\nR_X86_64_SIZE64                 calculation: Z + A (symbol size + r_addend)\n");
+                    if (bytecmpq(GQ, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) fprintf(stderr, "reloc->r_offset = %014p\n", reloc->r_offset);
+                    *((char**)((char*)library[library_index].mappingb + reloc->r_offset)) = lookup_symbol_by_index(library[library_index].array, library[library_index]._elf_header, ELF64_R_SYM(reloc->r_info), symbol_mode_Z, symbol_quiet, "no") + reloc->r_addend+library[library_index].mappingb;
+                    if (bytecmpq(GQ, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) fprintf(stderr, "((char*)library[library_index].mappingb + reloc->r_offset)            = %014p\n", ((char*)library[library_index].mappingb + reloc->r_offset));
                     library[library_index]._R_X86_64_SIZE64++;
                     break;
                 }
                 case R_X86_64_GOTPC32_TLSDESC:
                 {
-                    if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) fprintf(stderr, "\n\n\nR_X86_64_GOTPC32_TLSDESC     calculation: (_GOTPC: GOT + A - P (address of global offset table + r_addend - (P: This means the place (section offset or address) of the storage unit being relocated (computed using r_offset ).)))\n");
+                    if (bytecmpq(GQ, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) fprintf(stderr, "\n\n\nR_X86_64_GOTPC32_TLSDESC     calculation: (_GOTPC: GOT + A - P (address of global offset table + r_addend - (P: This means the place (section offset or address) of the storage unit being relocated (computed using r_offset ).)))\n");
                     Elf64_Addr * GOT = lookup_symbol_by_name(library[library_index].array, library[library_index]._elf_header, "_GLOBAL_OFFSET_TABLE_");
                     library[library_index]._R_X86_64_GOTPC32_TLSDESC++;
                     break;
                 }
                 case R_X86_64_TLSDESC_CALL:
                 {
-                    if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) fprintf(stderr, "\n\n\nR_X86_64_TLSDESC_CALL\n");
+                    if (bytecmpq(GQ, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) fprintf(stderr, "\n\n\nR_X86_64_TLSDESC_CALL\n");
                     library[library_index]._R_X86_64_TLSDESC_CALL++;
                     break;
                 }
                 case R_X86_64_TLSDESC:
                 {
-                    if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) fprintf(stderr, "\n\n\nR_X86_64_TLSDESC\n");
+                    if (bytecmpq(GQ, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) fprintf(stderr, "\n\n\nR_X86_64_TLSDESC\n");
                     library[library_index]._R_X86_64_TLSDESC++;
                     break;
                 }
                 case R_X86_64_IRELATIVE:
                 {
 
-                    if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) fprintf(stderr, "\n\n\nR_X86_64_IRELATIVE                 calculation: (indirect) B + A (base address + r_addend)\n");
-                    if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) fprintf(stderr, "library[library_index].mappingb    = %014p\n", library[library_index].mappingb);
-                    if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) fprintf(stderr, "reloc->r_offset = %014p+%014p=%014p\n", library[library_index].mappingb, reloc->r_offset, library[library_index].mappingb+reloc->r_offset);
-                    if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) fprintf(stderr, "reloc->r_addend = %014p+%014p=%014p\n", library[library_index].mappingb, reloc->r_addend, ((char*)library[library_index].mappingb + reloc->r_addend) );
+                    if (bytecmpq(GQ, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) fprintf(stderr, "\n\n\nR_X86_64_IRELATIVE                 calculation: (indirect) B + A (base address + r_addend)\n");
+                    if (bytecmpq(GQ, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) fprintf(stderr, "library[library_index].mappingb    = %014p\n", library[library_index].mappingb);
+                    if (bytecmpq(GQ, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) fprintf(stderr, "reloc->r_offset = %014p+%014p=%014p\n", library[library_index].mappingb, reloc->r_offset, library[library_index].mappingb+reloc->r_offset);
+                    if (bytecmpq(GQ, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) fprintf(stderr, "reloc->r_addend = %014p+%014p=%014p\n", library[library_index].mappingb, reloc->r_addend, ((char*)library[library_index].mappingb + reloc->r_addend) );
                     Elf64_Addr value;
 //                     // changed, somehow this may cause a seg fault, dont use
 //                     value = ((char*)library[library_index].mappingb + reloc->r_addend);
@@ -2986,59 +3040,59 @@ R_386_GOTPC         This relocation type resembles R_386_PC32, except it uses th
                     *((char**)((char*)library[library_index].mappingb + reloc->r_offset)) = ((char*)library[library_index].mappingb + reloc->r_addend);
                     //
                     char ** addr = reloc->r_offset + library[library_index].mappingb;
-                    if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) test_address(addr);
-                    if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) fprintf(stderr, "((char*)library[library_index].mappingb + reloc->r_offset)            = %014p\n", ((char*)library[library_index].mappingb + reloc->r_offset));
+                    test_address(addr);
+                    if (bytecmpq(GQ, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) fprintf(stderr, "((char*)library[library_index].mappingb + reloc->r_offset)            = %014p\n", ((char*)library[library_index].mappingb + reloc->r_offset));
                     library[library_index]._R_X86_64_IRELATIVE++;
                     break;
                 }
                 case R_X86_64_RELATIVE64:
                 {
-                    if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) fprintf(stderr, "\n\n\nR_X86_64_RELATIVE64                 calculation: B + A (base address + r_addend)\n");
-                    if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) fprintf(stderr, "library[library_index].mappingb    = %014p\n", library[library_index].mappingb);
-                    if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) fprintf(stderr, "reloc->r_offset = %014p+%014p=%014p\n", library[library_index].mappingb, reloc->r_offset, library[library_index].mappingb+reloc->r_offset);
-                    if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) fprintf(stderr, "reloc->r_addend = %014p+%014p=%014p\n", library[library_index].mappingb, reloc->r_addend, ((char*)library[library_index].mappingb + reloc->r_addend) );
+                    if (bytecmpq(GQ, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) fprintf(stderr, "\n\n\nR_X86_64_RELATIVE64                 calculation: B + A (base address + r_addend)\n");
+                    if (bytecmpq(GQ, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) fprintf(stderr, "library[library_index].mappingb    = %014p\n", library[library_index].mappingb);
+                    if (bytecmpq(GQ, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) fprintf(stderr, "reloc->r_offset = %014p+%014p=%014p\n", library[library_index].mappingb, reloc->r_offset, library[library_index].mappingb+reloc->r_offset);
+                    if (bytecmpq(GQ, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) fprintf(stderr, "reloc->r_addend = %014p+%014p=%014p\n", library[library_index].mappingb, reloc->r_addend, ((char*)library[library_index].mappingb + reloc->r_addend) );
                     *((char**)((char*)library[library_index].mappingb + reloc->r_offset)) = ((char*)library[library_index].mappingb + reloc->r_addend);
                     char ** addr = reloc->r_offset + library[library_index].mappingb;
-                    if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) test_address(addr);
-                    if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) fprintf(stderr, "((char*)library[library_index].mappingb + reloc->r_offset)            = %014p\n", ((char*)library[library_index].mappingb + reloc->r_offset));
+                    test_address(addr);
+                    if (bytecmpq(GQ, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) fprintf(stderr, "((char*)library[library_index].mappingb + reloc->r_offset)            = %014p\n", ((char*)library[library_index].mappingb + reloc->r_offset));
                     library[library_index]._R_X86_64_RELATIVE64++;
                     break;
                 }
                 case R_X86_64_GOTPCRELX:
                 {
-                    if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) fprintf(stderr, "\n\n\nR_X86_64_GOTPCRELX           calculation: (_GOTPC: GOT + A - P (address of global offset table + r_addend - (P: This means the place (section offset or address) of the storage unit being relocated (computed using r_offset ).)))\n");
+                    if (bytecmpq(GQ, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) fprintf(stderr, "\n\n\nR_X86_64_GOTPCRELX           calculation: (_GOTPC: GOT + A - P (address of global offset table + r_addend - (P: This means the place (section offset or address) of the storage unit being relocated (computed using r_offset ).)))\n");
                     Elf64_Addr * GOT = lookup_symbol_by_name(library[library_index].array, library[library_index]._elf_header, "_GLOBAL_OFFSET_TABLE_");
                     library[library_index]._R_X86_64_GOTPCRELX++;
                     break;
                 }
                 case R_X86_64_REX_GOTPCRELX:
                 {
-                    if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) fprintf(stderr, "\n\n\nR_X86_64_REX_GOTPCRELX       calculation: (_GOTPC: GOT + A - P (address of global offset table + r_addend - (P: This means the place (section offset or address) of the storage unit being relocated (computed using r_offset ).)))\n");
+                    if (bytecmpq(GQ, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) fprintf(stderr, "\n\n\nR_X86_64_REX_GOTPCRELX       calculation: (_GOTPC: GOT + A - P (address of global offset table + r_addend - (P: This means the place (section offset or address) of the storage unit being relocated (computed using r_offset ).)))\n");
                     Elf64_Addr * GOT = lookup_symbol_by_name(library[library_index].array, library[library_index]._elf_header, "_GLOBAL_OFFSET_TABLE_");
                     library[library_index]._R_X86_64_REX_GOTPCRELX++;
                     break;
                 }
                 case R_X86_64_NUM:
                 {
-                    if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) fprintf(stderr, "\n\n\nR_X86_64_NUM\n");
+                    if (bytecmpq(GQ, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) fprintf(stderr, "\n\n\nR_X86_64_NUM\n");
                     library[library_index]._R_X86_64_NUM++;
                     break;
                 }
                 #endif
                 default:
-                    if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) fprintf(stderr, "unknown type, got %d\n", reloc_type);
+                    if (bytecmpq(GQ, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) fprintf(stderr, "unknown type, got %d\n", reloc_type);
                     library[library_index]._R_X86_64_UNKNOWN++;
                     break;
             }
         }
     }
-    if (bytecmpq(global_quiet, "no") == 0) nl();
-    if (bytecmpq(global_quiet, "no") == 0) nl();
-    if (bytecmpq(global_quiet, "no") == 0) nl();
+    if (bytecmpq(GQ, "no") == 0) nl();
+    if (bytecmpq(GQ, "no") == 0) nl();
+    if (bytecmpq(GQ, "no") == 0) nl();
 }
 
 int r_summary() {
-    if (bytecmpq(global_quiet, "no") == 0) printf( "relocation summary:\n \
+    if (bytecmpq(GQ, "no") == 0) printf( "relocation summary:\n \
     _R_X86_64_NONE              = %d\n \
     _R_X86_64_64                = %d\n \
     _R_X86_64_PC32              = %d\n \
@@ -3164,6 +3218,13 @@ init_(const char * filename) {
                     section_="Unknown";
                     break;
             }
+            if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "attempting to read PT_INTERP of %s\n", library[library_index].last_lib);
+            if (section_ == "PT_INTERP")
+            {
+                read_fast_verify(library[library_index].array, library[library_index].len, &library[library_index].interp, (library[library_index]._elf_program_header[i].p_memsz + library[library_index]._elf_program_header[i].p_offset));
+                __lseek_string__(&library[library_index].interp, library[library_index]._elf_program_header[i].p_memsz, library[library_index]._elf_program_header[i].p_offset);
+                if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "interp of %s PT_INTERP = %s\n", library[library_index].last_lib, library[library_index].interp);
+            }
             if (section_ == "PT_DYNAMIC")
             {
                 read_fast_verify(library[library_index].array, library[library_index].len, &library[library_index].tmp99D, (library[library_index]._elf_program_header[i].p_memsz + library[library_index]._elf_program_header[i].p_offset));
@@ -3227,228 +3288,228 @@ initv_(const char * filename) {
 //                 Number of section headers:         30
 //                 Section header string table index: 29
 //
-            if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "Name:\t\t %s\n", filename);
-            if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "ELF Identifier\t %s (", library[library_index]._elf_header->e_ident);
+            if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "Name:\t\t %s\n", filename);
+            if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "ELF Identifier\t %s (", library[library_index]._elf_header->e_ident);
             __print_quoted_string__(library[library_index]._elf_header->e_ident, sizeof(library[library_index]._elf_header->e_ident), QUOTE_FORCE_HEX|QUOTE_OMIT_LEADING_TRAILING_QUOTES, "print");
-            if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, " )\n");
+            if (bytecmpq(GQ, "no") == 0) fprintf(stderr, " )\n");
 
-            if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "Architecture\t ");
+            if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "Architecture\t ");
             switch(library[library_index]._elf_header->e_ident[EI_CLASS])
             {
                 case ELFCLASSNONE:
-                    if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "None\n");
+                    if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "None\n");
                     break;
 
                 case ELFCLASS32:
-                    if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "32-bit\n");
+                    if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "32-bit\n");
                     break;
 
                 case ELFCLASS64:
-                    if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "64-bit\n");
+                    if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "64-bit\n");
                     break;
                     
                 case ELFCLASSNUM:
-                    if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "NUM ( unspecified )\n");
+                    if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "NUM ( unspecified )\n");
                     break;
 
                 default:
-                    if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "Unknown CLASS\n");
+                    if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "Unknown CLASS\n");
                     break;
             }
 
-            if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "Data Type\t ");
+            if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "Data Type\t ");
             switch(library[library_index]._elf_header->e_ident[EI_DATA])
             {
                 case ELFDATANONE:
-                    if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "None\n");
+                    if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "None\n");
                     break;
 
                 case ELFDATA2LSB:
-                    if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "2's complement, little endian\n");
+                    if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "2's complement, little endian\n");
                     break;
 
                 case ELFDATA2MSB:
-                    if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "2's complement, big endian\n");
+                    if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "2's complement, big endian\n");
                     break;
                     
                 case ELFDATANUM:
-                    if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "NUM ( unspecified )\n");
+                    if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "NUM ( unspecified )\n");
                     break;
 
                 default:
-                    if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "Unknown \n");
+                    if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "Unknown \n");
                     break;
             }
 
-            if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "Version\t\t ");
+            if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "Version\t\t ");
             switch(library[library_index]._elf_header->e_ident[EI_VERSION])
             {
                 case EV_NONE:
-                    if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "None\n");
+                    if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "None\n");
                     break;
 
                 case EV_CURRENT:
-                    if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "Current\n");
+                    if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "Current\n");
                     break;
 
                 case EV_NUM:
-                    if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "NUM ( Unspecified )\n");
+                    if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "NUM ( Unspecified )\n");
                     break;
 
                 default:
-                    if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "Unknown \n");
+                    if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "Unknown \n");
                     break;
             }
 
-            if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "OS ABI\t\t ");
+            if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "OS ABI\t\t ");
             switch(library[library_index]._elf_header->e_ident[EI_OSABI])
             {
                 case ELFOSABI_NONE:
-                    if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "UNIX System V ABI\n");
+                    if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "UNIX System V ABI\n");
                     break;
 
 //                     case ELFOSABI_SYSV:
-//                         if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "SYSV\n");
+//                         if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "SYSV\n");
 //                         break;
 // 
                 case ELFOSABI_HPUX:
-                    if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "HP-UX\n");
+                    if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "HP-UX\n");
                     break;
 
                 case ELFOSABI_NETBSD:
-                    if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "NetBSD\n");
+                    if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "NetBSD\n");
                     break;
 
                 case ELFOSABI_GNU:
-                    if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "GNU\n");
+                    if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "GNU\n");
                     break;
 
 //                     case ELFOSABI_LINUX:
-//                         if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "Linux\n");
+//                         if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "Linux\n");
 //                         break;
 // 
                 case ELFOSABI_SOLARIS:
-                    if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "Sun Solaris\n");
+                    if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "Sun Solaris\n");
                     break;
 
                 case ELFOSABI_AIX:
-                    if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "ABM AIX\n");
+                    if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "ABM AIX\n");
                     break;
 
                 case ELFOSABI_FREEBSD:
-                    if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "FreeBSD\n");
+                    if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "FreeBSD\n");
                     break;
 
                 case ELFOSABI_TRU64:
-                    if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "Compaq Tru64\n");
+                    if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "Compaq Tru64\n");
                     break;
 
                 case ELFOSABI_MODESTO:
-                    if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "Novell Modesto\n");
+                    if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "Novell Modesto\n");
                     break;
 
                 case ELFOSABI_OPENBSD:
-                    if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "OpenBSD\n");
+                    if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "OpenBSD\n");
                     break;
 
 //                 case ELFOSABI_ARM_AEABI: // not in musl
-//                     if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "ARM EABI\n");
+//                     if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "ARM EABI\n");
 //                     break;
 
 //                 case ELFOSABI_ARM: // not in musl
-//                     if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "ARM\n");
+//                     if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "ARM\n");
 //                     break;
 
                 case ELFOSABI_STANDALONE:
-                    if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "Standalone (embedded) application\n");
+                    if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "Standalone (embedded) application\n");
                     break;
 
                 default:
-                    if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "Unknown \n");
+                    if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "Unknown \n");
                     break;
             }
 
-            if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "File Type\t ");
+            if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "File Type\t ");
             switch(library[library_index]._elf_header->e_type)
             {
                 case ET_NONE:
-                    if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "None\n");
+                    if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "None\n");
                     break;
 
                 case ET_REL:
-                    if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "Relocatable file\n");
+                    if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "Relocatable file\n");
                     break;
 
                 case ET_EXEC:
-                    if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "Executable file\n");
+                    if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "Executable file\n");
                     break;
 
                 case ET_DYN:
-                    if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "Shared object file\n");
+                    if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "Shared object file\n");
                     break;
 
                 case ET_CORE:
-                    if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "Core file\n");
+                    if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "Core file\n");
                     break;
 
                 case ET_NUM:
-                    if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "Number of defined types\n");
+                    if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "Number of defined types\n");
                     break;
 
                 case ET_LOOS:
-                    if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "OS-specific range start\n");
+                    if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "OS-specific range start\n");
                     break;
 
                 case ET_HIOS:
-                    if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "OS-specific range end\n");
+                    if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "OS-specific range end\n");
                     break;
 
                 case ET_LOPROC:
-                    if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "Processor-specific range start\n");
+                    if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "Processor-specific range start\n");
                     break;
 
                 case ET_HIPROC:
-                    if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "Processor-specific range end\n");
+                    if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "Processor-specific range end\n");
                     break;
 
                 default:
-                    if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "Unknown \n");
+                    if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "Unknown \n");
                     break;
             }
 
-            if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "Machine\t\t ");
+            if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "Machine\t\t ");
             switch(library[library_index]._elf_header->e_machine)
             {
                 case EM_NONE:
-                    if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "None\n");
+                    if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "None\n");
                     break;
 
                 case EM_386:
-                        if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "INTEL x86\n");
+                        if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "INTEL x86\n");
                         break;
 
                 case EM_X86_64:
-                        if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "AMD x86-64 architecture\n");
+                        if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "AMD x86-64 architecture\n");
                         break;
 
                 case EM_ARM:
-                        if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "ARM\n");
+                        if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "ARM\n");
                         break;
                 default:
-                        if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "Unknown\n");
+                        if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "Unknown\n");
                 break;
             }
             
             /* Entry point */
             int entry=library[library_index]._elf_header->e_entry;
-            if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "Entry point\t %014p\n", library[library_index]._elf_header->e_entry);
+            if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "Entry point\t %014p\n", library[library_index]._elf_header->e_entry);
             
 
             /* ELF header size in bytes */
-            if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "ELF header size\t %014p\n", library[library_index]._elf_header->e_ehsize);
+            if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "ELF header size\t %014p\n", library[library_index]._elf_header->e_ehsize);
 
             /* Program Header */
-            if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "Program Header\t %014p (%d entries with a total of %d bytes)\n",
+            if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "Program Header\t %014p (%d entries with a total of %d bytes)\n",
             library[library_index]._elf_header->e_phoff,
             library[library_index]._elf_header->e_phnum,
             library[library_index]._elf_header->e_phentsize
@@ -3459,86 +3520,86 @@ initv_(const char * filename) {
             uint32_t load_offset = 0;
             for (int i = 0; i < library[library_index]._elf_header->e_phnum; ++i) {
                 char * section_;
-                if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "p_type:\t\t\t/* Segment type */\t\t= ");
+                if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "p_type:\t\t\t/* Segment type */\t\t= ");
                 switch(library[library_index]._elf_program_header[i].p_type)
                 {
                     case PT_NULL:
-                        if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "PT_NULL\t\t/* Program header table entry unused */\n");
+                        if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "PT_NULL\t\t/* Program header table entry unused */\n");
                         section_="PT_NULL";
                         break;
                     case PT_LOAD:
-                        if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "PT_LOAD\t\t/* Loadable program segment */\n");
+                        if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "PT_LOAD\t\t/* Loadable program segment */\n");
                         section_="PT_LOAD";
                         load_addr = (const char *)library[library_index]._elf_program_header->p_vaddr;
                         load_offset = library[library_index]._elf_program_header->p_offset;
                         break;
                     case PT_DYNAMIC:
-                        if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "PT_DYNAMIC\t\t/* Dynamic linking information */\n");
+                        if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "PT_DYNAMIC\t\t/* Dynamic linking information */\n");
                         section_="PT_DYNAMIC";
                         library[library_index].PT_DYNAMIC_=i;
                         break;
                     case PT_INTERP:
-                        if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "PT_INTERP\t\t/* Program interpreter */\n");
+                        if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "PT_INTERP\t\t/* Program interpreter */\n");
                         section_="PT_INTERP";
                         break;
                     case PT_NOTE:
-                        if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "PT_NOTE\t\t/* Auxiliary information */\n");
+                        if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "PT_NOTE\t\t/* Auxiliary information */\n");
                         section_="PT_NOTE";
                         break;
                     case PT_SHLIB:
-                        if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "PT_SHLIB\t\t/* Reserved */\n");
+                        if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "PT_SHLIB\t\t/* Reserved */\n");
                         section_="PT_SHLIB";
                         break;
                     case PT_PHDR:
-                        if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "PT_PHDR\t\t/* Entry for header table itself */\n");
+                        if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "PT_PHDR\t\t/* Entry for header table itself */\n");
                         section_="PT_PHDR";
                         break;
                     case PT_TLS:
-                        if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "PT_TLS\t\t/* Thread-local storage segment */\n");
+                        if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "PT_TLS\t\t/* Thread-local storage segment */\n");
                         section_="PT_TLS";
                         break;
                     case PT_NUM:
-                        if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "PT_NUM\t\t/* Number of defined types */\n");
+                        if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "PT_NUM\t\t/* Number of defined types */\n");
                         section_="PT_NUM";
                         break;
                     case PT_LOOS:
-                        if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "PT_LOOS\t\t/* Start of OS-specific */\n");
+                        if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "PT_LOOS\t\t/* Start of OS-specific */\n");
                         section_="PT_LOOS";
                         break;
                     case PT_GNU_EH_FRAME:
-                        if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "PT_GNU_EH_FRAME\t/* GCC .eh_frame_hdr segment */\n");
+                        if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "PT_GNU_EH_FRAME\t/* GCC .eh_frame_hdr segment */\n");
                         section_="PT_GNU_EH_FRAME";
                         break;
                     case PT_GNU_STACK:
-                        if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "PT_GNU_STACK\t\t/* Indicates stack executability */\n");
+                        if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "PT_GNU_STACK\t\t/* Indicates stack executability */\n");
                         section_="PT_GNU_STACK";
                         break;
                     case PT_GNU_RELRO:
-                        if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "PT_GNU_RELRO\t\t/* Read-only after relocation */\n");
+                        if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "PT_GNU_RELRO\t\t/* Read-only after relocation */\n");
                         section_="PT_GNU_RELRO";
                         break;
                     case PT_SUNWBSS:
-                        if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "PT_SUNWBSS\t\t/* Sun Specific segment */\n");
+                        if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "PT_SUNWBSS\t\t/* Sun Specific segment */\n");
                         section_="PT_SUNWBSS";
                         break;
                     case PT_SUNWSTACK:
-                        if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "PT_SUNWSTACK\t\t/* Stack segment */\n");
+                        if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "PT_SUNWSTACK\t\t/* Stack segment */\n");
                         section_="PT_SUNWSTACK";
                         break;
                     case PT_HIOS:
-                        if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "PT_HIOS\t\t/* End of OS-specific */\n");
+                        if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "PT_HIOS\t\t/* End of OS-specific */\n");
                         section_="PT_HIOS";
                         break;
                     case PT_LOPROC:
-                        if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "PT_LOPROC\t\t/* Start of processor-specific */\n");
+                        if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "PT_LOPROC\t\t/* Start of processor-specific */\n");
                         section_="PT_LOPROC";
                         break;
                     case PT_HIPROC:
-                        if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "PT_HIPROC\t\t/* End of processor-specific */\n");
+                        if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "PT_HIPROC\t\t/* End of processor-specific */\n");
                         section_="PT_HIPROC";
                         break;
                     default:
-                        if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "Unknown\n");
+                        if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "Unknown\n");
                         section_="Unknown";
                         break;
                 }
@@ -3549,23 +3610,23 @@ initv_(const char * filename) {
                     __lseek_string__(&library[library_index].tmp99D, library[library_index]._elf_program_header[i].p_memsz, library[library_index]._elf_program_header[i].p_offset);
                 }
                 char * tmp99;/* = malloc((library[library_index]._elf_program_header[i].p_memsz + library[library_index]._elf_program_header[i].p_offset));*/
-                if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "ATTEMPING TO READ\n");
-                if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "reading                %014p\n", (library[library_index]._elf_program_header[i].p_memsz + library[library_index]._elf_program_header[i].p_offset));
+                if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "ATTEMPING TO READ\n");
+                if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "reading                %014p\n", (library[library_index]._elf_program_header[i].p_memsz + library[library_index]._elf_program_header[i].p_offset));
                 read_fast_verify(library[library_index].array, library[library_index].len, &tmp99, (library[library_index]._elf_program_header[i].p_memsz + library[library_index]._elf_program_header[i].p_offset));
-                if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "correcting position by %014p\n", library[library_index]._elf_program_header[i].p_offset);
+                if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "correcting position by %014p\n", library[library_index]._elf_program_header[i].p_offset);
                 __lseek_string__(&tmp99, library[library_index]._elf_program_header[i].p_memsz, library[library_index]._elf_program_header[i].p_offset);
-                if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "reading                %d\n", library[library_index]._elf_program_header[i].p_memsz);
+                if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "reading                %d\n", library[library_index]._elf_program_header[i].p_memsz);
                 __print_quoted_string__(tmp99, library[library_index]._elf_program_header[i].p_memsz, 0, "print");
-                if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "\nREAD\n");
-                if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "p_flags:\t\t/* Segment flags */\t\t= %014p\np_offset:\t\t/* Segment file offset */\t= %014p\np_vaddr:\t\t/* Segment virtual address */\t= %014p\np_paddr:\t\t/* Segment physical address */\t= %014p\np_filesz:\t\t/* Segment size in file */\t= %014p\np_memsz:\t\t/* Segment size in memory */\t= %014p\np_align:\t\t/* Segment alignment */\t\t= %014p\n\n\n", library[library_index]._elf_program_header[i].p_flags, library[library_index]._elf_program_header[i].p_offset, library[library_index]._elf_program_header[i].p_vaddr+library[library_index].mappingb, library[library_index]._elf_program_header[i].p_paddr, library[library_index]._elf_program_header[i].p_filesz, library[library_index]._elf_program_header[i].p_memsz, library[library_index]._elf_program_header[i].p_align);
-                if (bytecmpq(global_quiet, "no") == 0) nl();
-                if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "\t\tp_flags: %014p", library[library_index]._elf_program_header[i].p_flags);
-                if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, " p_offset: %014p", library[library_index]._elf_program_header[i].p_offset);
-                if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, " p_vaddr:  %014p", library[library_index]._elf_program_header[i].p_vaddr+library[library_index].mappingb);
-                if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, " p_paddr: %014p", library[library_index]._elf_program_header[i].p_paddr);
-                if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, " p_filesz: %014p", library[library_index]._elf_program_header[i].p_filesz);
-                if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, " p_memsz: %014p", library[library_index]._elf_program_header[i].p_memsz);
-                if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, " p_align: %014p\n", library[library_index]._elf_program_header[i].p_align);
+                if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "\nREAD\n");
+                if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "p_flags:\t\t/* Segment flags */\t\t= %014p\np_offset:\t\t/* Segment file offset */\t= %014p\np_vaddr:\t\t/* Segment virtual address */\t= %014p\np_paddr:\t\t/* Segment physical address */\t= %014p\np_filesz:\t\t/* Segment size in file */\t= %014p\np_memsz:\t\t/* Segment size in memory */\t= %014p\np_align:\t\t/* Segment alignment */\t\t= %014p\n\n\n", library[library_index]._elf_program_header[i].p_flags, library[library_index]._elf_program_header[i].p_offset, library[library_index]._elf_program_header[i].p_vaddr+library[library_index].mappingb, library[library_index]._elf_program_header[i].p_paddr, library[library_index]._elf_program_header[i].p_filesz, library[library_index]._elf_program_header[i].p_memsz, library[library_index]._elf_program_header[i].p_align);
+                if (bytecmpq(GQ, "no") == 0) nl();
+                if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "\t\tp_flags: %014p", library[library_index]._elf_program_header[i].p_flags);
+                if (bytecmpq(GQ, "no") == 0) fprintf(stderr, " p_offset: %014p", library[library_index]._elf_program_header[i].p_offset);
+                if (bytecmpq(GQ, "no") == 0) fprintf(stderr, " p_vaddr:  %014p", library[library_index]._elf_program_header[i].p_vaddr+library[library_index].mappingb);
+                if (bytecmpq(GQ, "no") == 0) fprintf(stderr, " p_paddr: %014p", library[library_index]._elf_program_header[i].p_paddr);
+                if (bytecmpq(GQ, "no") == 0) fprintf(stderr, " p_filesz: %014p", library[library_index]._elf_program_header[i].p_filesz);
+                if (bytecmpq(GQ, "no") == 0) fprintf(stderr, " p_memsz: %014p", library[library_index]._elf_program_header[i].p_memsz);
+                if (bytecmpq(GQ, "no") == 0) fprintf(stderr, " p_align: %014p\n", library[library_index]._elf_program_header[i].p_align);
             }
 
             if (library[library_index].PT_DYNAMIC_ != 0) {
@@ -3579,12 +3640,12 @@ initv_(const char * filename) {
 // data reside at the end of the segment, thereby making p_memsz larger than p_filesz.
 // 
 
-                if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "PT_LOAD 1 = \n");
-                if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "p_flags:\t\t/* Segment flags */\t\t= %014p\np_offset:\t\t/* Segment file offset */\t= %014p\np_vaddr:\t\t/* Segment virtual address */\t= %014p\np_paddr:\t\t/* Segment physical address */\t= %014p\np_filesz:\t\t/* Segment size in file */\t= %014p\np_memsz:\t\t/* Segment size in memory */\t= %014p\np_align:\t\t/* Segment alignment */\t\t= %014p\n\n\n", library[library_index]._elf_program_header[library[library_index].First_Load_Header_index].p_flags, library[library_index]._elf_program_header[library[library_index].First_Load_Header_index].p_offset, library[library_index]._elf_program_header[library[library_index].First_Load_Header_index].p_vaddr+library[library_index].mappingb, library[library_index]._elf_program_header[library[library_index].First_Load_Header_index].p_paddr, library[library_index]._elf_program_header[library[library_index].First_Load_Header_index].p_filesz, library[library_index]._elf_program_header[library[library_index].First_Load_Header_index].p_memsz, library[library_index]._elf_program_header[library[library_index].First_Load_Header_index].p_align);
-                if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "PT_LOAD 2 = \n");
-                if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "p_flags:\t\t/* Segment flags */\t\t= %014p\np_offset:\t\t/* Segment file offset */\t= %014p\np_vaddr:\t\t/* Segment virtual address */\t= %014p\np_paddr:\t\t/* Segment physical address */\t= %014p\np_filesz:\t\t/* Segment size in file */\t= %014p\np_memsz:\t\t/* Segment size in memory */\t= %014p\np_align:\t\t/* Segment alignment */\t\t= %014p\n\n\n", library[library_index]._elf_program_header[library[library_index].Last_Load_Header_index].p_flags, library[library_index]._elf_program_header[library[library_index].Last_Load_Header_index].p_offset, library[library_index]._elf_program_header[library[library_index].Last_Load_Header_index].p_vaddr+library[library_index].mappingb, library[library_index]._elf_program_header[library[library_index].Last_Load_Header_index].p_paddr, library[library_index]._elf_program_header[library[library_index].Last_Load_Header_index].p_filesz, library[library_index]._elf_program_header[library[library_index].Last_Load_Header_index].p_memsz, library[library_index]._elf_program_header[library[library_index].Last_Load_Header_index].p_align);
-                if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "first PT_LOAD library[library_index]._elf_program_header[%d]->p_paddr = \n%014p\n", library[library_index].First_Load_Header_index, library[library_index]._elf_program_header[library[library_index].First_Load_Header_index].p_paddr+library[library_index].mappingb);
-                if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "Second PT_LOAD library[library_index]._elf_program_header[%d]->p_paddr = \n%014p\n", library[library_index].Last_Load_Header_index, library[library_index]._elf_program_header[library[library_index].Last_Load_Header_index].p_paddr+library[library_index].mappingb);
+                if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "PT_LOAD 1 = \n");
+                if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "p_flags:\t\t/* Segment flags */\t\t= %014p\np_offset:\t\t/* Segment file offset */\t= %014p\np_vaddr:\t\t/* Segment virtual address */\t= %014p\np_paddr:\t\t/* Segment physical address */\t= %014p\np_filesz:\t\t/* Segment size in file */\t= %014p\np_memsz:\t\t/* Segment size in memory */\t= %014p\np_align:\t\t/* Segment alignment */\t\t= %014p\n\n\n", library[library_index]._elf_program_header[library[library_index].First_Load_Header_index].p_flags, library[library_index]._elf_program_header[library[library_index].First_Load_Header_index].p_offset, library[library_index]._elf_program_header[library[library_index].First_Load_Header_index].p_vaddr+library[library_index].mappingb, library[library_index]._elf_program_header[library[library_index].First_Load_Header_index].p_paddr, library[library_index]._elf_program_header[library[library_index].First_Load_Header_index].p_filesz, library[library_index]._elf_program_header[library[library_index].First_Load_Header_index].p_memsz, library[library_index]._elf_program_header[library[library_index].First_Load_Header_index].p_align);
+                if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "PT_LOAD 2 = \n");
+                if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "p_flags:\t\t/* Segment flags */\t\t= %014p\np_offset:\t\t/* Segment file offset */\t= %014p\np_vaddr:\t\t/* Segment virtual address */\t= %014p\np_paddr:\t\t/* Segment physical address */\t= %014p\np_filesz:\t\t/* Segment size in file */\t= %014p\np_memsz:\t\t/* Segment size in memory */\t= %014p\np_align:\t\t/* Segment alignment */\t\t= %014p\n\n\n", library[library_index]._elf_program_header[library[library_index].Last_Load_Header_index].p_flags, library[library_index]._elf_program_header[library[library_index].Last_Load_Header_index].p_offset, library[library_index]._elf_program_header[library[library_index].Last_Load_Header_index].p_vaddr+library[library_index].mappingb, library[library_index]._elf_program_header[library[library_index].Last_Load_Header_index].p_paddr, library[library_index]._elf_program_header[library[library_index].Last_Load_Header_index].p_filesz, library[library_index]._elf_program_header[library[library_index].Last_Load_Header_index].p_memsz, library[library_index]._elf_program_header[library[library_index].Last_Load_Header_index].p_align);
+                if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "first PT_LOAD library[library_index]._elf_program_header[%d]->p_paddr = \n%014p\n", library[library_index].First_Load_Header_index, library[library_index]._elf_program_header[library[library_index].First_Load_Header_index].p_paddr+library[library_index].mappingb);
+                if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "Second PT_LOAD library[library_index]._elf_program_header[%d]->p_paddr = \n%014p\n", library[library_index].Last_Load_Header_index, library[library_index]._elf_program_header[library[library_index].Last_Load_Header_index].p_paddr+library[library_index].mappingb);
                 library[library_index].dynamic = library[library_index].tmp99D;
                 for (; library[library_index].dynamic->d_tag != DT_NULL; library[library_index].dynamic++) {
                     if (library[library_index].dynamic->d_tag == DT_STRTAB) {
@@ -3601,12 +3662,12 @@ initv_(const char * filename) {
                 library[library_index].GOT2 = library[library_index].mappingb + get_dynamic_entry(library[library_index].dynamic, DT_PLTGOT);
 //                 library[library_index].PLT = library[library_index].mappingb + get_dynamic_entry(library[library_index].dynamic, DT_PLTREL);
 
-//                 if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "printing symbol data\n");
+//                 if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "printing symbol data\n");
 //                 Elf64_Sym *syms = library[library_index].mappingb + get_dynamic_entry(library[library_index].dynamic, DT_SYMTAB);
 //                 symbol1(library[library_index].array, syms, 0);
-                if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "examining current entries:\n");
+                if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "examining current entries:\n");
                 get_dynamic_entry(library[library_index].dynamic, -1);
-                if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "printing relocation data\n");
+                if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "printing relocation data\n");
                 // needs to be the address of the mapping itself, not the base address
                 r_init();
                 r(library[library_index].mappingb + get_dynamic_entry(library[library_index].dynamic, DT_RELA), get_dynamic_entry(library[library_index].dynamic, DT_RELASZ), relocation_quiet);
@@ -3615,9 +3676,9 @@ initv_(const char * filename) {
 //                 r(library[library_index].mappingb + get_dynamic_entry(library[library_index].dynamic, DT_PLTREL), get_dynamic_entry(library[library_index].dynamic, DT_PLTRELSZ), relocation_quiet);
                 r_summary();
             }
-//             if (bytecmpq(global_quiet, "no") == 0) nl();
+//             if (bytecmpq(GQ, "no") == 0) nl();
             
-            if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "Section Header\t \
+            if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "Section Header\t \
 library[library_index]._elf_header->e_shstrndx %014p (\
 library[library_index]._elf_header->e_shnum = %d entries with a total of \
 library[library_index]._elf_header->e_shentsize = %d (should match %d) bytes, offset is \
@@ -3634,13 +3695,13 @@ library[library_index]._elf_header->e_shoff = %014p)\n",\
             print_symbols(library[library_index].array, library[library_index]._elf_header, library[library_index]._elf_symbol_table);
         } else {
                 /* Not ELF file */
-                if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "ELFMAGIC not found\n");
-                if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "header = ");
+                if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "ELFMAGIC not found\n");
+                if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "header = ");
                 __print_quoted_string__(library[library_index].array, sizeof(library[library_index]._elf_header->e_ident), QUOTE_OMIT_LEADING_TRAILING_QUOTES, "print");
-                if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "\n");
-                if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "ELF Identifier\t %s (", library[library_index]._elf_header->e_ident);
+                if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "\n");
+                if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "ELF Identifier\t %s (", library[library_index]._elf_header->e_ident);
                 __print_quoted_string__(library[library_index]._elf_header->e_ident, sizeof(library[library_index]._elf_header->e_ident), QUOTE_FORCE_HEX|QUOTE_OMIT_LEADING_TRAILING_QUOTES, "print");
-                if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, " )\n");
+                if (bytecmpq(GQ, "no") == 0) fprintf(stderr, " )\n");
             return 0;
         }
     library[library_index].init__ = 1;
@@ -3658,7 +3719,7 @@ dlopen_(const char * cc)
         return "-1";
     };
     if ( if_valid(cc) == -1) {
-        fprintf(stderr, "\"%s\" not found\n", cc);
+        if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "\"%s\" not found\n", cc);
         errno = 0;
         return "-1";
     }
@@ -3667,15 +3728,18 @@ dlopen_(const char * cc)
     library[library_index].library_name = cc;
     library[library_index].library_first_character = library[library_index].library_name[0];
     library[library_index].library_len = strlen(library[library_index].library_name);
-    fprintf(stderr, "dlopen: adding %s to index %d\n", cc, library_index);
+    if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "dlopen: adding %s to index %d\n", cc, library_index);
     return cc;
 }
 
 void *
 dlopen(const char * cc) {
-    get_needed(cc);
+//     init_struct();
+//     print_needed(cc, "-1", 4, LDD);
+    get_needed(cc, "-1");
     return dlopen_(cc);
 }
+
 void *
 dlsym(const char * cc1, const char * cc2)
 {
@@ -3683,86 +3747,24 @@ dlsym(const char * cc1, const char * cc2)
         if (bytecmpq(ldd_quiet, "no") == 0) fprintf(stderr, "dlsym: LOCKED\n");
         return "-1";
     };
-    /*
-
-    printf resolution:
-    
-    initialization:
-    in during relocation JMP_SLOT relocations are preformed, which write directly to the GOT, in this case "printf" is translated directly to "puts" at compile time
-    ->
-    R_X86_64_JUMP_SLOT           calculation: S (symbol value)
-    library[library_index].mappingb    = 0x7ffff0000000
-    reloc->r_offset = 0x7ffff0000000+0x000000201018=0x7ffff0201018
-    attempting to look up symbol, index = 2
-    looking up index 2 of table 3
-    requested symbol name for index 2 is puts
-    symbol = 0 (         (nil))
-    0x7ffff0201018 = 0x7ffff0000000
-
-    in gdb tracing/examining the calls:
-    callq  540 <puts@plt>
-    ->
-    jmpq   *0x200ad2(%rip)        # 201018 <puts@GLIBC_2.2.5>
-    ->
-    retrieves the _GLOBAL_OFFSET_TABLE_ as an array called GOT
-    
-    address of GOT[3] = 0x7ffff0000000
-    (
-        pwndbg> x /g 0x7ffff0201000+0x8+0x10
-        0x7ffff0201018: 0x00007ffff0000000
-    )
-    ->
-    jumps to 0x00007ffff0000000 wich is incorrect as it is not the location of printf
-    
-     ► 0x7ffff0000540    jmp    qword ptr [rip + 0x200ad2] // callq  540 <puts@plt>
-        ↓
-       0x7ffff0000000    jg     0x7ffff0000047
-    
-    
-    since the jump can be modified we can make it jump to whatever we like wich would be bad in normal cases but usefull in specific cases, but for now we will try to make it jump to the actual location of puts in the libc library
-    
-    "ld.so takes the first symbol it finds"
-
-    */
     
     if (bytecmpq(cc1,"-1") == 0) return "-1";
     library_index = search(cc1);
-
     library[library_index].library_symbol = cc2;
+    if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "dlsym: adding %s from %s\n", library[library_index].library_symbol, library[library_index].library_name);
+    if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "calling find needed\n");
+    find_needed(cc1, cc2);
+}
 
-    fprintf(stderr, "dlsym: adding %s from %s\n", library[library_index].library_symbol, library[library_index].library_name);
-
-    library[library_index].GOT = lookup_symbol_by_name_(cc1, "_GLOBAL_OFFSET_TABLE_");
-    if (library[library_index].GOT != NULL) {
-        if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "\n\naddress of GOT   = %014p\n", library[library_index].GOT);
-        if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "address of GOT[1] = %014p\n", library[library_index].GOT[1]);
-        if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "address of GOT[2] = %014p\n", library[library_index].GOT[2]);
-        if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "address of GOT[3] = %014p\n", library[library_index].GOT[3]);
-        if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "address of GOT[4] = %014p\n", library[library_index].GOT[4]);
-        if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "address of GOT[5] = %014p\n", library[library_index].GOT[5]);
-        if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "address of GOT[6] = %014p\n", library[library_index].GOT[6]);
-        if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "address of GOT[7] = %014p\n", library[library_index].GOT[7]);
+void *
+dlsym_(const char * cc1, const char * cc2)
+{
+    if (library[library_index].init_lock == 1) {
+        if (bytecmpq(ldd_quiet, "no") == 0) fprintf(stderr, "dlsym: LOCKED\n");
+        return "-1";
     }
-    else if (library[library_index].GOT2 != NULL) {
-        if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "\n\naddress of GOT   = %014p\n", library[library_index].GOT2);
-        if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "address of GOT[1] = %014p\n", library[library_index].GOT2[1]);
-        if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "address of GOT[2] = %014p\n", library[library_index].GOT2[2]);
-        if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "address of GOT[3] = %014p\n", library[library_index].GOT2[3]);
-        if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "address of GOT[4] = %014p\n", library[library_index].GOT2[4]);
-        if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "address of GOT[5] = %014p\n", library[library_index].GOT2[5]);
-        if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "address of GOT[6] = %014p\n", library[library_index].GOT2[6]);
-        if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "address of GOT[7] = %014p\n", library[library_index].GOT2[7]);
-    }
-    if (library[library_index].PLT != NULL) {
-        if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "\n\naddress of PLT   = %014p\n", library[library_index].PLT);
-        if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "address of PLT[1] = %014p\n", library[library_index].PLT[1]);
-        if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "address of PLT[2] = %014p\n", library[library_index].PLT[2]);
-        if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "address of PLT[3] = %014p\n", library[library_index].PLT[3]);
-        if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "address of PLT[4] = %014p\n", library[library_index].PLT[4]);
-        if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "address of PLT[5] = %014p\n", library[library_index].PLT[5]);
-        if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "address of PLT[6] = %014p\n", library[library_index].PLT[6]);
-        if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "address of PLT[7] = %014p\n", library[library_index].PLT[7]);
-    }
+    if (bytecmpq(cc1,"-1") == 0) return "-1";
+    library_index = search(cc1);
     return lookup_symbol_by_name_(cc1, cc2);
 }
 
@@ -3792,228 +3794,228 @@ readelf_(const char * filename) {
 //                 Number of section headers:         30
 //                 Section header string table index: 29
 //
-            if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "Name:\t\t %s\n", filename);
-            if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "ELF Identifier\t %s (", library[library_index]._elf_header->e_ident);
+            if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "Name:\t\t %s\n", filename);
+            if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "ELF Identifier\t %s (", library[library_index]._elf_header->e_ident);
             __print_quoted_string__(library[library_index]._elf_header->e_ident, sizeof(library[library_index]._elf_header->e_ident), QUOTE_FORCE_HEX|QUOTE_OMIT_LEADING_TRAILING_QUOTES, "print");
-            if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, " )\n");
+            if (bytecmpq(GQ, "no") == 0) fprintf(stderr, " )\n");
 
-            if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "Architecture\t ");
+            if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "Architecture\t ");
             switch(library[library_index]._elf_header->e_ident[EI_CLASS])
             {
                 case ELFCLASSNONE:
-                    if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "None\n");
+                    if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "None\n");
                     break;
 
                 case ELFCLASS32:
-                    if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "32-bit\n");
+                    if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "32-bit\n");
                     break;
 
                 case ELFCLASS64:
-                    if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "64-bit\n");
+                    if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "64-bit\n");
                     break;
                     
                 case ELFCLASSNUM:
-                    if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "NUM ( unspecified )\n");
+                    if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "NUM ( unspecified )\n");
                     break;
 
                 default:
-                    if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "Unknown CLASS\n");
+                    if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "Unknown CLASS\n");
                     break;
             }
 
-            if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "Data Type\t ");
+            if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "Data Type\t ");
             switch(library[library_index]._elf_header->e_ident[EI_DATA])
             {
                 case ELFDATANONE:
-                    if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "None\n");
+                    if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "None\n");
                     break;
 
                 case ELFDATA2LSB:
-                    if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "2's complement, little endian\n");
+                    if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "2's complement, little endian\n");
                     break;
 
                 case ELFDATA2MSB:
-                    if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "2's complement, big endian\n");
+                    if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "2's complement, big endian\n");
                     break;
                     
                 case ELFDATANUM:
-                    if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "NUM ( unspecified )\n");
+                    if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "NUM ( unspecified )\n");
                     break;
 
                 default:
-                    if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "Unknown \n");
+                    if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "Unknown \n");
                     break;
             }
 
-            if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "Version\t\t ");
+            if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "Version\t\t ");
             switch(library[library_index]._elf_header->e_ident[EI_VERSION])
             {
                 case EV_NONE:
-                    if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "None\n");
+                    if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "None\n");
                     break;
 
                 case EV_CURRENT:
-                    if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "Current\n");
+                    if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "Current\n");
                     break;
 
                 case EV_NUM:
-                    if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "NUM ( Unspecified )\n");
+                    if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "NUM ( Unspecified )\n");
                     break;
 
                 default:
-                    if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "Unknown \n");
+                    if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "Unknown \n");
                     break;
             }
 
-            if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "OS ABI\t\t ");
+            if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "OS ABI\t\t ");
             switch(library[library_index]._elf_header->e_ident[EI_OSABI])
             {
                 case ELFOSABI_NONE:
-                    if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "UNIX System V ABI\n");
+                    if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "UNIX System V ABI\n");
                     break;
 
 //                     case ELFOSABI_SYSV:
-//                         if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "SYSV\n");
+//                         if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "SYSV\n");
 //                         break;
 // 
                 case ELFOSABI_HPUX:
-                    if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "HP-UX\n");
+                    if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "HP-UX\n");
                     break;
 
                 case ELFOSABI_NETBSD:
-                    if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "NetBSD\n");
+                    if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "NetBSD\n");
                     break;
 
                 case ELFOSABI_GNU:
-                    if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "GNU\n");
+                    if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "GNU\n");
                     break;
 
 //                     case ELFOSABI_LINUX:
-//                         if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "Linux\n");
+//                         if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "Linux\n");
 //                         break;
 // 
                 case ELFOSABI_SOLARIS:
-                    if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "Sun Solaris\n");
+                    if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "Sun Solaris\n");
                     break;
 
                 case ELFOSABI_AIX:
-                    if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "ABM AIX\n");
+                    if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "ABM AIX\n");
                     break;
 
                 case ELFOSABI_FREEBSD:
-                    if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "FreeBSD\n");
+                    if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "FreeBSD\n");
                     break;
 
                 case ELFOSABI_TRU64:
-                    if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "Compaq Tru64\n");
+                    if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "Compaq Tru64\n");
                     break;
 
                 case ELFOSABI_MODESTO:
-                    if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "Novell Modesto\n");
+                    if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "Novell Modesto\n");
                     break;
 
                 case ELFOSABI_OPENBSD:
-                    if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "OpenBSD\n");
+                    if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "OpenBSD\n");
                     break;
 
 //                 case ELFOSABI_ARM_AEABI:
-//                     if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "ARM EABI\n");
+//                     if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "ARM EABI\n");
 //                     break;
 
 //                 case ELFOSABI_ARM:
-//                     if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "ARM\n");
+//                     if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "ARM\n");
 //                     break;
 
                 case ELFOSABI_STANDALONE:
-                    if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "Standalone (embedded) application\n");
+                    if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "Standalone (embedded) application\n");
                     break;
 
                 default:
-                    if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "Unknown \n");
+                    if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "Unknown \n");
                     break;
             }
 
-            if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "File Type\t ");
+            if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "File Type\t ");
             switch(library[library_index]._elf_header->e_type)
             {
                 case ET_NONE:
-                    if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "None\n");
+                    if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "None\n");
                     break;
 
                 case ET_REL:
-                    if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "Relocatable file\n");
+                    if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "Relocatable file\n");
                     break;
 
                 case ET_EXEC:
-                    if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "Executable file\n");
+                    if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "Executable file\n");
                     break;
 
                 case ET_DYN:
-                    if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "Shared object file\n");
+                    if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "Shared object file\n");
                     break;
 
                 case ET_CORE:
-                    if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "Core file\n");
+                    if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "Core file\n");
                     break;
 
                 case ET_NUM:
-                    if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "Number of defined types\n");
+                    if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "Number of defined types\n");
                     break;
 
                 case ET_LOOS:
-                    if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "OS-specific range start\n");
+                    if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "OS-specific range start\n");
                     break;
 
                 case ET_HIOS:
-                    if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "OS-specific range end\n");
+                    if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "OS-specific range end\n");
                     break;
 
                 case ET_LOPROC:
-                    if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "Processor-specific range start\n");
+                    if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "Processor-specific range start\n");
                     break;
 
                 case ET_HIPROC:
-                    if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "Processor-specific range end\n");
+                    if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "Processor-specific range end\n");
                     break;
 
                 default:
-                    if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "Unknown \n");
+                    if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "Unknown \n");
                     break;
             }
 
-            if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "Machine\t\t ");
+            if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "Machine\t\t ");
             switch(library[library_index]._elf_header->e_machine)
             {
                 case EM_NONE:
-                    if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "None\n");
+                    if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "None\n");
                     break;
 
                 case EM_386:
-                        if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "INTEL x86\n");
+                        if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "INTEL x86\n");
                         break;
 
                 case EM_X86_64:
-                        if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "AMD x86-64 architecture\n");
+                        if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "AMD x86-64 architecture\n");
                         break;
 
                 case EM_ARM:
-                        if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "ARM\n");
+                        if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "ARM\n");
                         break;
                 default:
-                        if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "Unknown\n");
+                        if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "Unknown\n");
                 break;
             }
             
             /* Entry point */
             int entry=library[library_index]._elf_header->e_entry;
-            if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "Entry point\t %014p\n", library[library_index]._elf_header->e_entry);
+            if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "Entry point\t %014p\n", library[library_index]._elf_header->e_entry);
             
 
             /* ELF header size in bytes */
-            if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "ELF header size\t %014p\n", library[library_index]._elf_header->e_ehsize);
+            if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "ELF header size\t %014p\n", library[library_index]._elf_header->e_ehsize);
 
             /* Program Header */
-            if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "Program Header\t %014p (%d entries with a total of %d bytes)\n",
+            if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "Program Header\t %014p (%d entries with a total of %d bytes)\n",
             library[library_index]._elf_header->e_phoff,
             library[library_index]._elf_header->e_phnum,
             library[library_index]._elf_header->e_phentsize
@@ -4021,84 +4023,84 @@ readelf_(const char * filename) {
 // continue analysis
             for (int i = 0; i < library[library_index]._elf_header->e_phnum; ++i) {
                 char * section_;
-                if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "p_type:\t\t\t/* Segment type */\t\t= ");
+                if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "p_type:\t\t\t/* Segment type */\t\t= ");
                 switch(library[library_index]._elf_program_header[i].p_type)
                 {
                     case PT_NULL:
-                        if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "PT_NULL\t\t/* Program header table entry unused */\n");
+                        if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "PT_NULL\t\t/* Program header table entry unused */\n");
                         section_="PT_NULL";
                         break;
                     case PT_LOAD:
-                        if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "PT_LOAD\t\t/* Loadable program segment */\n");
+                        if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "PT_LOAD\t\t/* Loadable program segment */\n");
                         section_="PT_LOAD";
                         break;
                     case PT_DYNAMIC:
-                        if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "PT_DYNAMIC\t\t/* Dynamic linking information */\n");
+                        if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "PT_DYNAMIC\t\t/* Dynamic linking information */\n");
                         section_="PT_DYNAMIC";
                         library[library_index].PT_DYNAMIC_=i;
                         break;
                     case PT_INTERP:
-                        if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "PT_INTERP\t\t/* Program interpreter */\n");
+                        if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "PT_INTERP\t\t/* Program interpreter */\n");
                         section_="PT_INTERP";
                         break;
                     case PT_NOTE:
-                        if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "PT_NOTE\t\t/* Auxiliary information */\n");
+                        if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "PT_NOTE\t\t/* Auxiliary information */\n");
                         section_="PT_NOTE";
                         break;
                     case PT_SHLIB:
-                        if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "PT_SHLIB\t\t/* Reserved */\n");
+                        if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "PT_SHLIB\t\t/* Reserved */\n");
                         section_="PT_SHLIB";
                         break;
                     case PT_PHDR:
-                        if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "PT_PHDR\t\t/* Entry for header table itself */\n");
+                        if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "PT_PHDR\t\t/* Entry for header table itself */\n");
                         section_="PT_PHDR";
                         break;
                     case PT_TLS:
-                        if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "PT_TLS\t\t/* Thread-local storage segment */\n");
+                        if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "PT_TLS\t\t/* Thread-local storage segment */\n");
                         section_="PT_TLS";
                         break;
                     case PT_NUM:
-                        if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "PT_NUM\t\t/* Number of defined types */\n");
+                        if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "PT_NUM\t\t/* Number of defined types */\n");
                         section_="PT_NUM";
                         break;
                     case PT_LOOS:
-                        if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "PT_LOOS\t\t/* Start of OS-specific */\n");
+                        if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "PT_LOOS\t\t/* Start of OS-specific */\n");
                         section_="PT_LOOS";
                         break;
                     case PT_GNU_EH_FRAME:
-                        if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "PT_GNU_EH_FRAME\t/* GCC .eh_frame_hdr segment */\n");
+                        if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "PT_GNU_EH_FRAME\t/* GCC .eh_frame_hdr segment */\n");
                         section_="PT_GNU_EH_FRAME";
                         break;
                     case PT_GNU_STACK:
-                        if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "PT_GNU_STACK\t\t/* Indicates stack executability */\n");
+                        if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "PT_GNU_STACK\t\t/* Indicates stack executability */\n");
                         section_="PT_GNU_STACK";
                         break;
                     case PT_GNU_RELRO:
-                        if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "PT_GNU_RELRO\t\t/* Read-only after relocation */\n");
+                        if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "PT_GNU_RELRO\t\t/* Read-only after relocation */\n");
                         section_="PT_GNU_RELRO";
                         break;
                     case PT_SUNWBSS:
-                        if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "PT_SUNWBSS\t\t/* Sun Specific segment */\n");
+                        if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "PT_SUNWBSS\t\t/* Sun Specific segment */\n");
                         section_="PT_SUNWBSS";
                         break;
                     case PT_SUNWSTACK:
-                        if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "PT_SUNWSTACK\t\t/* Stack segment */\n");
+                        if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "PT_SUNWSTACK\t\t/* Stack segment */\n");
                         section_="PT_SUNWSTACK";
                         break;
                     case PT_HIOS:
-                        if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "PT_HIOS\t\t/* End of OS-specific */\n");
+                        if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "PT_HIOS\t\t/* End of OS-specific */\n");
                         section_="PT_HIOS";
                         break;
                     case PT_LOPROC:
-                        if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "PT_LOPROC\t\t/* Start of processor-specific */\n");
+                        if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "PT_LOPROC\t\t/* Start of processor-specific */\n");
                         section_="PT_LOPROC";
                         break;
                     case PT_HIPROC:
-                        if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "PT_HIPROC\t\t/* End of processor-specific */\n");
+                        if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "PT_HIPROC\t\t/* End of processor-specific */\n");
                         section_="PT_HIPROC";
                         break;
                     default:
-                        if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "Unknown\n");
+                        if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "Unknown\n");
                         section_="Unknown";
                         break;
                 }
@@ -4109,23 +4111,23 @@ readelf_(const char * filename) {
                     __lseek_string__(&library[library_index].tmp99D, library[library_index]._elf_program_header[i].p_memsz, library[library_index]._elf_program_header[i].p_offset);
                 }
                 char * tmp99;/* = malloc((library[library_index]._elf_program_header[i].p_memsz + library[library_index]._elf_program_header[i].p_offset));*/
-                if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "ATTEMPING TO READ\n");
-                if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "reading                %014p\n", (library[library_index]._elf_program_header[i].p_memsz + library[library_index]._elf_program_header[i].p_offset));
+                if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "ATTEMPING TO READ\n");
+                if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "reading                %014p\n", (library[library_index]._elf_program_header[i].p_memsz + library[library_index]._elf_program_header[i].p_offset));
                 read_fast_verify(library[library_index].array, library[library_index].len, &tmp99, (library[library_index]._elf_program_header[i].p_memsz + library[library_index]._elf_program_header[i].p_offset));
-                if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "correcting position by %014p\n", library[library_index]._elf_program_header[i].p_offset);
+                if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "correcting position by %014p\n", library[library_index]._elf_program_header[i].p_offset);
                 __lseek_string__(&tmp99, library[library_index]._elf_program_header[i].p_memsz, library[library_index]._elf_program_header[i].p_offset);
-                if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "reading                %d\n", library[library_index]._elf_program_header[i].p_memsz);
+                if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "reading                %d\n", library[library_index]._elf_program_header[i].p_memsz);
                 __print_quoted_string__(tmp99, library[library_index]._elf_program_header[i].p_memsz, 0, "print");
-                if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "\nREAD\n");
-                if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "p_flags:\t\t/* Segment flags */\t\t= %014p\np_offset:\t\t/* Segment file offset */\t= %014p\np_vaddr:\t\t/* Segment virtual address */\t= %014p\np_paddr:\t\t/* Segment physical address */\t= %014p\np_filesz:\t\t/* Segment size in file */\t= %014p\np_memsz:\t\t/* Segment size in memory */\t= %014p\np_align:\t\t/* Segment alignment */\t\t= %014p\n\n\n", library[library_index]._elf_program_header[i].p_flags, library[library_index]._elf_program_header[i].p_offset, library[library_index]._elf_program_header[i].p_vaddr+library[library_index].mappingb, library[library_index]._elf_program_header[i].p_paddr, library[library_index]._elf_program_header[i].p_filesz, library[library_index]._elf_program_header[i].p_memsz, library[library_index]._elf_program_header[i].p_align);
-                if (bytecmpq(global_quiet, "no") == 0) nl();
-                if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "\t\tp_flags: %014p", library[library_index]._elf_program_header[i].p_flags);
-                if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, " p_offset: %014p", library[library_index]._elf_program_header[i].p_offset);
-                if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, " p_vaddr:  %014p", library[library_index]._elf_program_header[i].p_vaddr+library[library_index].mappingb);
-                if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, " p_paddr: %014p", library[library_index]._elf_program_header[i].p_paddr);
-                if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, " p_filesz: %014p", library[library_index]._elf_program_header[i].p_filesz);
-                if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, " p_memsz: %014p", library[library_index]._elf_program_header[i].p_memsz);
-                if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, " p_align: %014p\n", library[library_index]._elf_program_header[i].p_align);
+                if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "\nREAD\n");
+                if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "p_flags:\t\t/* Segment flags */\t\t= %014p\np_offset:\t\t/* Segment file offset */\t= %014p\np_vaddr:\t\t/* Segment virtual address */\t= %014p\np_paddr:\t\t/* Segment physical address */\t= %014p\np_filesz:\t\t/* Segment size in file */\t= %014p\np_memsz:\t\t/* Segment size in memory */\t= %014p\np_align:\t\t/* Segment alignment */\t\t= %014p\n\n\n", library[library_index]._elf_program_header[i].p_flags, library[library_index]._elf_program_header[i].p_offset, library[library_index]._elf_program_header[i].p_vaddr+library[library_index].mappingb, library[library_index]._elf_program_header[i].p_paddr, library[library_index]._elf_program_header[i].p_filesz, library[library_index]._elf_program_header[i].p_memsz, library[library_index]._elf_program_header[i].p_align);
+                if (bytecmpq(GQ, "no") == 0) nl();
+                if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "\t\tp_flags: %014p", library[library_index]._elf_program_header[i].p_flags);
+                if (bytecmpq(GQ, "no") == 0) fprintf(stderr, " p_offset: %014p", library[library_index]._elf_program_header[i].p_offset);
+                if (bytecmpq(GQ, "no") == 0) fprintf(stderr, " p_vaddr:  %014p", library[library_index]._elf_program_header[i].p_vaddr+library[library_index].mappingb);
+                if (bytecmpq(GQ, "no") == 0) fprintf(stderr, " p_paddr: %014p", library[library_index]._elf_program_header[i].p_paddr);
+                if (bytecmpq(GQ, "no") == 0) fprintf(stderr, " p_filesz: %014p", library[library_index]._elf_program_header[i].p_filesz);
+                if (bytecmpq(GQ, "no") == 0) fprintf(stderr, " p_memsz: %014p", library[library_index]._elf_program_header[i].p_memsz);
+                if (bytecmpq(GQ, "no") == 0) fprintf(stderr, " p_align: %014p\n", library[library_index]._elf_program_header[i].p_align);
             }
 
             if (library[library_index].PT_DYNAMIC_ != 0) {
@@ -4139,19 +4141,19 @@ readelf_(const char * filename) {
 // data reside at the end of the segment, thereby making p_memsz larger than p_filesz.
 // 
 
-                if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "PT_LOAD 1 = \n");
-                if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "p_flags:\t\t/* Segment flags */\t\t= %014p\np_offset:\t\t/* Segment file offset */\t= %014p\np_vaddr:\t\t/* Segment virtual address */\t= %014p\np_paddr:\t\t/* Segment physical address */\t= %014p\np_filesz:\t\t/* Segment size in file */\t= %014p\np_memsz:\t\t/* Segment size in memory */\t= %014p\np_align:\t\t/* Segment alignment */\t\t= %014p\n\n\n", library[library_index]._elf_program_header[library[library_index].First_Load_Header_index].p_flags, library[library_index]._elf_program_header[library[library_index].First_Load_Header_index].p_offset, library[library_index]._elf_program_header[library[library_index].First_Load_Header_index].p_vaddr+library[library_index].mappingb, library[library_index]._elf_program_header[library[library_index].First_Load_Header_index].p_paddr, library[library_index]._elf_program_header[library[library_index].First_Load_Header_index].p_filesz, library[library_index]._elf_program_header[library[library_index].First_Load_Header_index].p_memsz, library[library_index]._elf_program_header[library[library_index].First_Load_Header_index].p_align);
-                if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "PT_LOAD 2 = \n");
-                if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "p_flags:\t\t/* Segment flags */\t\t= %014p\np_offset:\t\t/* Segment file offset */\t= %014p\np_vaddr:\t\t/* Segment virtual address */\t= %014p\np_paddr:\t\t/* Segment physical address */\t= %014p\np_filesz:\t\t/* Segment size in file */\t= %014p\np_memsz:\t\t/* Segment size in memory */\t= %014p\np_align:\t\t/* Segment alignment */\t\t= %014p\n\n\n", library[library_index]._elf_program_header[library[library_index].Last_Load_Header_index].p_flags, library[library_index]._elf_program_header[library[library_index].Last_Load_Header_index].p_offset, library[library_index]._elf_program_header[library[library_index].Last_Load_Header_index].p_vaddr+library[library_index].mappingb, library[library_index]._elf_program_header[library[library_index].Last_Load_Header_index].p_paddr, library[library_index]._elf_program_header[library[library_index].Last_Load_Header_index].p_filesz, library[library_index]._elf_program_header[library[library_index].Last_Load_Header_index].p_memsz, library[library_index]._elf_program_header[library[library_index].Last_Load_Header_index].p_align);
-                if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "first PT_LOAD library[library_index]._elf_program_header[%d]->p_paddr = \n%014p\n", library[library_index].First_Load_Header_index, library[library_index]._elf_program_header[library[library_index].First_Load_Header_index].p_paddr+library[library_index].mappingb);
-                if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "Second PT_LOAD library[library_index]._elf_program_header[%d]->p_paddr = \n%014p\n", library[library_index].Last_Load_Header_index, library[library_index]._elf_program_header[library[library_index].Last_Load_Header_index].p_paddr+library[library_index].mappingb);
+                if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "PT_LOAD 1 = \n");
+                if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "p_flags:\t\t/* Segment flags */\t\t= %014p\np_offset:\t\t/* Segment file offset */\t= %014p\np_vaddr:\t\t/* Segment virtual address */\t= %014p\np_paddr:\t\t/* Segment physical address */\t= %014p\np_filesz:\t\t/* Segment size in file */\t= %014p\np_memsz:\t\t/* Segment size in memory */\t= %014p\np_align:\t\t/* Segment alignment */\t\t= %014p\n\n\n", library[library_index]._elf_program_header[library[library_index].First_Load_Header_index].p_flags, library[library_index]._elf_program_header[library[library_index].First_Load_Header_index].p_offset, library[library_index]._elf_program_header[library[library_index].First_Load_Header_index].p_vaddr+library[library_index].mappingb, library[library_index]._elf_program_header[library[library_index].First_Load_Header_index].p_paddr, library[library_index]._elf_program_header[library[library_index].First_Load_Header_index].p_filesz, library[library_index]._elf_program_header[library[library_index].First_Load_Header_index].p_memsz, library[library_index]._elf_program_header[library[library_index].First_Load_Header_index].p_align);
+                if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "PT_LOAD 2 = \n");
+                if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "p_flags:\t\t/* Segment flags */\t\t= %014p\np_offset:\t\t/* Segment file offset */\t= %014p\np_vaddr:\t\t/* Segment virtual address */\t= %014p\np_paddr:\t\t/* Segment physical address */\t= %014p\np_filesz:\t\t/* Segment size in file */\t= %014p\np_memsz:\t\t/* Segment size in memory */\t= %014p\np_align:\t\t/* Segment alignment */\t\t= %014p\n\n\n", library[library_index]._elf_program_header[library[library_index].Last_Load_Header_index].p_flags, library[library_index]._elf_program_header[library[library_index].Last_Load_Header_index].p_offset, library[library_index]._elf_program_header[library[library_index].Last_Load_Header_index].p_vaddr+library[library_index].mappingb, library[library_index]._elf_program_header[library[library_index].Last_Load_Header_index].p_paddr, library[library_index]._elf_program_header[library[library_index].Last_Load_Header_index].p_filesz, library[library_index]._elf_program_header[library[library_index].Last_Load_Header_index].p_memsz, library[library_index]._elf_program_header[library[library_index].Last_Load_Header_index].p_align);
+                if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "first PT_LOAD library[library_index]._elf_program_header[%d]->p_paddr = \n%014p\n", library[library_index].First_Load_Header_index, library[library_index]._elf_program_header[library[library_index].First_Load_Header_index].p_paddr+library[library_index].mappingb);
+                if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "Second PT_LOAD library[library_index]._elf_program_header[%d]->p_paddr = \n%014p\n", library[library_index].Last_Load_Header_index, library[library_index]._elf_program_header[library[library_index].Last_Load_Header_index].p_paddr+library[library_index].mappingb);
                 Elf64_Dyn * dynamic = library[library_index].tmp99D;
 
-                if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "examining current entries:\n");
+                if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "examining current entries:\n");
                 get_dynamic_entry(library[library_index].dynamic, -1);
             }
 
-            if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "Section Header\t \
+            if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "Section Header\t \
 library[library_index]._elf_header->e_shstrndx %014p (\
 library[library_index]._elf_header->e_shnum = %d entries with a total of \
 library[library_index]._elf_header->e_shentsize = %d (should match %d) bytes, offset is \
@@ -4168,13 +4170,13 @@ library[library_index]._elf_header->e_shoff = %014p)\n",\
             print_symbols(library[library_index].array, library[library_index]._elf_header, library[library_index]._elf_symbol_table);
         } else {
                 /* Not ELF file */
-                if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "ELFMAGIC not found\n");
-                if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "header = ");
+                if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "ELFMAGIC not found\n");
+                if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "header = ");
                 __print_quoted_string__(library[library_index].array, sizeof(library[library_index]._elf_header->e_ident), QUOTE_OMIT_LEADING_TRAILING_QUOTES, "print");
-                if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "\n");
-                if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "ELF Identifier\t %s (", library[library_index]._elf_header->e_ident);
+                if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "\n");
+                if (bytecmpq(GQ, "no") == 0) fprintf(stderr, "ELF Identifier\t %s (", library[library_index]._elf_header->e_ident);
                 __print_quoted_string__(library[library_index]._elf_header->e_ident, sizeof(library[library_index]._elf_header->e_ident), QUOTE_FORCE_HEX|QUOTE_OMIT_LEADING_TRAILING_QUOTES, "print");
-                if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, " )\n");
+                if (bytecmpq(GQ, "no") == 0) fprintf(stderr, " )\n");
             return 0;
         }
     return 0;
@@ -4278,9 +4280,9 @@ __string_quote__(const char *instr, char *outstr, const unsigned int size, const
                     pass_one = 1;
                     pass_three = 1;
                     pass_four= 1;
-//                         if i wanted a string to be if (bytecmpq(global_quiet, "no") == 0) printf safe what characters would i need to replace or modify, for example "hi"ko-pl" would need to be "hi\"ko"'-'"pl"
+//                         if i wanted a string to be if (bytecmpq(GQ, "no") == 0) printf safe what characters would i need to replace or modify, for example "hi"ko-pl" would need to be "hi\"ko"'-'"pl"
 //                         \x27 is '
-//                     xargs -0 if (bytecmpq(global_quiet, "no") == 0) printf '%s'<<EOF
+//                     xargs -0 if (bytecmpq(GQ, "no") == 0) printf '%s'<<EOF
 //                     "hi"ko-p'l"
 //                     EOF
                 }
