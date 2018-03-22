@@ -4,11 +4,6 @@
 int main() {
     using std::cout;
     using std::cerr;
-
-    cout << "C++ dlopen demo\n\n";
-
-    // open the library
-    cout << "Opening hello.so...\n";
     void* handle = dlopen("./hello.so", RTLD_LAZY);
     
     if (!handle) {

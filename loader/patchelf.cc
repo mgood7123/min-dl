@@ -1362,7 +1362,7 @@ extern "C"
 int print_needed(const char * lib, const char * parent, int depth, int mode);
 
 #ifndef M
-int q = 1;
+int q = 0;
 #endif
 
 #ifdef M

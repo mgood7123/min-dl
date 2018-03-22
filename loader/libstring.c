@@ -23,6 +23,12 @@
 #include <sys/auxv.h>
 #include <math.h>
 char * GQ2 = "yes";
+void print_got(Elf64_Addr * _GLOBAL_OFFSET_TABLE_, int num) {
+    for (int i = 0; i<=num; i++) {
+            fprintf(stderr, "GOT[%d] = %014p\n", i, ((Elf64_Addr *)&_GLOBAL_OFFSET_TABLE_)[i]);
+    }
+}
+
 
 // bytecmp compares two strings char by char for an EXACT full string match, returns -1 if strings differ in length or do not match but are of same length
 
@@ -238,9 +244,10 @@ void init_argX();
 void * getaux(void * type);
 void * setaux(void * value, void * type);
 void * currentaux();
-
+extern void bt(void);
 void abort_() {
-    if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "%s: cannot continue, pausing execution to allow for debugging\nif you do now know how to debug this process as paused execute the following in a new terminal:\n\n    sudo gdb -p %d\n\n", getaux(AT_EXECFN), getpid());
+    fprintf(stderr, "%s: cannot continue, pausing execution to allow for debugging\nif you do not know how to debug this process as paused execute the following in a new terminal:\n\n    sudo gdb -p %d\n\n", getaux(AT_EXECFN), getpid());
+    bt();
     pause();
 }
 

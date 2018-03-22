@@ -4,9 +4,12 @@ struct lib
     char * rootusrlib;
     int init_lock;
     char * struct_init;
+    char * struct_needed_init;
     char * library_name;
     char * parent;
     char ** NEEDED;
+    char ** Resolved;
+    int Resolve_Index[9999];
     int NEEDED_COUNT;
     char library_first_character;
     char * library_len;
