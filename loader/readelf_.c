@@ -1,4 +1,4 @@
-// could a C++ template reduce for example, a 1k LOC files with say 500 lines of the same code but slightly different, with 25 blocks and each block is 20 lines, with the only changes in each block is say filenames and variable names, to only a 500 LOC file with only 1 block but still be as if there are 25 blocks *
+// could a C++ template reduce for example, a 1k LOC files with say 500 lines of the same code but slightly different, with the 500 lines consisting of 25 blocks of code and each block is 20 lines, with the only changes in each block is say filenames and variable names, to only a 500 LOC file with only 1 block but still be as if there are 25 blocks *
 
 /*
 
