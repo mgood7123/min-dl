@@ -26,6 +26,8 @@ cd ../
 
 ## this aims to be a fully functional dlopen, dlsym, dlclose, implimentation on top of a fully functional dynamic loader, currently only supports musl libc applications due to glibc requiring symbols for certain functions (for example: puts() ) from its own dynamic loader ld.so (ld-linux-x86_64.so) that it does not specify explicitly as required
 
+## also features a slightly modified C++ symbol demangler function (from cfilt++) for aiding in attempting to dlopen C++ functions (uses libiberty)
+
 
 #### UNCHANGED from original README.MD
 To support dynamic linking, each ELF shared libary and each executable that
