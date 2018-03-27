@@ -28,6 +28,8 @@ cd ../
 
 ## also features a slightly modified C++ symbol demangler function (from cfilt++) for aiding in attempting to dlopen C++ functions (uses libiberty)
 
+## this also aims to optimise dynamic loading for size by mapping only the minimum amount required, and unmapping the rest, moving mappings to make room for more mappings should there not be enough free space to map another file into the process address space, kinda like lazy mapping but smartly, in that only the needed parts are mapped and all other parts are unmapped for example if the only needed function is write() then only the write() function will be mapped instead of the entire libc.so, wich does not sound like much given only one dependancy but given hundreads of applications to execute and potentially thousands of dependancies, even with shared memory, could reduce total memory usage considerably as the full size of the dependancies are not loaded into memory and as a result, is not wasting space that could be used for other tasks
+
 
 #### UNCHANGED from original README.MD
 To support dynamic linking, each ELF shared libary and each executable that
