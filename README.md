@@ -1,7 +1,7 @@
 # min-dl: minimal dynamic linker implementation
 
 ##### TODO
-      1. add support for address and variable retreival, at the moment it is only a info gathering tool
+      1.  correctly impliment a recursive symbol resolver and tracker to prevent the same symbols being resolved multiple times leading to incorrectly resolved symbols or unresolvable symbols
       
       2. find a way to initialize global variables required in functions for correct execution (may need alot of help with this part)
       
