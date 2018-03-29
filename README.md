@@ -1,5 +1,11 @@
 # min-dl: minimal dynamic linker implementation
 
+## the aim
+    
+    To load any package compiled with any libc implimentation (glibc, musl, uclibc, dietlibc, and others)
+
+    To launch the package without requiring host dependancies unless necessary
+
 ##### TODO
       1.  correctly impliment a recursive symbol resolver and tracker to prevent the same symbols being resolved multiple times leading to incorrectly resolved symbols or unresolvable symbols
       
@@ -42,7 +48,7 @@ cd ../
 ## this also aims to optimise dynamic loading for size by mapping only the minimum amount required, and unmapping the rest, moving mappings to make room for more mappings should there not be enough free space to map another file into the process address space, kinda like lazy mapping but smartly, in that only the needed parts are mapped and all other parts are unmapped for example if the only needed function is write() then only the write() function will be mapped instead of the entire libc.so, wich does not sound like much given only one dependancy but given hundreads of applications to execute and potentially thousands of dependancies, even with shared memory, could reduce total memory usage considerably as the full size of the dependancies are not loaded into memory and as a result, is not wasting space that could be used for other tasks
 
 
-#### UNCHANGED from original README.MD
+#### UNCHANGED from original README.MD (mostly useless since i use 1% of min dl's code)
 To support dynamic linking, each ELF shared libary and each executable that
 uses shared libraries has a Procedure Linkage Table (PLT), which adds a level
 of indirection for function calls analogous to that provided by the GOT for
