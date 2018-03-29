@@ -6,6 +6,30 @@
 
     To launch the package without requiring host dependancies unless necessary
 
+    aims to be a fully functional dlopen, dlsym, dlclose, implimentation on top of a fully functional dynamic loader, currently only supports musl libc applications due to glibc requiring symbols for certain functions (for example: puts() ) from its own dynamic loader ld.so (ld-linux-x86_64.so) that it does not specify explicitly as required
+
+    also features a slightly modified C++ symbol demangler function (from cfilt++) for aiding in attempting to dlopen C++ functions (uses libiberty)
+
+    this also aims to (once stable) optimise dynamic loading for size by mapping only the minimum amount required, and unmapping the rest, moving mappings to make room for more mappings should there not be enough free space to map another file into the process address space, kinda like lazy mapping but smartly, in that only the needed parts are mapped and all other parts are unmapped for example if the only needed function is write() then only the write() function will be mapped instead of the entire libc.so, wich does not sound like much given only one dependancy but given hundreads of applications to execute and potentially thousands of dependancies, even with shared memory, could reduce total memory usage considerably as the full size of the dependancies are not loaded into memory and as a result, is not wasting space that could be used for other tasks
+
+## rules
+
+    THIS MUST BE ABLE TO REDIRECT THE LOADING OF SHARED OBJECTS (.so) TO ./ INSTEAD OF USING THE SYSTEM DEFAULT /
+
+    THIS REDIRECTION PATH CAN BE CONFIGURED BY SETTING THE ENVIRONMENTAL VARIABLE LD_SYSTEM_PATH TO A NON NULL PATH
+
+    THIS REDIRECTION PATH IS ALLOWED TO BE RELATIVE
+
+    IF THE REDIRECTION PATH DOES NOT EXIST THE DEFAULT ./ IS ASSUMED AS A FALLBACK
+
+    IF A LIBRARY CANNOT BE FOUND USING LD_SYSTEM_PATH AND CANNOT BE FOUND IN ./ THEN / WILL BE TRIED
+
+    IF LIBRARY STILL CANNOT BE FOUND AN A ERROR SHALL OCCUR AND EXECUTION SHALL BE ABORTED DURING DYNAMIC LOADING
+
+    OTHERWISE IF LIBRARY STILL CANNOT BE FOUND AN ERROR SHALL OCCUR AND EXECUTION SHALL CONTINUE EVEN THOUGH IT WILL LIKELY FAIL WITH Segmentation Fault
+
+
+
 ##### TODO
       1.  correctly impliment a recursive symbol resolver and tracker to prevent the same symbols being resolved multiple times leading to incorrectly resolved symbols or unresolvable symbols
       
@@ -32,21 +56,8 @@ cd ../
 
 
 
-## rules
 
-    THIS MUST BE ABLE TO REDIRECT THE LOADING OF SHARED OBJECTS (.so) TO ./ INSTEAD OF USING THE SYSTEM DEFAULT /
 
-    THIS REDIRECTION PATH CAN BE CONFIGURED BY SETTING THE ENVIRONMENTAL VARIABLE LD_SYSTEM_PATH TO A NON NULL PATH
-
-    THIS REDIRECTION PATH IS ALLOWED TO BE RELATIVE
-
-    IF THE REDIRECTION PATH DOES NOT EXIST THE DEFAULT ./ IS ASSUMED AS A FALLBACK
-
-    IF A LIBRARY CANNOT BE FOUND USING LD_SYSTEM_PATH AND CANNOT BE FOUND IN ./ THEN / WILL BE TRIED
-
-    IF LIBRARY STILL CANNOT BE FOUND AN A ERROR SHALL OCCUR AND EXECUTION SHALL BE ABORTED DURING DYNAMIC LOADING
-
-    OTHERWISE IF LIBRARY STILL CANNOT BE FOUND AN ERROR SHALL OCCUR AND EXECUTION SHALL CONTINUE EVEN THOUGH IT WILL LIKELY FAIL WITH Segmentation
 
  
 
