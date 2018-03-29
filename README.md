@@ -46,7 +46,7 @@ re-written loader is in loader (https://github.com/mgood7123/universal-dynamic-l
 
 #### compilation: (direct copy and paste into shell)
 
-git clone https://github.com/mgood7123/min-dl-dynamic-loader.git
+git clone https://github.com/mgood7123/universal-dynamic-loader.git
 
 cd min-dl-dynamic-loader/loader
 
