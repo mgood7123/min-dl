@@ -33,9 +33,13 @@
 2. find a way to initialize global variables required in functions for correct execution (may need alot of help with this part)
 3. correct address bugs
 4. Implement As A Fully Functional Dynamic Loader
+
+
+
+
  
 
-re-written loader is in loader (https://github.com/mgood7123/min-dl-dynamic-loader/blob/master/loader/)
+re-written loader is in loader (https://github.com/mgood7123/universal-dynamic-loader/blob/master/loader/)
 
 
 
