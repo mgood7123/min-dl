@@ -65,9 +65,10 @@
 
 re-written loader is in loader (https://github.com/mgood7123/min-dl-dynamic-loader/blob/master/loader/)
 
-original min-dl is in min-dl
 
-#### compilation:
+
+
+#### compilation: (direct copy and paste into shell)
 
 git clone https://github.com/mgood7123/min-dl-dynamic-loader.git
 
