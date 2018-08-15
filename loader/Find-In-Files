@@ -1,8 +1,8 @@
-if (( $# == 2 )); then
+if (( $# >= 2 )); then
     path=$1;
     shift  1;
-elif (( $# == 1 )); then
-    path=.;
+else
+    path=.
 fi
 file=($(find "$path"))
 for i in ${file[@]}
