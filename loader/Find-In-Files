@@ -1,4 +1,10 @@
-file=($(find ./)) &&
+if (( $# == 2 )); then
+    path=$1;
+    shift  1;
+elif (( $# == 1 )); then
+    path=.;
+fi
+file=($(find "$path"))
 for i in ${file[@]}
     do
         cat -n $i 2>/dev/null | grep --color -q -i -e "$@" && 
