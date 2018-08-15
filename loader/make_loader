@@ -6,7 +6,7 @@ share="$debug -fPIC -shared"
 link="$debug"
 rm -rfv files
 mkdir ./files
-a=$? ; else a=1 ; fi
+a=$?
 if [[ $a == 0 ]] ; then
 rm -rf libbacktrace
 a=$? ; else a=1 ; fi
@@ -27,6 +27,7 @@ make check
 a=$? ; else a=1 ; fi
 if [[ $a == 0 ]] ; then
 cd ../
+a=$? ; else a=1 ; fi
 if [[ $a == 0 ]] ; then
 gcc $compile backtrace.c -o files/backtrace.o
 a=$? ; else a=1 ; fi
