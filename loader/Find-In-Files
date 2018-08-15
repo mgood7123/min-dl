@@ -2,8 +2,7 @@ file=($(find ./)) &&
 for i in ${file[@]}
     do
         cat -n $i 2>/dev/null | grep --color -q -i -e "$@" && 
-        printf "\n$i:\n" &&
-        echo "---------------START---------------" &&
+        printf -- "---------------START--------------- $i:\n" &&
         cat -n $i 2>/dev/null | grep --color -i -e "$@" &&
-        echo "----------------END----------------"
+        printf -- "----------------END---------------- $i\n"
 done
