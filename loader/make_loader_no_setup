@@ -23,7 +23,7 @@ if [[ $a == 0 ]] ; then
 ar cur files/libstring.a files/libstring.o
 a=$? ; else a=1 ; fi
 if [[ $a == 0 ]] ; then
-gcc $link readelf_.c -D__SHARED__ -o files/readelf_.o
+gcc $compile readelf_.c -D__SHARED__ -o files/readelf_.o
 a=$? ; else a=1 ; fi
 if [[ $a == 0 ]] ; then
 gcc $compile readelf__min.c -o files/readelf_min.o
