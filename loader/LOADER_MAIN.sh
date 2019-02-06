@@ -49,9 +49,9 @@ a=$? ; else a=1 ; fi
 if [[ $a == 0 ]] ; then
 g++ $share patchelf.cc -o files/patchelf.so
 a=$? ; else a=1 ; fi
-# if [[ $a == 0 ]] ; then
-# gcc ${RE} -o files/readelf_ files/readelf_.so files/patchelf.so files/libstring.so files/backtrace.so
-# a=$? ; else a=1 ; fi
+if [[ $a == 0 ]] ; then
+gcc $link ${RE} -o files/readelf_ files/readelf_.so files/patchelf.so files/libstring.so files/backtrace.so
+a=$? ; else a=1 ; fi
 if [[ $a == 0 ]] ; then
 g++ $link patchelf.cc -o files/patchelf ./files/libstring.a ./files/backtrace.a -DM
 a=$? ; else a=1 ; fi

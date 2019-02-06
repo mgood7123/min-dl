@@ -1,5 +1,14 @@
+/*
+STABLE
+
+commit ea20d1806d08f44300df120b6e5bed0d6093afbc
+Author: mgood7123 <smallville7123@gmail.com>
+Date:   Fri Mar 16 09:59:40 2018 +1000
+
+*/
+
 char ** argv;
-#if __PIC__ == 0
+#ifndef __SHARED__
 // compiled without -fpic or -fPIC
 #warning recompile this with the flag -fpic or -fPIC to enable compiling this as a shared library
 
