@@ -4,13 +4,8 @@ struct lib
     char * rootusrlib;
     int init_lock;
     char * struct_init;
-	int initializing;
-    char * struct_needed_init;
     char * library_name;
-    char * parent;
     char ** NEEDED;
-    char ** Resolved;
-    int Resolve_Index[9999];
     int NEEDED_COUNT;
     char library_first_character;
     char * library_len;
@@ -30,7 +25,6 @@ struct lib
     Elf64_Addr mappingb_end;
     int init__;
     int PT_DYNAMIC_;
-    char * interp;
     char * tmp99D;
     Elf64_Dyn * dynamic;
     int First_Load_Header_index;

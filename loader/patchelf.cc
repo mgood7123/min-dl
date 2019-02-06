@@ -178,7 +178,7 @@ public:
     
     void replaceNeeded(map<string, string>& libs);
 
-    void printNeededLibs(const char * lib, const char * parent, int depth, int mode);
+    void printNeededLibs(const char * lib, int depth, int mode);
 
     void noDefaultLib();
 
@@ -1359,21 +1359,11 @@ const char * pad(int amount) {
 #ifndef M
 extern "C"
 #endif
-int print_needed(const char * lib, const char * parent, int depth, int mode);
-
-#ifndef M
-int q = 0;
-#endif
-
-#ifdef M
-int q = 0;
-#endif
+int print_needed(const char * lib, int depth, int mode);
 
 template<ElfFileParams>
-void ElfFile<ElfFileParamNames>::printNeededLibs(const char * lib, const char * parent, int depth, int mode)
+void ElfFile<ElfFileParamNames>::printNeededLibs(const char * lib, int depth, int mode)
 {
-    if (library[library_index].parent != "-1") library[library_index].parent = strdup(lib);
-    if (lib == "-1") return;
     Elf_Shdr & shdrDynamic = findSection(".dynamic");
     Elf_Shdr & shdrDynStr = findSection(".dynstr");
     char *strTab = (char *)contents + rdi(shdrDynStr.sh_offset);
@@ -1381,18 +1371,15 @@ void ElfFile<ElfFileParamNames>::printNeededLibs(const char * lib, const char * 
     Elf_Dyn *dyn = (Elf_Dyn *) (contents + rdi(shdrDynamic.sh_offset));
     int i = 0;
     int dynamic__ = 0;
-    if (q == 0)
     if (mode == LDD || mode == LDDR) {
         pad(depth-(rate/2));
         std::cerr << "DT_NEEDED start: " << lib << "\n";
     }
     for (; rdi(dyn->d_tag) != DT_NULL; dyn++) {
         if (rdi(dyn->d_tag) == DT_NEEDED) {
-            if (library[library_index].parent != "-1") library[library_index].parent = strdup(lib);
-            if (lib == "-1") return;
             dynamic__ = 1;
-            const char * path1 = "/lib/x86_64-linux-gnu/";
-            const char * path2 = "/usr/lib/x86_64-linux-gnu/";
+            const char * path1 = "/lib/";
+            const char * path2 = "/usr/lib/";
             const char * path3 = "./";
             char * name = strTab + rdi(dyn->d_un.d_val);
             auto namefull_ = std::string(path1) + name;
@@ -1405,105 +1392,87 @@ void ElfFile<ElfFileParamNames>::printNeededLibs(const char * lib, const char * 
             {
                 errno = 0;
                 if (mode == LDD) {
-    if (q == 0)
                     pad(depth);
-    if (q == 0)
-                    std::cerr << name << " => " << namefull << " (parent: " << library[library_index].parent << ")\n";
+                    std::cerr << name << " => " << namefull << "\n";
                     #ifndef M
                     library[library_index].NEEDED[i] = strdup(namefull);
                     #endif
                 }
                 else 
                 if (mode == LISTR) {
-    if (q == 0)
                     pad(4);
-    if (q == 0)
-                    std::cerr << name << " (parent: " << library[library_index].parent << ")\n";
+                    std::cerr << name << "\n";
                     #ifndef M
                     library[library_index].NEEDED[i] = strdup(namefull);
                     #endif
-                    print_needed(namefull, lib, depth, mode);
+                    print_needed(namefull, depth, mode);
                 }
-                else
+                else 
                 if (mode == LDDR) {
-    if (q == 0)
                     pad(depth);
-    if (q == 0)
-                    std::cerr << name << " => " << namefull << " (parent: " << library[library_index].parent << ")\n";
+                    std::cerr << name << " => " << namefull << "\n";
                     #ifndef M
                     library[library_index].NEEDED[i] = strdup(namefull);
                     #endif
-                    print_needed(namefull, lib, depth+rate, mode);
+                    print_needed(namefull, depth+rate, mode);
                 }
             }
             else if(access(namefullb, F_OK) == 0)
             {
                 errno = 0;
                 if (mode == LDD) {
-    if (q == 0)
                     pad(depth);
-    if (q == 0)
-                    std::cerr << name << " => " << namefullb << " (parent: " << library[library_index].parent << ")\n";
+                    std::cerr << name << " => " << namefullb << "\n";
                     #ifndef M
                     library[library_index].NEEDED[i] = strdup(namefullb);
                     #endif
                 }
                 else 
                 if (mode == LISTR) {
-    if (q == 0)
                     pad(4);
-    if (q == 0)
-                    std::cerr << name << " (parent: " << library[library_index].parent << ")\n";
+                    std::cerr << name << "\n";
                     #ifndef M
                     library[library_index].NEEDED[i] = strdup(namefullb);
                     #endif
-                    print_needed(namefullb, lib, depth, mode);
+                    print_needed(namefullb, depth, mode);
                 }
                 else 
                 if (mode == LDDR) {
-    if (q == 0)
                     pad(depth);
-    if (q == 0)
-                    std::cerr << name << " => " << namefullb << " (parent: " << library[library_index].parent << ")\n";
+                    std::cerr << name << " => " << namefullb << "\n";
                     #ifndef M
                     library[library_index].NEEDED[i] = strdup(namefullb);
                     #endif
-                    print_needed(namefullb, lib, depth+rate, mode);
+                    print_needed(namefullb, depth+rate, mode);
                 }
             }
             else if(access(namerel, F_OK) == 0)
             {
                 errno = 0;
                 if (mode == LDD) {
-    if (q == 0)
                     pad(depth);
-    if (q == 0)
-                    std::cerr << name << " => " << namerel << " (parent: " << library[library_index].parent << ")\n";
+                    std::cerr << name << " => " << namerel << "\n";
                     #ifndef M
                     library[library_index].NEEDED[i] = strdup(namerel);
                     #endif
                 }
                 else 
                 if (mode == LISTR) {
-    if (q == 0)
                     pad(4);
-    if (q == 0)
-                    std::cerr << namerel << " (parent: " << library[library_index].parent << ")\n";
+                    std::cerr << namerel << "\n";
                     #ifndef M
                     library[library_index].NEEDED[i] = strdup(namerel);
                     #endif
-                    print_needed(namerel, lib, depth, mode);
+                    print_needed(namerel, depth, mode);
                 }
                 else 
                 if (mode == LDDR) {
-    if (q == 0)
                     pad(depth);
-    if (q == 0)
-                    std::cerr << name << " => " << namerel << " (parent: " << library[library_index].parent << ")\n";
+                    std::cerr << name << " => " << namerel << "\n";
                     #ifndef M
                     library[library_index].NEEDED[i] = strdup(namerel);
                     #endif
-                    print_needed(namerel, lib, depth+rate, mode);
+                    print_needed(namerel, depth+rate, mode);
                 }
             }
             else
@@ -1515,10 +1484,8 @@ void ElfFile<ElfFileParamNames>::printNeededLibs(const char * lib, const char * 
                 }
                 else
                 {
-    if (q == 0)
                     pad(depth);
-    if (q == 0)
-                    std::cerr << name << " => not found" << " (parent: " << library[library_index].parent << ")\n";
+                    std::cerr << name << " => not found\n";
                     #ifndef M
                     library[library_index].NEEDED[i] = strdup("NULL");
                     #endif
@@ -1532,16 +1499,12 @@ void ElfFile<ElfFileParamNames>::printNeededLibs(const char * lib, const char * 
     if (dynamic__ == 0) {
         if (mode != LISTR)
         {
-    if (q == 0)
             pad(depth);
-    if (q == 0)
-            std::cerr << lib << " => has no DT_NEEDED sections" << " (parent: " << library[library_index].parent << ")\n";
+            std::cerr << lib << " => has no DT_NEEDED sections\n";
         }
     }
     if (mode == LDD || mode == LDDR) {
-    if (q == 0)
         pad(depth-(rate/2));
-    if (q == 0)
         std::cerr << "DT_NEEDED end: " << lib << "\n";
     }
     library[library_index].NEEDED_COUNT = i;
@@ -1631,7 +1594,7 @@ static void patchElf2(ElfFile & elfFile)
     else if (setRPath)
         elfFile.modifyRPath(elfFile.rpSet, newRPath);
 
-    if (printNeeded) elfFile.printNeededLibs("lib", "-1", 0, 0);
+    if (printNeeded) elfFile.printNeededLibs("lib", 0, 0);
 
     elfFile.removeNeeded(neededLibsToRemove);
     elfFile.replaceNeeded(neededLibsToReplace);
@@ -1644,7 +1607,6 @@ static void patchElf2(ElfFile & elfFile)
         elfFile.rewriteSections();
         writeFile(fileName);
     }
-    free(contents);
 }
 
 
@@ -1681,7 +1643,7 @@ static void patchElf()
 }
 
 template<class ElfFile>
-static void patchElf4(ElfFile & elfFile, const char * lib, const char * parent, int depth, int mode)
+static void patchElf4(ElfFile & elfFile, const char * lib, int depth, int mode)
 {
     elfFile.parse();
 
@@ -1707,7 +1669,7 @@ static void patchElf4(ElfFile & elfFile, const char * lib, const char * parent, 
     else if (setRPath)
         elfFile.modifyRPath(elfFile.rpSet, newRPath);
 
-    if (printNeeded) elfFile.printNeededLibs(lib, parent, depth, mode);
+    if (printNeeded) elfFile.printNeededLibs(lib, depth, mode);
 
     elfFile.removeNeeded(neededLibsToRemove);
     elfFile.replaceNeeded(neededLibsToReplace);
@@ -1722,7 +1684,7 @@ static void patchElf4(ElfFile & elfFile, const char * lib, const char * parent, 
     }
 }
 
-static void patchElf3(const char * lib, const char * parent, int depth, int mode)
+static void patchElf3(const char * lib, int depth, int mode)
 {
     if (!printInterpreter && !printRPath && !printSoname && !printNeeded)
         debug("patching ELF file %s", lib);
@@ -1741,13 +1703,13 @@ static void patchElf3(const char * lib, const char * parent, int depth, int mode
         contents[EI_VERSION] == EV_CURRENT)
     {
         ElfFile<Elf32_Ehdr, Elf32_Phdr, Elf32_Shdr, Elf32_Addr, Elf32_Off, Elf32_Dyn, Elf32_Sym> elfFile;
-        patchElf4(elfFile, lib, parent, depth, mode);
+        patchElf4(elfFile, lib, depth, mode);
     }
     else if (contents[EI_CLASS] == ELFCLASS64 &&
         contents[EI_VERSION] == EV_CURRENT)
     {
         ElfFile<Elf64_Ehdr, Elf64_Phdr, Elf64_Shdr, Elf64_Addr, Elf64_Off, Elf64_Dyn, Elf64_Sym> elfFile;
-        patchElf4(elfFile, lib, parent, depth, mode);
+        patchElf4(elfFile, lib, depth, mode);
     }
     else {
         error("ELF executable is not 32/64-bit, little/big-endian, version 1");
@@ -1791,11 +1753,11 @@ int print_interp(const char * lib) {
 #ifndef M
 extern "C"
 #endif
-int print_needed(const char * lib, const char * parent, int depth, int mode) {
+int print_needed(const char * lib, int depth, int mode) {
     printInterpreter = false;
     printNeeded = true;
     printSoname = false;
-    patchElf3(lib, parent, depth, mode);
+    patchElf3(lib, depth, mode);
 }
 
 #ifndef M
@@ -1813,30 +1775,34 @@ extern "C" int bytecmpcqr(void const * p, void const * pp);
 extern "C" int bytecmpcr(void const * p, void const * pp);
 int main(int argc, const char * * argv)
 {
-    for (int i = 1; i < argc; ++i) {
+    string arg0(argv[0]);
+    if (bytecmpcqr(argv[0],"ldd") == 0) {
+        for (int i = 1; i < argc; ++i) {
+            fprintf(stderr, "%s\n", argv[i]);
+            print_needed(argv[i], 4, LDD);
+        }
+    }
+    else for (int i = 1; i < argc; ++i) {
         string arg(argv[i]);
         if (arg == "ldd") {
             i++;
             fprintf(stderr, "%s\n", argv[i]);
-            print_needed(argv[i], "-1", 4, LDD);
+            print_needed(argv[i], 4, LDD);
         }
         else if (arg == "lddr") {
             i++;
             fprintf(stderr, "%s\n", argv[i]);
-            print_needed(argv[i], "-1", 4, LDDR);
+            print_needed(argv[i], 4, LDDR);
         }
         else if (arg == "list") {
             i++;
             fprintf(stderr, "%s\n", argv[i]);
-            print_needed(argv[i], "-1", 4, LISTR);
+            print_needed(argv[i], 4, LISTR);
         }
         else {
             fprintf(stderr, "%s\n", argv[i]);
-            if (bytecmpcqr(argv[0],"ldd") == 0) print_needed(argv[i], "-1", 4, LDD);
-            else {
-                print_interp(argv[i]);
-                print_soname(argv[i]);
-            }
+            print_interp(argv[i]);
+            print_soname(argv[i]);
         }
     }
 //     for (i = 1; i < argc; ++i) {

@@ -14,7 +14,7 @@ if [[ $a == 0 ]] ; then
 ar cur files/libstring.a files/libstring.o
 a=$? ; else a=1 ; fi
 if [[ $a == 0 ]] ; then
-gcc $compile readelf_.c -D__SHARED__ -o files/readelf_.o
+gcc $compile ${RE} -D__SHARED__ -o files/readelf_.o
 a=$? ; else a=1 ; fi
 if [[ $a == 0 ]] ; then
 gcc $compile readelf__min.c -o files/readelf_min.o
@@ -35,7 +35,7 @@ if [[ $a == 0 ]] ; then
 gcc $share libstring.c -o files/libstring.so
 a=$? ; else a=1 ; fi
 if [[ $a == 0 ]] ; then
-gcc $share readelf_.c -D__SHARED__ -o files/readelf_.so -liberty
+gcc $share ${RE} -D__SHARED__ -o files/readelf_.so -liberty
 a=$? ; else a=1 ; fi
 if [[ $a == 0 ]] ; then
 gcc $share readelf__min.c -o files/readelf_min.so -liberty
@@ -49,9 +49,9 @@ a=$? ; else a=1 ; fi
 if [[ $a == 0 ]] ; then
 g++ $share patchelf.cc -o files/patchelf.so
 a=$? ; else a=1 ; fi
-if [[ $a == 0 ]] ; then
-gcc readelf_.c -o files/readelf_ files/readelf_.so files/patchelf.so files/libstring.so files/backtrace.so
-a=$? ; else a=1 ; fi
+# if [[ $a == 0 ]] ; then
+# gcc ${RE} -o files/readelf_ files/readelf_.so files/patchelf.so files/libstring.so files/backtrace.so
+# a=$? ; else a=1 ; fi
 if [[ $a == 0 ]] ; then
 g++ $link patchelf.cc -o files/patchelf ./files/libstring.a ./files/backtrace.a -DM
 a=$? ; else a=1 ; fi
@@ -76,5 +76,5 @@ a=$? ; else a=1 ; fi
 set +v
 
 # gdb files/loader_min - ex "break 90" -ex "r"
-# gdb ./files/loader -ex "r" -ex "break readelf_.c -D__SHARED__:515"
+# gdb ./files/loader -ex "r" -ex "break ${RE} -D__SHARED__:515"
 # cd ../../
