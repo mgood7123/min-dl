@@ -4,6 +4,7 @@ struct lib
     char * rootusrlib;
     int init_lock;
     char * struct_init;
+	int initializing;
     char * struct_needed_init;
     char * library_name;
     char * parent;

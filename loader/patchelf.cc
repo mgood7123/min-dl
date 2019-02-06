@@ -1391,8 +1391,8 @@ void ElfFile<ElfFileParamNames>::printNeededLibs(const char * lib, const char * 
             if (library[library_index].parent != "-1") library[library_index].parent = strdup(lib);
             if (lib == "-1") return;
             dynamic__ = 1;
-            const char * path1 = "/lib/";
-            const char * path2 = "/usr/lib/";
+            const char * path1 = "/lib/x86_64-linux-gnu/";
+            const char * path2 = "/usr/lib/x86_64-linux-gnu/";
             const char * path3 = "./";
             char * name = strTab + rdi(dyn->d_un.d_val);
             auto namefull_ = std::string(path1) + name;
