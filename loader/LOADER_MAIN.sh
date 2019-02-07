@@ -56,6 +56,9 @@ if [[ $a == 0 ]] ; then
 g++ $link patchelf.cc -o files/patchelf ./files/libstring.a ./files/backtrace.a -DM
 a=$? ; else a=1 ; fi
 if [[ $a == 0 ]] ; then
+./files/patchelf ldd examples/example1/hello.so
+a=$? ; else a=1 ; fi
+if [[ $a == 0 ]] ; then
 gcc $link test_loader.c -o files/loader files/readelf_.so files/patchelf.so files/libstring.so files/backtrace.so
 a=$? ; else a=1 ; fi
 # if [[ $a == 0 ]] ; then
@@ -69,7 +72,8 @@ cd examples/example1
 rm example1 hello.so
 make
 # LD_PRELOAD=../../files/backtrace.so:../../files/libstring.so:../../files/patchelf.so:../../files/readelf_.so ./example1
-# gdb ./example1 -ex "set environment LD_PRELOAD=../../files/backtrace.so:../../files/libstring.so:../../files/patchelf.so:../../files/readelf_.so"
+# ./example1
+# gdb ./example1 -ex "handle SIGSEGV nostop pass noprint" -ex "set environment LD_PRELOAD=../../files/backtrace.so:../../files/libstring.so:../../files/patchelf.so:../../files/readelf_.so"
 cd ../../
 a=$? ; else a=1 ; fi
 ./files/loader

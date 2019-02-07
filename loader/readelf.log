@@ -1,0 +1,883 @@
+----------------------------------------------------------------------->called init_aux() at line 271 from libstring.c
+----------------------------------------------------------------------->called init_env() at line 250 from libstring.c
+----------------------------------------------------------------------->called init_argX() at line 259 from libstring.c
+----------------------------------------------------------------------->called currentaux() at line 769 from libstring.c
+AT_SYSINFO_EHDR = 0x7fff90dec000
+AT_HWCAP = 0x178bfbff
+AT_PAGESZ = 4096
+AT_CLKTCK = 100
+AT_PHDR = 0x55cba0695040
+AT_PHENT = 56
+AT_PHNUM = 9
+AT_BASE = 0x7f03bcbf1000
+AT_FLAGS = (nil)
+AT_ENTRY = 0x55cba0695650
+AT_UID = 1000
+AT_EUID = 1000
+AT_GID = 1000
+AT_EGID = 1000
+AT_SECURE = 0
+AT_HWCAP2 = (nil)
+AT_EXECFN = ./files/readelf_
+AT_PLATFORM = x86_64
+current index 0 holds "NULL"
+searching indexes for "./files/readelf_" incase it has already been loaded
+current index 0 holds "NULL"
+attempting to save to index 0
+map succeded with address: 0x7f03bce09000
+called round_up
+returning 0x7f03b0000000
+memmove: round_up(0x7f03ab0a7010, 0x000010000000)+0x000000200000 = 0x7f03b0200000
+called round_up
+returning 0x7f03b0000000
+dest = 0x7f03b0200000
+dest = 0x7f03b0000000
+called round_down
+returning 0x000000200000
+
+
+
+find 0x7f03b0000000, 0x7f03b0201048, (int) 1239
+
+
+
+mprotect(0x7f03b0000000+round_down(         (nil), 0x000000200000), 0x000000000948, PROT_READ|PROT_EXEC|);
+called round_up
+returning 0x000000200000
+called round_down
+returning          (nil)
+called round_up
+returning 0x000000200000
+called round_down
+returning          (nil)
+mprotect on 0x7f03b0000000 succeded with size: 0x000000200000
+55cba0695000-55cba0696000 r-xp 00000000 08:05 8671622                    /home/neon/git/universal-dynamic-loader/loader/files/readelf_
+55cba0895000-55cba0896000 r--p 00000000 08:05 8671622                    /home/neon/git/universal-dynamic-loader/loader/files/readelf_
+55cba0896000-55cba0897000 rw-p 00001000 08:05 8671622                    /home/neon/git/universal-dynamic-loader/loader/files/readelf_
+55cba0d0f000-55cba0d30000 rw-p 00000000 00:00 0                          [heap]
+7f03ab0a7000-7f03b0000000 rw-p 00000000 00:00 0 
+7f03b0000000-7f03b0200000 r-xp 00000000 00:00 0 
+7f03b0200000-7f03bb4a9000 rw-p 00000000 00:00 0 
+7f03bb4a9000-7f03bb787000 r--p 00000000 08:02 17829554                   /usr/lib/locale/locale-archive
+7f03bb789000-7f03bb926000 r-xp 00000000 08:02 4723381                    /lib/x86_64-linux-gnu/libm-2.27.so
+7f03bb926000-7f03bbb25000 ---p 0019d000 08:02 4723381                    /lib/x86_64-linux-gnu/libm-2.27.so
+7f03bbb25000-7f03bbb26000 r--p 0019c000 08:02 4723381                    /lib/x86_64-linux-gnu/libm-2.27.so
+7f03bbb26000-7f03bbb27000 rw-p 0019d000 08:02 4723381                    /lib/x86_64-linux-gnu/libm-2.27.so
+7f03bbb29000-7f03bbb40000 r-xp 00000000 08:02 4723355                    /lib/x86_64-linux-gnu/libgcc_s.so.1
+7f03bbb40000-7f03bbd3f000 ---p 00017000 08:02 4723355                    /lib/x86_64-linux-gnu/libgcc_s.so.1
+7f03bbd3f000-7f03bbd40000 r--p 00016000 08:02 4723355                    /lib/x86_64-linux-gnu/libgcc_s.so.1
+7f03bbd40000-7f03bbd41000 rw-p 00017000 08:02 4723355                    /lib/x86_64-linux-gnu/libgcc_s.so.1
+7f03bbd41000-7f03bbeba000 r-xp 00000000 08:02 17835254                   /usr/lib/x86_64-linux-gnu/libstdc++.so.6.0.25
+7f03bbeba000-7f03bc0ba000 ---p 00179000 08:02 17835254                   /usr/lib/x86_64-linux-gnu/libstdc++.so.6.0.25
+7f03bc0ba000-7f03bc0c4000 r--p 00179000 08:02 17835254                   /usr/lib/x86_64-linux-gnu/libstdc++.so.6.0.25
+7f03bc0c4000-7f03bc0c6000 rw-p 00183000 08:02 17835254                   /usr/lib/x86_64-linux-gnu/libstdc++.so.6.0.25
+7f03bc0c6000-7f03bc0ca000 rw-p 00000000 00:00 0 
+7f03bc0d1000-7f03bc2b8000 r-xp 00000000 08:02 4723318                    /lib/x86_64-linux-gnu/libc-2.27.so
+7f03bc2b8000-7f03bc4b8000 ---p 001e7000 08:02 4723318                    /lib/x86_64-linux-gnu/libc-2.27.so
+7f03bc4b8000-7f03bc4bc000 r--p 001e7000 08:02 4723318                    /lib/x86_64-linux-gnu/libc-2.27.so
+7f03bc4bc000-7f03bc4be000 rw-p 001eb000 08:02 4723318                    /lib/x86_64-linux-gnu/libc-2.27.so
+7f03bc4be000-7f03bc4c2000 rw-p 00000000 00:00 0 
+7f03bc4c9000-7f03bc4d8000 r-xp 00000000 08:05 8671612                    /home/neon/git/universal-dynamic-loader/loader/files/libstring.so
+7f03bc4d8000-7f03bc6d7000 ---p 0000f000 08:05 8671612                    /home/neon/git/universal-dynamic-loader/loader/files/libstring.so
+7f03bc6d7000-7f03bc6d8000 r--p 0000e000 08:05 8671612                    /home/neon/git/universal-dynamic-loader/loader/files/libstring.so
+7f03bc6d8000-7f03bc6d9000 rw-p 0000f000 08:05 8671612                    /home/neon/git/universal-dynamic-loader/loader/files/libstring.so
+7f03bc6d9000-7f03bc6dc000 rw-p 00000000 00:00 0 
+7f03bc6e1000-7f03bc73e000 r-xp 00000000 08:05 8671620                    /home/neon/git/universal-dynamic-loader/loader/files/patchelf.so
+7f03bc73e000-7f03bc93d000 ---p 0005d000 08:05 8671620                    /home/neon/git/universal-dynamic-loader/loader/files/patchelf.so
+7f03bc93d000-7f03bc93e000 r--p 0005c000 08:05 8671620                    /home/neon/git/universal-dynamic-loader/loader/files/patchelf.so
+7f03bc93e000-7f03bc940000 rw-p 0005d000 08:05 8671620                    /home/neon/git/universal-dynamic-loader/loader/files/patchelf.so
+7f03bc940000-7f03bc976000 rw-p 00000000 00:00 0 
+7f03bc979000-7f03bc9b7000 r-xp 00000000 08:05 8671616                    /home/neon/git/universal-dynamic-loader/loader/files/readelf_.so
+7f03bc9b7000-7f03bcbb7000 ---p 0003e000 08:05 8671616                    /home/neon/git/universal-dynamic-loader/loader/files/readelf_.so
+7f03bcbb7000-7f03bcbb9000 r--p 0003e000 08:05 8671616                    /home/neon/git/universal-dynamic-loader/loader/files/readelf_.so
+7f03bcbb9000-7f03bcbba000 rw-p 00040000 08:05 8671616                    /home/neon/git/universal-dynamic-loader/loader/files/readelf_.so
+7f03bcbba000-7f03bcbef000 rw-p 00000000 00:00 0 
+7f03bcbf1000-7f03bcc18000 r-xp 00000000 08:02 4723292                    /lib/x86_64-linux-gnu/ld-2.27.so
+7f03bce09000-7f03bce0f000 r--p 00000000 08:05 8671622                    /home/neon/git/universal-dynamic-loader/loader/files/readelf_
+7f03bce13000-7f03bce18000 rw-p 00000000 00:00 0 
+7f03bce18000-7f03bce19000 r--p 00027000 08:02 4723292                    /lib/x86_64-linux-gnu/ld-2.27.so
+7f03bce19000-7f03bce1a000 rw-p 00028000 08:02 4723292                    /lib/x86_64-linux-gnu/ld-2.27.so
+7f03bce1a000-7f03bce1b000 rw-p 00000000 00:00 0 
+7f03bce1c000-7f03bce1e000 rw-p 00000000 00:00 0 
+7fff90d36000-7fff90d57000 rw-p 00000000 00:00 0                          [stack]
+7fff90de9000-7fff90dec000 r--p 00000000 00:00 0                          [vvar]
+7fff90dec000-7fff90dee000 r-xp 00000000 00:00 0                          [vdso]
+ffffffffff600000-ffffffffff601000 r-xp 00000000 00:00 0                  [vsyscall]
+mprotect(0x7f03b0000000+round_down(0x000000200d88, 0x000000200000), 0x0000000002c0, PROT_READ|PROT_WRITE|);
+called round_up
+returning 0x000000200000
+called round_down
+returning 0x000000200000
+called round_up
+returning 0x000000200000
+called round_down
+returning 0x000000200000
+mprotect on 0x7f03b0200000 succeded with size: 0x000000200000
+55cba0695000-55cba0696000 r-xp 00000000 08:05 8671622                    /home/neon/git/universal-dynamic-loader/loader/files/readelf_
+55cba0895000-55cba0896000 r--p 00000000 08:05 8671622                    /home/neon/git/universal-dynamic-loader/loader/files/readelf_
+55cba0896000-55cba0897000 rw-p 00001000 08:05 8671622                    /home/neon/git/universal-dynamic-loader/loader/files/readelf_
+55cba0d0f000-55cba0d30000 rw-p 00000000 00:00 0                          [heap]
+7f03ab0a7000-7f03b0000000 rw-p 00000000 00:00 0 
+7f03b0000000-7f03b0200000 r-xp 00000000 00:00 0 
+7f03b0200000-7f03b0400000 -wxp 00000000 00:00 0 
+7f03b0400000-7f03bb4a9000 rw-p 00000000 00:00 0 
+7f03bb4a9000-7f03bb787000 r--p 00000000 08:02 17829554                   /usr/lib/locale/locale-archive
+7f03bb789000-7f03bb926000 r-xp 00000000 08:02 4723381                    /lib/x86_64-linux-gnu/libm-2.27.so
+7f03bb926000-7f03bbb25000 ---p 0019d000 08:02 4723381                    /lib/x86_64-linux-gnu/libm-2.27.so
+7f03bbb25000-7f03bbb26000 r--p 0019c000 08:02 4723381                    /lib/x86_64-linux-gnu/libm-2.27.so
+7f03bbb26000-7f03bbb27000 rw-p 0019d000 08:02 4723381                    /lib/x86_64-linux-gnu/libm-2.27.so
+7f03bbb29000-7f03bbb40000 r-xp 00000000 08:02 4723355                    /lib/x86_64-linux-gnu/libgcc_s.so.1
+7f03bbb40000-7f03bbd3f000 ---p 00017000 08:02 4723355                    /lib/x86_64-linux-gnu/libgcc_s.so.1
+7f03bbd3f000-7f03bbd40000 r--p 00016000 08:02 4723355                    /lib/x86_64-linux-gnu/libgcc_s.so.1
+7f03bbd40000-7f03bbd41000 rw-p 00017000 08:02 4723355                    /lib/x86_64-linux-gnu/libgcc_s.so.1
+7f03bbd41000-7f03bbeba000 r-xp 00000000 08:02 17835254                   /usr/lib/x86_64-linux-gnu/libstdc++.so.6.0.25
+7f03bbeba000-7f03bc0ba000 ---p 00179000 08:02 17835254                   /usr/lib/x86_64-linux-gnu/libstdc++.so.6.0.25
+7f03bc0ba000-7f03bc0c4000 r--p 00179000 08:02 17835254                   /usr/lib/x86_64-linux-gnu/libstdc++.so.6.0.25
+7f03bc0c4000-7f03bc0c6000 rw-p 00183000 08:02 17835254                   /usr/lib/x86_64-linux-gnu/libstdc++.so.6.0.25
+7f03bc0c6000-7f03bc0ca000 rw-p 00000000 00:00 0 
+7f03bc0d1000-7f03bc2b8000 r-xp 00000000 08:02 4723318                    /lib/x86_64-linux-gnu/libc-2.27.so
+7f03bc2b8000-7f03bc4b8000 ---p 001e7000 08:02 4723318                    /lib/x86_64-linux-gnu/libc-2.27.so
+7f03bc4b8000-7f03bc4bc000 r--p 001e7000 08:02 4723318                    /lib/x86_64-linux-gnu/libc-2.27.so
+7f03bc4bc000-7f03bc4be000 rw-p 001eb000 08:02 4723318                    /lib/x86_64-linux-gnu/libc-2.27.so
+7f03bc4be000-7f03bc4c2000 rw-p 00000000 00:00 0 
+7f03bc4c9000-7f03bc4d8000 r-xp 00000000 08:05 8671612                    /home/neon/git/universal-dynamic-loader/loader/files/libstring.so
+7f03bc4d8000-7f03bc6d7000 ---p 0000f000 08:05 8671612                    /home/neon/git/universal-dynamic-loader/loader/files/libstring.so
+7f03bc6d7000-7f03bc6d8000 r--p 0000e000 08:05 8671612                    /home/neon/git/universal-dynamic-loader/loader/files/libstring.so
+7f03bc6d8000-7f03bc6d9000 rw-p 0000f000 08:05 8671612                    /home/neon/git/universal-dynamic-loader/loader/files/libstring.so
+7f03bc6d9000-7f03bc6dc000 rw-p 00000000 00:00 0 
+7f03bc6e1000-7f03bc73e000 r-xp 00000000 08:05 8671620                    /home/neon/git/universal-dynamic-loader/loader/files/patchelf.so
+7f03bc73e000-7f03bc93d000 ---p 0005d000 08:05 8671620                    /home/neon/git/universal-dynamic-loader/loader/files/patchelf.so
+7f03bc93d000-7f03bc93e000 r--p 0005c000 08:05 8671620                    /home/neon/git/universal-dynamic-loader/loader/files/patchelf.so
+7f03bc93e000-7f03bc940000 rw-p 0005d000 08:05 8671620                    /home/neon/git/universal-dynamic-loader/loader/files/patchelf.so
+7f03bc940000-7f03bc976000 rw-p 00000000 00:00 0 
+7f03bc979000-7f03bc9b7000 r-xp 00000000 08:05 8671616                    /home/neon/git/universal-dynamic-loader/loader/files/readelf_.so
+7f03bc9b7000-7f03bcbb7000 ---p 0003e000 08:05 8671616                    /home/neon/git/universal-dynamic-loader/loader/files/readelf_.so
+7f03bcbb7000-7f03bcbb9000 r--p 0003e000 08:05 8671616                    /home/neon/git/universal-dynamic-loader/loader/files/readelf_.so
+7f03bcbb9000-7f03bcbba000 rw-p 00040000 08:05 8671616                    /home/neon/git/universal-dynamic-loader/loader/files/readelf_.so
+7f03bcbba000-7f03bcbef000 rw-p 00000000 00:00 0 
+7f03bcbf1000-7f03bcc18000 r-xp 00000000 08:02 4723292                    /lib/x86_64-linux-gnu/ld-2.27.so
+7f03bce09000-7f03bce0f000 r--p 00000000 08:05 8671622                    /home/neon/git/universal-dynamic-loader/loader/files/readelf_
+7f03bce13000-7f03bce18000 rw-p 00000000 00:00 0 
+7f03bce18000-7f03bce19000 r--p 00027000 08:02 4723292                    /lib/x86_64-linux-gnu/ld-2.27.so
+7f03bce19000-7f03bce1a000 rw-p 00028000 08:02 4723292                    /lib/x86_64-linux-gnu/ld-2.27.so
+7f03bce1a000-7f03bce1b000 rw-p 00000000 00:00 0 
+7f03bce1c000-7f03bce1e000 rw-p 00000000 00:00 0 
+7fff90d36000-7fff90d57000 rw-p 00000000 00:00 0                          [stack]
+7fff90de9000-7fff90dec000 r--p 00000000 00:00 0                          [vvar]
+7fff90dec000-7fff90dee000 r-xp 00000000 00:00 0                          [vdso]
+ffffffffff600000-ffffffffff601000 r-xp 00000000 00:00 0                  [vsyscall]
+called round_up
+returning 0x55cba0d22000
+called get_dynamic_entry
+testing if DT_NEEDED == DT_PLTGOT
+testing if DT_NEEDED == DT_PLTGOT
+testing if DT_NEEDED == DT_PLTGOT
+testing if DT_NEEDED == DT_PLTGOT
+testing if DT_INIT == DT_PLTGOT
+testing if DT_FINI == DT_PLTGOT
+testing if DT_INIT_ARRAY == DT_PLTGOT
+testing if DT_INIT_ARRAYSZ == DT_PLTGOT
+testing if DT_FINI_ARRAY == DT_PLTGOT
+testing if DT_FINI_ARRAYSZ == DT_PLTGOT
+testing if 1879047925 == DT_PLTGOT
+testing if DT_STRTAB == DT_PLTGOT
+testing if DT_SYMTAB == DT_PLTGOT
+testing if DT_STRSZ == DT_PLTGOT
+testing if DT_SYMENT == DT_PLTGOT
+testing if DT_DEBUG == DT_PLTGOT
+testing if DT_PLTGOT == DT_PLTGOT
+returning 0x000000200fb8
+called get_dynamic_entry
+testing if DT_NEEDED == DT_RELASZ
+testing if DT_NEEDED == DT_RELASZ
+testing if DT_NEEDED == DT_RELASZ
+testing if DT_NEEDED == DT_RELASZ
+testing if DT_INIT == DT_RELASZ
+testing if DT_FINI == DT_RELASZ
+testing if DT_INIT_ARRAY == DT_RELASZ
+testing if DT_INIT_ARRAYSZ == DT_RELASZ
+testing if DT_FINI_ARRAY == DT_RELASZ
+testing if DT_FINI_ARRAYSZ == DT_RELASZ
+testing if 1879047925 == DT_RELASZ
+testing if DT_STRTAB == DT_RELASZ
+testing if DT_SYMTAB == DT_RELASZ
+testing if DT_STRSZ == DT_RELASZ
+testing if DT_SYMENT == DT_RELASZ
+testing if DT_DEBUG == DT_RELASZ
+testing if DT_PLTGOT == DT_RELASZ
+testing if DT_PLTRELSZ == DT_RELASZ
+testing if DT_PLTREL == DT_RELASZ
+testing if DT_JMPREL == DT_RELASZ
+testing if DT_RELA == DT_RELASZ
+testing if DT_RELASZ == DT_RELASZ
+returning 0x0000000000c0
+called get_dynamic_entry
+testing if DT_NEEDED == DT_RELA
+testing if DT_NEEDED == DT_RELA
+testing if DT_NEEDED == DT_RELA
+testing if DT_NEEDED == DT_RELA
+testing if DT_INIT == DT_RELA
+testing if DT_FINI == DT_RELA
+testing if DT_INIT_ARRAY == DT_RELA
+testing if DT_INIT_ARRAYSZ == DT_RELA
+testing if DT_FINI_ARRAY == DT_RELA
+testing if DT_FINI_ARRAYSZ == DT_RELA
+testing if 1879047925 == DT_RELA
+testing if DT_STRTAB == DT_RELA
+testing if DT_SYMTAB == DT_RELA
+testing if DT_STRSZ == DT_RELA
+testing if DT_SYMENT == DT_RELA
+testing if DT_DEBUG == DT_RELA
+testing if DT_PLTGOT == DT_RELA
+testing if DT_PLTRELSZ == DT_RELA
+testing if DT_PLTREL == DT_RELA
+testing if DT_JMPREL == DT_RELA
+testing if DT_RELA == DT_RELA
+returning 0x000000000530
+
+
+
+called get_dynamic_entry
+testing if DT_NEEDED == DT_JMPREL
+testing if DT_NEEDED == DT_JMPREL
+testing if DT_NEEDED == DT_JMPREL
+testing if DT_NEEDED == DT_JMPREL
+testing if DT_INIT == DT_JMPREL
+testing if DT_FINI == DT_JMPREL
+testing if DT_INIT_ARRAY == DT_JMPREL
+testing if DT_INIT_ARRAYSZ == DT_JMPREL
+testing if DT_FINI_ARRAY == DT_JMPREL
+testing if DT_FINI_ARRAYSZ == DT_JMPREL
+testing if 1879047925 == DT_JMPREL
+testing if DT_STRTAB == DT_JMPREL
+testing if DT_SYMTAB == DT_JMPREL
+testing if DT_STRSZ == DT_JMPREL
+testing if DT_SYMENT == DT_JMPREL
+testing if DT_DEBUG == DT_JMPREL
+testing if DT_PLTGOT == DT_JMPREL
+testing if DT_PLTRELSZ == DT_JMPREL
+testing if DT_PLTREL == DT_JMPREL
+testing if DT_JMPREL == DT_JMPREL
+returning 0x0000000005f0
+
+
+
+called get_dynamic_entry
+testing if DT_NEEDED == DT_BIND_NOW
+testing if DT_NEEDED == DT_BIND_NOW
+testing if DT_NEEDED == DT_BIND_NOW
+testing if DT_NEEDED == DT_BIND_NOW
+testing if DT_INIT == DT_BIND_NOW
+testing if DT_FINI == DT_BIND_NOW
+testing if DT_INIT_ARRAY == DT_BIND_NOW
+testing if DT_INIT_ARRAYSZ == DT_BIND_NOW
+testing if DT_FINI_ARRAY == DT_BIND_NOW
+testing if DT_FINI_ARRAYSZ == DT_BIND_NOW
+testing if 1879047925 == DT_BIND_NOW
+testing if DT_STRTAB == DT_BIND_NOW
+testing if DT_SYMTAB == DT_BIND_NOW
+testing if DT_STRSZ == DT_BIND_NOW
+testing if DT_SYMENT == DT_BIND_NOW
+testing if DT_DEBUG == DT_BIND_NOW
+testing if DT_PLTGOT == DT_BIND_NOW
+testing if DT_PLTRELSZ == DT_BIND_NOW
+testing if DT_PLTREL == DT_BIND_NOW
+testing if DT_JMPREL == DT_BIND_NOW
+testing if DT_RELA == DT_BIND_NOW
+testing if DT_RELASZ == DT_BIND_NOW
+testing if DT_RELAENT == DT_BIND_NOW
+testing if DT_FLAGS == DT_BIND_NOW
+testing if DT_FLAGS_1 == DT_BIND_NOW
+testing if DT_VERNEED == DT_BIND_NOW
+testing if DT_VERNEEDNUM == DT_BIND_NOW
+testing if DT_VERSYM == DT_BIND_NOW
+testing if DT_RELACOUNT == DT_BIND_NOW
+returning 0
+
+
+
+Name:		 ./files/readelf_
+ELF Identifier	 ELF ( )
+Architecture	 64-bit
+Data Type	 2's complement, little endian
+Version		 Current
+OS ABI		 UNIX System V ABI
+File Type	 Shared object file
+Machine		 AMD x86-64 architecture
+Entry point	 0x000000000650
+ELF header size	 0x000000000040
+Program Header	 0x000000000040 (9 entries with a total of 56 bytes)
+p_type:			/* Segment type */		= PT_PHDR		/* Entry for header table itself */
+ATTEMPING TO READ
+reading                0x000000000238
+called round_up
+returning 0x55cba0d26000
+correcting position by 0x000000000040
+reading                504
+
+READ
+p_flags:		/* Segment flags */		= 0x000000000004
+p_offset:		/* Segment file offset */	= 0x000000000040
+p_vaddr:		/* Segment virtual address */	= 0x7f03b0000040
+p_paddr:		/* Segment physical address */	= 0x000000000040
+p_filesz:		/* Segment size in file */	= 0x0000000001f8
+p_memsz:		/* Segment size in memory */	= 0x0000000001f8
+p_align:		/* Segment alignment */		= 0x000000000008
+
+
+
+		p_flags: 0x000000000004 p_offset: 0x000000000040 p_vaddr:  0x7f03b0000040 p_paddr: 0x000000000040 p_filesz: 0x0000000001f8 p_memsz: 0x0000000001f8 p_align: 0x000000000008
+p_type:			/* Segment type */		= PT_INTERP		/* Program interpreter */
+ATTEMPING TO READ
+reading                0x000000000254
+called round_up
+returning 0x55cba0d27000
+correcting position by 0x000000000238
+reading                28
+
+READ
+p_flags:		/* Segment flags */		= 0x000000000004
+p_offset:		/* Segment file offset */	= 0x000000000238
+p_vaddr:		/* Segment virtual address */	= 0x7f03b0000238
+p_paddr:		/* Segment physical address */	= 0x000000000238
+p_filesz:		/* Segment size in file */	= 0x00000000001c
+p_memsz:		/* Segment size in memory */	= 0x00000000001c
+p_align:		/* Segment alignment */		= 0x000000000001
+
+
+
+		p_flags: 0x000000000004 p_offset: 0x000000000238 p_vaddr:  0x7f03b0000238 p_paddr: 0x000000000238 p_filesz: 0x00000000001c p_memsz: 0x00000000001c p_align: 0x000000000001
+p_type:			/* Segment type */		= PT_LOAD		/* Loadable program segment */
+ATTEMPING TO READ
+reading                0x000000000948
+called round_up
+returning 0x55cba0d28000
+correcting position by          (nil)
+reading                2376
+relocation summary:
+     _R_X86_64_NONE              = 0
+     _R_X86_64_64                = 0
+     _R_X86_64_PC32              = 0
+     _R_X86_64_GOT32             = 0
+     _R_X86_64_PLT32             = 0
+     _R_X86_64_COPY              = 0
+     _R_X86_64_GLOB_DAT          = 5
+     _R_X86_64_JUMP_SLOT         = 1
+     _R_X86_64_RELATIVE          = 3
+     _R_X86_64_GOTPCREL          = 0
+     _R_X86_64_32                = 0
+     _R_X86_64_32S               = 0
+     _R_X86_64_16                = 0
+     _R_X86_64_PC16              = 0
+     _R_X86_64_8                 = 0
+     _R_X86_64_PC8               = 0
+     _R_X86_64_DTPMOD64          = 0
+     _R_X86_64_DTPOFF64          = 0
+     _R_X86_64_TPOFF64           = 0
+     _R_X86_64_TLSGD             = 0
+     _R_X86_64_TLSLD             = 0
+     _R_X86_64_DTPOFF32          = 0
+     _R_X86_64_GOTTPOFF          = 0
+     _R_X86_64_TPOFF32           = 0
+     _R_X86_64_PC64              = 0
+     _R_X86_64_GOTOFF64          = 0
+     _R_X86_64_GOTPC32           = 0
+     _R_X86_64_GOT64             = 0
+     _R_X86_64_GOTPCREL64        = 0
+     _R_X86_64_GOTPC64           = 0
+     _Deprecated1                = 0
+     _R_X86_64_PLTOFF64          = 0
+     _R_X86_64_SIZE32            = 0
+     _R_X86_64_SIZE64            = 0
+     _R_X86_64_GOTPC32_TLSDESC   = 0
+     _R_X86_64_TLSDESC_CALL      = 0
+     _R_X86_64_TLSDESC           = 0
+     _R_X86_64_IRELATIVE         = 0
+     _R_X86_64_RELATIVE64        = 0
+     _Deprecated2                = 0
+     _Deprecated3                = 0
+     _R_X86_64_GOTPLT64          = 0
+     _R_X86_64_GOTPCRELX         = 0
+     _R_X86_64_REX_GOTPCRELX     = 0
+     _R_X86_64_NUM               = 0
+     _R_X86_64_UNKNOWN           = 0
+     total                       = 9
+\x7f\x45\x4c\x46\x02\x01\x01\x00\x00\x00\x00\x00\x00\x00\x00\x00"\6\0\0\0\4\0\0\0@\0\0\0\0\0\0\0@\0\0\0\0\0\0\0@\0\0\0\0\0\0\0\370\1\0\0\0\0\0\0\370\1\0\0\0\0\0\0\10\0\0\0\0\0\0\0\3\0\0\0\4\0\0\0008\2\0\0\0\0\0\0008\2\0\0\0\0\0\0008\2\0\0\0\0\0\0\34\0\0\0\0\0\0\0\34\0\0\0\0\0\0\0\1\0\0\0\0\0\0\0\1\0\0\0\5\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0H\t\0\0\0\0\0\0H\t\0\0\0\0\0\0\0\0 \0\0\0\0\0\1\0\0\0\6\0\0\0\210\r\0\0\0\0\0\0\210\r \0\0\0\0\0\210\r \0\0\0\0\0\210\2\0\0\0\0\0\0\300\2\0\0\0\0\0\0\0\0 \0\0\0\0\0\2\0\0\0\6\0\0\0\230\r\0\0\0\0\0\0\230\r \0\0\0\0\0\230\r \0\0\0\0\0 \2\0\0\0\0\0\0 \2\0\0\0\0\0\0\10\0\0\0\0\0\0\0\4\0\0\0\4\0\0\0T\2\0\0\0\0\0\0T\2\0\0\0\0\0\0T\2\0\0\0\0\0\0D\0\0\0\0\0\0\0D\0\0\0\0\0\0\0\4\0\0\0\0\0\0\0P\345td\4\0\0\0\4\10\0\0\0\0\0\0\4\10\0\0\0\0\0\0\4\10\0\0\0\0\0\0<\0\0\0\0\0\0\0<\0\0\0\0\0\0\0\4\0\0\0\0\0\0\0Q\345td\6\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\20\0\0\0\0\0\0\0R\345td\4\0\0\0\210\r\0\0\0\0\0\0\210\r \0\0\0\0\0\210\r \0\0\0\0\0x\2\0\0\0\0\0\0x\2\0\0\0\0\0\0\1\0\0\0\0\0\0\0""/lib64/ld-linux-x86-64.so.2\0""\177ELF\2\1\1\0\0\0\0\0\0\0\0\0\3\0>\0\1\0\0\0P\6\0\0\0\0\0\0@\0\0\0\0\0\0\0\200J\0\0\0\0\0\0\0\0\0\0@\0008\0\t\0@\0#\0"\0\6\0\0\0\4\0\0\0@\0\0\0\0\0\0\0@\0\0\0\0\0\0\0@\0\0\0\0\0\0\0\370\1\0\0\0\0\0\0\370\1\0\0\0\0\0\0\10\0\0\0\0\0\0\0\3\0\0\0\4\0\0\0008\2\0\0\0\0\0\0008\2\0\0\0\0\0\0008\2\0\0\0\0\0\0\34\0\0\0\0\0\0\0\34\0\0\0\0\0\0\0\1\0\0\0\0\0\0\0\1\0\0\0\5\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0H\t\0\0\0\0\0\0H\t\0\0\0\0\0\0\0\0 \0\0\0\0\0\1\0\0\0\6\0\0\0\210\r\0\0\0\0\0\0\210\r \0\0\0\0\0\210\r \0\0\0\0\0\210\2\0\0\0\0\0\0\300\2\0\0\0\0\0\0\0\0 \0\0\0\0\0\2\0\0\0\6\0\0\0\230\r\0\0\0\0\0\0\230\r \0\0\0\0\0\230\r \0\0\0\0\0 \2\0\0\0\0\0\0 \2\0\0\0\0\0\0\10\0\0\0\0\0\0\0\4\0\0\0\4\0\0\0T\2\0\0\0\0\0\0T\2\0\0\0\0\0\0T\2\0\0\0\0\0\0D\0\0\0\0\0\0\0D\0\0\0\0\0\0\0\4\0\0\0\0\0\0\0P\345td\4\0\0\0\4\10\0\0\0\0\0\0\4\10\0\0\0\0\0\0\4\10\0\0\0\0\0\0<\0\0\0\0\0\0\0<\0\0\0\0\0\0\0\4\0\0\0\0\0\0\0Q\345td\6\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\20\0\0\0\0\0\0\0R\345td\4\0\0\0\210\r\0\0\0\0\0\0\210\r \0\0\0\0\0\210\r \0\0\0\0\0x\2\0\0\0\0\0\0x\2\0\0\0\0\0\0\1\0\0\0\0\0\0\0/lib64/ld-linux-x86-64.so.2\0\4\0\0\0\20\0\0\0\1\0\0\0GNU\0\0\0\0\0\3\0\0\0\2\0\0
+READ
+p_flags:		/* Segment flags */		= 0x000000000005
+p_offset:		/* Segment file offset */	=          (nil)
+p_vaddr:		/* Segment virtual address */	= 0x7f03b0000000
+p_paddr:		/* Segment physical address */	=          (nil)
+p_filesz:		/* Segment size in file */	= 0x000000000948
+p_memsz:		/* Segment size in memory */	= 0x000000000948
+p_align:		/* Segment alignment */		= 0x000000200000
+
+
+
+		p_flags: 0x000000000005 p_offset:          (nil) p_vaddr:  0x7f03b0000000 p_paddr:          (nil) p_filesz: 0x000000000948 p_memsz: 0x000000000948 p_align: 0x000000200000
+p_type:			/* Segment type */		= PT_LOAD		/* Loadable program segment */
+ATTEMPING TO READ
+reading                0x000000001048
+called round_up
+returning 0x55cba0d2a000
+correcting position by 0x000000000d88
+reading                704
+\0\0\0\0\0\4\0\0\0\24\0\0\0\3\0\0\0GNU\0\212\342\244\274\375\30 \250l:\272\375\320\312\30\263CY\236\353\3\0\0\0\7\0\0\0\1\0\0\0\6\0\0\0\210\310 \1\0\4`\t\7\0\0\0\n\0\0\0\f\0\0\0BE\325\354\3642\224|\273\343\222|\270\215\361\16\331qX\34\353\323\357\16\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\241\0\0\0"\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\23\0\0\0 \0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0]\0\0\0\22\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\260\0\0\0\22\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0/\0\0\0 \0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0>\0\0\0 \0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\302\0\0\0\20\0\27\0\20\20 \0\0\0\0\0\0\0\0\0\0\0\0\0X\0\0\0\21\0\30\0@\20 \0\0\0\0\0\10\0\0\0\0\0\0\0\325\0\0\0\20\0\30\0H\20 \0\0\0\0\0\0\0\0\0\0\0\0\0l\0\0\0\22\0\v\0\10\6\0\0\0\0\0\0\0\0\0\0\0\0\0\0\311\0\0\0\20\0\30\0\20\20 \0\0\0\0\0\0\0\0\0\0\0\0\0f\0\0\0\22\0\17\0\364\7\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0files/readelf_.so\0_ITM_deregisterTMCloneTable\0__gmon_start__\0_ITM_registerTMCloneTable\0argv\0readelf_\0_fini\0_init\0files/patchelf.so\0files/libstring.so\0libc.so.6\0__cxa_finalize\0__libc_start_main\0_edata\0__bss_start\0_end\0GLIBC_2.2.5\0\0\0\2\0\0\0\0\0\2\0\0\0\0\0\1\0\1\0\1\0\1\0\1\0\1\0\1\0\1\0\227\0\0\0\20\0\0\0\0\0\0\0u\32i\t\0\0\2\0\332\0\0\0\0\0\0\0\210\r \0\0\0\0\0\10\0\0\0\0\0\0\0P\7\0\0\0\0\0\0\220\r \0\0\0\0\0\10\0\0\0\0\0\0\0\20\7\0\0\0\0\0\0\10\20 \0\0\0\0\0\10\0\0\0\0\0\0\0\10\20 \0\0\0\0\0\330\17 \0\0\0\0\0\6\0\0\0\1\0\0\0\0\0\0\0\0\0\0\0\340\17 \0\0\0\0\0\6\0\0\0\2\0\0\0\0\0\0\0\0\0\0\0\350\17 \0\0\0\0\0\6\0\0\0\4\0\0\0\0\0\0\0\0\0\0\0\360\17 \0\0\0\0\0\6\0\0\0\5\0\0\0\0\0\0\0\0\0\0\0\370\17 \0\0\0\0\0\6\0\0\0\6\0\0\0\0\0\0\0\0\0\0\0\320\17 \0\0\0\0\0\7\0\0\0\3\0\0\0\0\0\0\0\0\0\0\0H\203\354\10H\213\5\335\t \0H\205\300t\2\377\320H\203\304\10\303\0\3775\232\t \0\377%\234\t \0\17\37@\0\377%\232\t \0h\0\0\0\0\351\340\377\377\377\377%\222\t \0f\220\0\0\0\0\0\0\0\0001\355I\211\321^H\211\342H\203\344\360PTL\215\5\212\1\0\0H\215\r\23\1\0\0H\215=\346\0\0\0\377\25n\t \0\364\17\37D\0\0H\215=\211\t \0UH\215\5\201\t \0H9\370H\211\345t\31H\213\5B\t \0H\205\300t\r]\377\340f.\17\37\204\0\0\0\0\0]\303\17\37@\0f.\17\37\204\0\0\0\0\0H\215=I\t \0H\2155B\t \0UH)\376H\211\345H\301\376\3H\211\360H\301\350?H\1\306H\321\376t\30H\213\5\t\t \0H\205\300t\f]\377\340f\17\37\204\0\0\0\0\0]\303\17\37@\0f.\17\37\204\0\0\0\0\0\200=\t\t \0\0u/H\203=\267\10 \0\0UH\211\345t\fH\213=\332\10 \0\350\r\377\377\377\350H\377\377\377\306\5\341\10 \0\1]\303\17\37\200\0\0\0\0\363\303f\17\37D\0\0UH\211\345]\351f\377\377\377UH\211\345H\213\5\333\10 \0H\213\0H\211\307\350\300\376\377\377\270\0\0\0\0]\303f\17\37\204\0\0\0\0\0AWAVI\211\327AUATL\215%\366\5 \0UH\215-\366\5 \0SA\211\375I\211\366L)\345H\203\354\10H\301\375\3\350W\376\377\377H\205\355t 1\333\17\37\204\0\0\0\0\0L\211\372L\211\366D\211\357A\377\24\334H\203\303\1H9\335u\352H\203\304\10[]A\A]A^A_\303\220f.\17\37\204\0\0\0\0\0\363\303\0\0H\203\354\10H\203\304\10\303\0\0\0\1\0\2\0\1\33\3;8\0\0\0\6\0\0\0\34\376\377\377\204\0\0\0<\376\377\377\254\0\0\0L\376\377\377T\0\0\0V\377\377\377\304\0\0\0|\377\377\377\344\0\0\0\354\377\377\377,\1\0\0\24\0\0\0\0\0\0\0\1zR\0\1x\20\1\33\f\7\10\220\1\7\20\24\0\0\0\34\0\0\0\360\375\377\377+\0\0\0\0\0\0\0\0\0\0\0\24\0\0\0\0\0\0\0\1zR\0\1x\20\1\33\f\7\10\220\1\0\0$\0\0\0\34\0\0\0\220\375\377\377 \0\0\0\0\16\20F\16\30J\17\vw\10\200\0?\32;*3$"\0\0\0\0\24\0\0\0D\0\0\0\210\375\377\377\10\0\0\0\0\0\0\0\0\0\0\0\34\0\0\0\\0\0\0\212\376\377\377\35\0\0\0\0A\16\20\206\2C\r\6X\f\7\10\0\0\0D\0\0\0|\0\0\0\220\376\377\377e\0\0\0\0B\16\20\217\2B\16\30\216\3E\16 \215\4B\16(\214\5H\0160\206\6H\0168\203\7M\16@r\0168A\0160A\16(B\16 B\16\30B\16\20B\16\10\0\20\0\0\0\304\0\0\0\270\376\377\377\2\0\0\0\0\0\0\0\0\0\0\0""P\7\0\0\0\0\0\0\20\7\0\0\0\0\0\0\1\0\0\0\0\0\0\0\1\0\0\0\0\0\0\0\1\0\0\0\0\0\0\0r\0\0\0\0\0\0\0\1\0\0\0\0\0\0\0\204\0\0\0\0\0\0\0\1\0\0\0\0\0\0\0\227\0\0\0\0\0\0\0\f\0\0\0\0\0\0\0\10\6\0\0\0\0\0\0\r\0\0\0\0\0\0\0\364\7\0\0\0\0\0\0\31\0\0\0\0\0\0\0\210\r \0\0\0\0\0\33\0\0\0\0\0\0\0\10\0\0\0\0\0\0\0\32\0\0\0\0\0\0\0\220\r \0\0\0\0\0\34\0\0\0\0\0\0\0\10\0\0\0\0\0\0\0\365\376\377o\0\0\0\0\2
+READ
+p_flags:		/* Segment flags */		= 0x000000000006
+p_offset:		/* Segment file offset */	= 0x000000000d88
+p_vaddr:		/* Segment virtual address */	= 0x7f03b0200d88
+p_paddr:		/* Segment physical address */	= 0x000000200d88
+p_filesz:		/* Segment size in file */	= 0x000000000288
+p_memsz:		/* Segment size in memory */	= 0x0000000002c0
+p_align:		/* Segment alignment */		= 0x000000200000
+
+
+
+		p_flags: 0x000000000006 p_offset: 0x000000000d88 p_vaddr:  0x7f03b0200d88 p_paddr: 0x000000200d88 p_filesz: 0x000000000288 p_memsz: 0x0000000002c0 p_align: 0x000000200000
+p_type:			/* Segment type */		= PT_DYNAMIC		/* Dynamic linking information */
+called round_up
+returning 0x55cba0d2c000
+ATTEMPING TO READ
+reading                0x000000000fb8
+called round_up
+returning 0x55cba0d2e000
+correcting position by 0x000000000d98
+reading                544
+
+READ
+p_flags:		/* Segment flags */		= 0x000000000006
+p_offset:		/* Segment file offset */	= 0x000000000d98
+p_vaddr:		/* Segment virtual address */	= 0x7f03b0200d98
+p_paddr:		/* Segment physical address */	= 0x000000200d98
+p_filesz:		/* Segment size in file */	= 0x000000000220
+p_memsz:		/* Segment size in memory */	= 0x000000000220
+p_align:		/* Segment alignment */		= 0x000000000008
+
+
+
+		p_flags: 0x000000000006 p_offset: 0x000000000d98 p_vaddr:  0x7f03b0200d98 p_paddr: 0x000000200d98 p_filesz: 0x000000000220 p_memsz: 0x000000000220 p_align: 0x000000000008
+p_type:			/* Segment type */		= PT_NOTE		/* Auxiliary information */
+ATTEMPING TO READ
+reading                0x000000000298
+called round_up
+returning 0x55cba0d31000
+correcting position by 0x000000000254
+reading                68
+
+READ
+p_flags:		/* Segment flags */		= 0x000000000004
+p_offset:		/* Segment file offset */	= 0x000000000254
+p_vaddr:		/* Segment virtual address */	= 0x7f03b0000254
+p_paddr:		/* Segment physical address */	= 0x000000000254
+p_filesz:		/* Segment size in file */	= 0x000000000044
+p_memsz:		/* Segment size in memory */	= 0x000000000044
+p_align:		/* Segment alignment */		= 0x000000000004
+
+
+
+		p_flags: 0x000000000004 p_offset: 0x000000000254 p_vaddr:  0x7f03b0000254 p_paddr: 0x000000000254 p_filesz: 0x000000000044 p_memsz: 0x000000000044 p_align: 0x000000000004
+p_type:			/* Segment type */		= PT_GNU_EH_FRAME	/* GCC .eh_frame_hdr segment */
+ATTEMPING TO READ
+reading                0x000000000840
+called round_up
+returning 0x55cba0d32000
+correcting position by 0x000000000804
+reading                60
+
+READ
+p_flags:		/* Segment flags */		= 0x000000000004
+p_offset:		/* Segment file offset */	= 0x000000000804
+p_vaddr:		/* Segment virtual address */	= 0x7f03b0000804
+p_paddr:		/* Segment physical address */	= 0x000000000804
+p_filesz:		/* Segment size in file */	= 0x00000000003c
+p_memsz:		/* Segment size in memory */	= 0x00000000003c
+p_align:		/* Segment alignment */		= 0x000000000004
+
+
+
+		p_flags: 0x000000000004 p_offset: 0x000000000804 p_vaddr:  0x7f03b0000804 p_paddr: 0x000000000804 p_filesz: 0x00000000003c p_memsz: 0x00000000003c p_align: 0x000000000004
+p_type:			/* Segment type */		= PT_GNU_STACK		/* Indicates stack executability */
+ATTEMPING TO READ
+reading                         (nil)
+called round_up
+returning 0x55cba0d33000
+correcting position by          (nil)
+reading                0
+
+READ
+p_flags:		/* Segment flags */		= 0x000000000006
+p_offset:		/* Segment file offset */	=          (nil)
+p_vaddr:		/* Segment virtual address */	= 0x7f03b0000000
+p_paddr:		/* Segment physical address */	=          (nil)
+p_filesz:		/* Segment size in file */	=          (nil)
+p_memsz:		/* Segment size in memory */	=          (nil)
+p_align:		/* Segment alignment */		= 0x000000000010
+
+
+
+		p_flags: 0x000000000006 p_offset:          (nil) p_vaddr:  0x7f03b0000000 p_paddr:          (nil) p_filesz:          (nil) p_memsz:          (nil) p_align: 0x000000000010
+p_type:			/* Segment type */		= PT_GNU_RELRO		/* Read-only after relocation */
+ATTEMPING TO READ
+reading                0x000000001000
+called round_up
+returning 0x55cba0d34000
+correcting position by 0x000000000d88
+reading                632
+
+READ
+p_flags:		/* Segment flags */		= 0x000000000004
+p_offset:		/* Segment file offset */	= 0x000000000d88
+p_vaddr:		/* Segment virtual address */	= 0x7f03b0200d88
+p_paddr:		/* Segment physical address */	= 0x000000200d88
+p_filesz:		/* Segment size in file */	= 0x000000000278
+p_memsz:		/* Segment size in memory */	= 0x000000000278
+p_align:		/* Segment alignment */		= 0x000000000001
+
+
+
+		p_flags: 0x000000000004 p_offset: 0x000000000d88 p_vaddr:  0x7f03b0200d88 p_paddr: 0x000000200d88 p_filesz: 0x000000000278 p_memsz: 0x000000000278 p_align: 0x000000000001
+PT_LOAD 1 = 
+p_flags:		/* Segment flags */		= 0x000000000005
+p_offset:		/* Segment file offset */	=          (nil)
+p_vaddr:		/* Segment virtual address */	= 0x7f03b0000000
+p_paddr:		/* Segment physical address */	=          (nil)
+p_filesz:		/* Segment size in file */	= 0x000000000948
+p_memsz:		/* Segment size in memory */	= 0x000000000948
+p_align:		/* Segment alignment */		= 0x000000200000
+
+
+PT_LOAD 2 = 
+p_flags:		/* Segment flags */		= 0x000000000006
+p_offset:		/* Segment file offset */	= 0x000000000d88
+p_vaddr:		/* Segment virtual address */	= 0x7f03b0200d88
+p_paddr:		/* Segment physical address */	= 0x000000200d88
+p_filesz:		/* Segment size in file */	= 0x000000000288
+p_memsz:		/* Segment size in memory */	= 0x0000000002c0
+p_align:		/* Segment alignment */		= 0x000000200000
+
+
+first PT_LOAD library[library_index]._elf_program_header[2]->p_paddr = 
+0x7f03b0000000
+Second PT_LOAD library[library_index]._elf_program_header[3]->p_paddr = 
+0x7f03b0200d88
+examining current entries:
+called get_dynamic_entry
+testing if DT_NEEDED == -1 (unknown)
+testing if DT_NEEDED == -1 (unknown)
+testing if DT_NEEDED == -1 (unknown)
+testing if DT_NEEDED == -1 (unknown)
+testing if DT_INIT == -1 (unknown)
+testing if DT_FINI == -1 (unknown)
+testing if DT_INIT_ARRAY == -1 (unknown)
+testing if DT_INIT_ARRAYSZ == -1 (unknown)
+testing if DT_FINI_ARRAY == -1 (unknown)
+testing if DT_FINI_ARRAYSZ == -1 (unknown)
+testing if 1879047925 == -1 (unknown)
+testing if DT_STRTAB == -1 (unknown)
+testing if DT_SYMTAB == -1 (unknown)
+testing if DT_STRSZ == -1 (unknown)
+testing if DT_SYMENT == -1 (unknown)
+testing if DT_DEBUG == -1 (unknown)
+testing if DT_PLTGOT == -1 (unknown)
+testing if DT_PLTRELSZ == -1 (unknown)
+testing if DT_PLTREL == -1 (unknown)
+testing if DT_JMPREL == -1 (unknown)
+testing if DT_RELA == -1 (unknown)
+testing if DT_RELASZ == -1 (unknown)
+testing if DT_RELAENT == -1 (unknown)
+testing if DT_FLAGS == -1 (unknown)
+testing if DT_FLAGS_1 == -1 (unknown)
+testing if DT_VERNEED == -1 (unknown)
+testing if DT_VERNEEDNUM == -1 (unknown)
+testing if DT_VERSYM == -1 (unknown)
+testing if DT_RELACOUNT == -1 (unknown)
+returning 0
+Section Header	 library[library_index]._elf_header->e_shstrndx 0x000000000022 (library[library_index]._elf_header->e_shnum = 35 entries with a total of library[library_index]._elf_header->e_shentsize = 64 (should match 64) bytes, offset is library[library_index]._elf_header->e_shoff = 0x000000004a80)
+
+eh->e_shstrndx = 0xb0000022 (34)
+	================================================================================
+	idx offset     load-addr  size       algn type       flags      section
+	================================================================================
+	000          (nil) 0x7f03b0000000          (nil)    0          (nil)          (nil) 	
+	001 0x000000000238 0x7f03b0000238 0x00000000001c    1 0x000000000001 0x000000000002 .interp	
+	002 0x000000000254 0x7f03b0000254 0x000000000020    4 0x000000000007 0x000000000002 .note.ABI-tag	
+	003 0x000000000274 0x7f03b0000274 0x000000000024    4 0x000000000007 0x000000000002 .note.gnu.build-id	
+	004 0x000000000298 0x7f03b0000298 0x00000000003c    8 0x00006ffffff6 0x000000000002 .gnu.hash	
+	005 0x0000000002d8 0x7f03b00002d8 0x000000000138    8 0x00000000000b 0x000000000002 .dynsym	
+	006 0x000000000410 0x7f03b0000410 0x0000000000e6    1 0x000000000003 0x000000000002 .dynstr	
+	007 0x0000000004f6 0x7f03b00004f6 0x00000000001a    2 0x00006fffffff 0x000000000002 .gnu.version	
+	008 0x000000000510 0x7f03b0000510 0x000000000020    8 0x00006ffffffe 0x000000000002 .gnu.version_r	
+	009 0x000000000530 0x7f03b0000530 0x0000000000c0    8 0x000000000004 0x000000000002 .rela.dyn	
+	010 0x0000000005f0 0x7f03b00005f0 0x000000000018    8 0x000000000004 0x000000000042 .rela.plt	
+	011 0x000000000608 0x7f03b0000608 0x000000000017    4 0x000000000001 0x000000000006 .init	
+	012 0x000000000620 0x7f03b0000620 0x000000000020   16 0x000000000001 0x000000000006 .plt	
+	013 0x000000000640 0x7f03b0000640 0x000000000008    8 0x000000000001 0x000000000006 .plt.got	
+	014 0x000000000650 0x7f03b0000650 0x0000000001a2   16 0x000000000001 0x000000000006 .text	
+	015 0x0000000007f4 0x7f03b00007f4 0x000000000009    4 0x000000000001 0x000000000006 .fini	
+	016 0x000000000800 0x7f03b0000800 0x000000000004    4 0x000000000001 0x000000000012 .rodata	
+	017 0x000000000804 0x7f03b0000804 0x00000000003c    4 0x000000000001 0x000000000002 .eh_frame_hdr	
+	018 0x000000000840 0x7f03b0000840 0x000000000108    8 0x000000000001 0x000000000002 .eh_frame	
+	019 0x000000000d88 0x7f03b0200d88 0x000000000008    8 0x00000000000e 0x000000000003 .init_array	
+	020 0x000000000d90 0x7f03b0200d90 0x000000000008    8 0x00000000000f 0x000000000003 .fini_array	
+	021 0x000000000d98 0x7f03b0200d98 0x000000000220    8 0x000000000006 0x000000000003 .dynamic	
+	022 0x000000000fb8 0x7f03b0200fb8 0x000000000048    8 0x000000000001 0x000000000003 .got	
+	023 0x000000001000 0x7f03b0201000 0x000000000010    8 0x000000000001 0x000000000003 .data	
+	024 0x000000001010 0x7f03b0201020 0x000000000028   32 0x000000000008 0x000000000003 .bss	
+	025 0x000000001010 0x7f03b0000000 0x00000000002a    1 0x000000000001 0x000000000030 .comment	
+	026 0x00000000103a 0x7f03b0000000 0x000000000030    1 0x000000000001          (nil) .debug_aranges	
+	027 0x00000000106a 0x7f03b0000000 0x00000000007e    1 0x000000000001          (nil) .debug_info	
+	028 0x0000000010e8 0x7f03b0000000 0x00000000005f    1 0x000000000001          (nil) .debug_abbrev	
+	029 0x000000001147 0x7f03b0000000 0x00000000005f    1 0x000000000001          (nil) .debug_line	
+	030 0x0000000011a6 0x7f03b0000000 0x0000000026b3    1 0x000000000001 0x000000000030 .debug_str	
+	031 0x000000003859 0x7f03b0000000 0x000000000844    1 0x000000000001          (nil) .debug_macro	
+	032 0x0000000040a0 0x7f03b0000000 0x000000000690    8 0x000000000002          (nil) .symtab	
+	033 0x000000004730 0x7f03b0000000 0x000000000202    1 0x000000000003          (nil) .strtab	
+	034 0x000000004932 0x7f03b0000000 0x00000000014b    1 0x000000000003          (nil) .shstrtab	
+	================================================================================
+
+
+[NULL                     (Section header table entry unused)                   Section 0, Index 0]
+
+[PROGBITS                 (Program data)                                        Section 1, Index 1]
+
+[NOTE                     (Notes)                                               Section 2, Index 2]
+
+[NOTE                     (Notes)                                               Section 3, Index 3]
+
+[GNU_HASH                 (GNU-style hash table)                                Section 4, Index 4]
+
+[DYNSYM                   (Dynamic linker symbol table)                         Section 5, Index 5]
+symbol_table = 5
+string/symbol table index = 6
+links: 0
+13 symbols
+index: 0	size:          0 	binding: LOCAL   ( Local  symbol )  visibility: default   (Default symbol visibility rules)      address: 0x7f03b0000000	value:           (nil)	type: NOTYPE   (Symbol type is unspecified)             name: 
+
+index: 1	size:          0 	binding: WEAK    (  Weak symbol  )  visibility: default   (Default symbol visibility rules)      address: 0x7f03b0000000	value:           (nil)	type: FUNCTION (Symbol is a code object)                name: __cxa_finalize
+
+index: 2	size:          0 	binding: WEAK    (  Weak symbol  )  visibility: default   (Default symbol visibility rules)      address: 0x7f03b0000000	value:           (nil)	type: NOTYPE   (Symbol type is unspecified)             name: _ITM_deregisterTMCloneTable
+
+index: 3	size:          0 	binding: GLOBAL  ( Global symbol )  visibility: default   (Default symbol visibility rules)      address: 0x7f03b0000000	value:           (nil)	type: FUNCTION (Symbol is a code object)                name: readelf_
+
+index: 4	size:          0 	binding: GLOBAL  ( Global symbol )  visibility: default   (Default symbol visibility rules)      address: 0x7f03b0000000	value:           (nil)	type: FUNCTION (Symbol is a code object)                name: __libc_start_main
+
+index: 5	size:          0 	binding: WEAK    (  Weak symbol  )  visibility: default   (Default symbol visibility rules)      address: 0x7f03b0000000	value:           (nil)	type: NOTYPE   (Symbol type is unspecified)             name: __gmon_start__
+
+index: 6	size:          0 	binding: WEAK    (  Weak symbol  )  visibility: default   (Default symbol visibility rules)      address: 0x7f03b0000000	value:           (nil)	type: NOTYPE   (Symbol type is unspecified)             name: _ITM_registerTMCloneTable
+
+index: 7	size:          0 	binding: GLOBAL  ( Global symbol )  visibility: default   (Default symbol visibility rules)      address: 0x7f03b0201010	value:       977486663	type: NOTYPE   (Symbol type is unspecified)             name: _edata
+
+index: 8	size:          8 	binding: GLOBAL  ( Global symbol )  visibility: default   (Default symbol visibility rules)      address: 0x7f03b0201040	value:               0	type: OBJECT   (Symbol is a data object)                name: argv
+
+index: 9	size:          0 	binding: GLOBAL  ( Global symbol )  visibility: default   (Default symbol visibility rules)      address: 0x7f03b0201048	value: 0x0000000201048	type: NOTYPE   (Symbol type is unspecified)             name: _end
+
+index: 10	size:          0 	binding: GLOBAL  ( Global symbol )  visibility: default   (Default symbol visibility rules)      address: 0x7f03b0000608	value:       149717832	type: FUNCTION (Symbol is a code object)                name: _init
+
+index: 11	size:          0 	binding: GLOBAL  ( Global symbol )  visibility: default   (Default symbol visibility rules)      address: 0x7f03b0201010	value:       977486663	type: NOTYPE   (Symbol type is unspecified)             name: __bss_start
+
+index: 12	size:          0 	binding: GLOBAL  ( Global symbol )  visibility: default   (Default symbol visibility rules)      address: 0x7f03b00007f4	value:       149717832	type: FUNCTION (Symbol is a code object)                name: _fini
+
+
+[STRTAB                   (String table)                                        Section 6, Index 6]
+
+[GNU_versym               (Version symbol table) or HISUNW (Sun-specific high bound) or HIOS (End OS-specific type) Section 7, Index 7]
+
+[GNU_verneed              (Version needs section)                               Section 8, Index 8]
+
+[RELA                     (Relocation entries with addends)                     Section 9, Index 9]
+
+[RELA                     (Relocation entries with addends)                     Section 10, Index 10]
+
+[PROGBITS                 (Program data)                                        Section 11, Index 11]
+
+[PROGBITS                 (Program data)                                        Section 12, Index 12]
+
+[PROGBITS                 (Program data)                                        Section 13, Index 13]
+
+[PROGBITS                 (Program data)                                        Section 14, Index 14]
+
+[PROGBITS                 (Program data)                                        Section 15, Index 15]
+
+[PROGBITS                 (Program data)                                        Section 16, Index 16]
+
+[PROGBITS                 (Program data)                                        Section 17, Index 17]
+
+[PROGBITS                 (Program data)                                        Section 18, Index 18]
+
+[INIT_ARRAY               (Array of constructors)                               Section 19, Index 19]
+
+[FINI_ARRAY               (Array of destructors)                                Section 20, Index 20]
+
+[DYNAMIC                  (Dynamic linking information)                         Section 21, Index 21]
+
+[PROGBITS                 (Program data)                                        Section 22, Index 22]
+
+[PROGBITS                 (Program data)                                        Section 23, Index 23]
+
+[NOBITS                   (Program space with no data (bss))                    Section 24, Index 24]
+
+[PROGBITS                 (Program data)                                        Section 25, Index 25]
+
+[PROGBITS                 (Program data)                                        Section 26, Index 26]
+
+[PROGBITS                 (Program data)                                        Section 27, Index 27]
+
+[PROGBITS                 (Program data)                                        Section 28, Index 28]
+
+[PROGBITS                 (Program data)                                        Section 29, Index 29]
+
+[PROGBITS                 (Program data)                                        Section 30, Index 30]
+
+[PROGBITS                 (Program data)                                        Section 31, Index 31]
+
+[SYMTAB                   (Symbol table)                                        Section 32, Index 32]
+symbol_table = 32
+string/symbol table index = 33
+links: 0
+70 symbols
+index: 0	size:          0 	binding: LOCAL   ( Local  symbol )  visibility: default   (Default symbol visibility rules)      address: 0x7f03b0000000	value:           (nil)	type: NOTYPE   (Symbol type is unspecified)             name: 
+
+index: 1	size:          0 	binding: LOCAL   ( Local  symbol )  visibility: default   (Default symbol visibility rules)      address: 0x7f03b0000238	value:      1651076143	type: SECTION  (Symbol associated with a section)       name: 
+
+index: 2	size:          0 	binding: LOCAL   ( Local  symbol )  visibility: default   (Default symbol visibility rules)      address: 0x7f03b0000254	value:               4	type: SECTION  (Symbol associated with a section)       name: 
+
+index: 3	size:          0 	binding: LOCAL   ( Local  symbol )  visibility: default   (Default symbol visibility rules)      address: 0x7f03b0000274	value:               4	type: SECTION  (Symbol associated with a section)       name: 
+
+index: 4	size:          0 	binding: LOCAL   ( Local  symbol )  visibility: default   (Default symbol visibility rules)      address: 0x7f03b0000298	value:               3	type: SECTION  (Symbol associated with a section)       name: 
+
+index: 5	size:          0 	binding: LOCAL   ( Local  symbol )  visibility: default   (Default symbol visibility rules)      address: 0x7f03b00002d8	value:               0	type: SECTION  (Symbol associated with a section)       name: 
+
+index: 6	size:          0 	binding: LOCAL   ( Local  symbol )  visibility: default   (Default symbol visibility rules)      address: 0x7f03b0000410	value:      1818846720	type: SECTION  (Symbol associated with a section)       name: 
+
+index: 7	size:          0 	binding: LOCAL   ( Local  symbol )  visibility: default   (Default symbol visibility rules)      address: 0x7f03b00004f6	value:          131072	type: SECTION  (Symbol associated with a section)       name: 
+
+index: 8	size:          0 	binding: LOCAL   ( Local  symbol )  visibility: default   (Default symbol visibility rules)      address: 0x7f03b0000510	value:           65537	type: SECTION  (Symbol associated with a section)       name: 
+
+index: 9	size:          0 	binding: LOCAL   ( Local  symbol )  visibility: default   (Default symbol visibility rules)      address: 0x7f03b0000530	value:         2100616	type: SECTION  (Symbol associated with a section)       name: 
+
+index: 10	size:          0 	binding: LOCAL   ( Local  symbol )  visibility: default   (Default symbol visibility rules)      address: 0x7f03b00005f0	value:         2101200	type: SECTION  (Symbol associated with a section)       name: 
+
+index: 11	size:          0 	binding: LOCAL   ( Local  symbol )  visibility: default   (Default symbol visibility rules)      address: 0x7f03b0000608	value:       149717832	type: SECTION  (Symbol associated with a section)       name: 
+
+index: 12	size:          0 	binding: LOCAL   ( Local  symbol )  visibility: default   (Default symbol visibility rules)      address: 0x7f03b0000620	value:       161101311	type: SECTION  (Symbol associated with a section)       name: 
+
+index: 13	size:          0 	binding: LOCAL   ( Local  symbol )  visibility: default   (Default symbol visibility rules)      address: 0x7f03b0000640	value:       160572927	type: SECTION  (Symbol associated with a section)       name: 
+
+index: 14	size:          0 	binding: LOCAL   ( Local  symbol )  visibility: default   (Default symbol visibility rules)      address: 0x7f03b0000650	value:     -1991643855	type: SECTION  (Symbol associated with a section)       name: 
+
+index: 15	size:          0 	binding: LOCAL   ( Local  symbol )  visibility: default   (Default symbol visibility rules)      address: 0x7f03b00007f4	value:       149717832	type: SECTION  (Symbol associated with a section)       name: 
+
+index: 16	size:          0 	binding: LOCAL   ( Local  symbol )  visibility: default   (Default symbol visibility rules)      address: 0x7f03b0000800	value:          131073	type: SECTION  (Symbol associated with a section)       name: 
+
+index: 17	size:          0 	binding: LOCAL   ( Local  symbol )  visibility: default   (Default symbol visibility rules)      address: 0x7f03b0000804	value:       990059265	type: SECTION  (Symbol associated with a section)       name: 
+
+index: 18	size:          0 	binding: LOCAL   ( Local  symbol )  visibility: default   (Default symbol visibility rules)      address: 0x7f03b0000840	value:              20	type: SECTION  (Symbol associated with a section)       name: 
+
+index: 19	size:          0 	binding: LOCAL   ( Local  symbol )  visibility: default   (Default symbol visibility rules)      address: 0x7f03b0200d88	value:     -1342175408	type: SECTION  (Symbol associated with a section)       name: 
+
+index: 20	size:          0 	binding: LOCAL   ( Local  symbol )  visibility: default   (Default symbol visibility rules)      address: 0x7f03b0200d90	value:     -1342175472	type: SECTION  (Symbol associated with a section)       name: 
+
+index: 21	size:          0 	binding: LOCAL   ( Local  symbol )  visibility: default   (Default symbol visibility rules)      address: 0x7f03b0200d98	value:               1	type: SECTION  (Symbol associated with a section)       name: 
+
+index: 22	size:          0 	binding: LOCAL   ( Local  symbol )  visibility: default   (Default symbol visibility rules)      address: 0x7f03b0200fb8	value:         2100632	type: SECTION  (Symbol associated with a section)       name: 
+
+index: 23	size:          0 	binding: LOCAL   ( Local  symbol )  visibility: default   (Default symbol visibility rules)      address: 0x7f03b0201000	value:               0	type: SECTION  (Symbol associated with a section)       name: 
+
+index: 24	size:          0 	binding: LOCAL   ( Local  symbol )  visibility: default   (Default symbol visibility rules)      address: 0x7f03b0201020	value:       841822254	type: SECTION  (Symbol associated with a section)       name: 
+
+index: 25	size:          0 	binding: LOCAL   ( Local  symbol )  visibility: default   (Default symbol visibility rules)      address: 0x7f03b0000000	value:           (nil)	type: SECTION  (Symbol associated with a section)       name: 
+
+index: 26	size:          0 	binding: LOCAL   ( Local  symbol )  visibility: default   (Default symbol visibility rules)      address: 0x7f03b0000000	value:           (nil)	type: SECTION  (Symbol associated with a section)       name: 
+
+index: 27	size:          0 	binding: LOCAL   ( Local  symbol )  visibility: default   (Default symbol visibility rules)      address: 0x7f03b0000000	value:           (nil)	type: SECTION  (Symbol associated with a section)       name: 
+
+index: 28	size:          0 	binding: LOCAL   ( Local  symbol )  visibility: default   (Default symbol visibility rules)      address: 0x7f03b0000000	value:           (nil)	type: SECTION  (Symbol associated with a section)       name: 
+
+index: 29	size:          0 	binding: LOCAL   ( Local  symbol )  visibility: default   (Default symbol visibility rules)      address: 0x7f03b0000000	value:           (nil)	type: SECTION  (Symbol associated with a section)       name: 
+
+index: 30	size:          0 	binding: LOCAL   ( Local  symbol )  visibility: default   (Default symbol visibility rules)      address: 0x7f03b0000000	value:           (nil)	type: SECTION  (Symbol associated with a section)       name: 
+
+index: 31	size:          0 	binding: LOCAL   ( Local  symbol )  visibility: default   (Default symbol visibility rules)      address: 0x7f03b0000000	value:           (nil)	type: SECTION  (Symbol associated with a section)       name: 
+
+index: 32	size:          0 	binding: LOCAL   ( Local  symbol )  visibility: default   (Default symbol visibility rules)      address: 0x7f03b0000000	value:           (nil)	type: FILE     (Symbol's name is file name)             name: crtstuff.c
+
+index: 33	size:          0 	binding: LOCAL   ( Local  symbol )  visibility: default   (Default symbol visibility rules)      address: 0x7f03b0000680	value:     -1992454840	type: FUNCTION (Symbol is a code object)                name: deregister_tm_clones
+
+index: 34	size:          0 	binding: LOCAL   ( Local  symbol )  visibility: default   (Default symbol visibility rules)      address: 0x7f03b00006c0	value:      1228770632	type: FUNCTION (Symbol is a code object)                name: register_tm_clones
+
+index: 35	size:          0 	binding: LOCAL   ( Local  symbol )  visibility: default   (Default symbol visibility rules)      address: 0x7f03b0000710	value:       151600512	type: FUNCTION (Symbol is a code object)                name: __do_global_dtors_aux
+
+index: 36	size:          1 	binding: LOCAL   ( Local  symbol )  visibility: default   (Default symbol visibility rules)      address: 0x7f03b0201020	value:       841822254	type: OBJECT   (Symbol is a data object)                name: completed.7696
+
+index: 37	size:          0 	binding: LOCAL   ( Local  symbol )  visibility: default   (Default symbol visibility rules)      address: 0x7f03b0200d90	value:     -1342175472	type: OBJECT   (Symbol is a data object)                name: __do_global_dtors_aux_fini_array_entry
+
+index: 38	size:          0 	binding: LOCAL   ( Local  symbol )  visibility: default   (Default symbol visibility rules)      address: 0x7f03b0000750	value:      -443987883	type: FUNCTION (Symbol is a code object)                name: frame_dummy
+
+index: 39	size:          0 	binding: LOCAL   ( Local  symbol )  visibility: default   (Default symbol visibility rules)      address: 0x7f03b0200d88	value:     -1342175408	type: OBJECT   (Symbol is a data object)                name: __frame_dummy_init_array_entry
+
+index: 40	size:          0 	binding: LOCAL   ( Local  symbol )  visibility: default   (Default symbol visibility rules)      address: 0x7f03b0000000	value:           (nil)	type: FILE     (Symbol's name is file name)             name: readelf_.c
+
+index: 41	size:          0 	binding: LOCAL   ( Local  symbol )  visibility: default   (Default symbol visibility rules)      address: 0x7f03b0000000	value:           (nil)	type: FILE     (Symbol's name is file name)             name: crtstuff.c
+
+index: 42	size:          0 	binding: LOCAL   ( Local  symbol )  visibility: default   (Default symbol visibility rules)      address: 0x7f03b0000944	value:               0	type: OBJECT   (Symbol is a data object)                name: __FRAME_END__
+
+index: 43	size:          0 	binding: LOCAL   ( Local  symbol )  visibility: default   (Default symbol visibility rules)      address: 0x7f03b0000000	value:           (nil)	type: FILE     (Symbol's name is file name)             name: 
+
+index: 44	size:          0 	binding: LOCAL   ( Local  symbol )  visibility: default   (Default symbol visibility rules)      address: 0x7f03b0000804	value:       990059265	type: NOTYPE   (Symbol type is unspecified)             name: __GNU_EH_FRAME_HDR
+
+index: 45	size:          0 	binding: LOCAL   ( Local  symbol )  visibility: default   (Default symbol visibility rules)      address: 0x7f03b0200d98	value:               1	type: OBJECT   (Symbol is a data object)                name: _DYNAMIC
+
+index: 46	size:          0 	binding: LOCAL   ( Local  symbol )  visibility: default   (Default symbol visibility rules)      address: 0x7f03b0200d90	value:     -1342175472	type: NOTYPE   (Symbol type is unspecified)             name: __init_array_end
+
+index: 47	size:          0 	binding: LOCAL   ( Local  symbol )  visibility: default   (Default symbol visibility rules)      address: 0x7f03b0200d88	value:     -1342175408	type: NOTYPE   (Symbol type is unspecified)             name: __init_array_start
+
+index: 48	size:          0 	binding: LOCAL   ( Local  symbol )  visibility: default   (Default symbol visibility rules)      address: 0x7f03b0200fb8	value:         2100632	type: OBJECT   (Symbol is a data object)                name: _GLOBAL_OFFSET_TABLE_
+
+index: 49	size:          0 	binding: GLOBAL  ( Global symbol )  visibility: default   (Default symbol visibility rules)      address: 0x7f03b0201010	value:       977486663	type: NOTYPE   (Symbol type is unspecified)             name: _edata
+
+index: 50	size:          0 	binding: WEAK    (  Weak symbol  )  visibility: default   (Default symbol visibility rules)      address: 0x7f03b0201000	value:               0	type: NOTYPE   (Symbol type is unspecified)             name: data_start
+
+index: 51	size:          4 	binding: GLOBAL  ( Global symbol )  visibility: default   (Default symbol visibility rules)      address: 0x7f03b0000800	value:          131073	type: OBJECT   (Symbol is a data object)                name: _IO_stdin_used
+
+index: 52	size:          0 	binding: WEAK    (  Weak symbol  )  visibility: default   (Default symbol visibility rules)      address: 0x7f03b0000000	value:           (nil)	type: FUNCTION (Symbol is a code object)                name: __cxa_finalize@@GLIBC_2.2.5
+
+index: 53	size:         29 	binding: GLOBAL  ( Global symbol )  visibility: default   (Default symbol visibility rules)      address: 0x7f03b000075a	value:      -443987883	type: FUNCTION (Symbol is a code object)                name: main
+
+index: 54	size:          8 	binding: GLOBAL  ( Global symbol )  visibility: default   (Default symbol visibility rules)      address: 0x7f03b0201040	value:               0	type: OBJECT   (Symbol is a data object)                name: argv
+
+index: 55	size:          0 	binding: GLOBAL  ( Global symbol )  visibility: hidden    (Symbol unavailable in other modules)  address: 0x7f03b0201008	value:     -1340076024	type: OBJECT   (Symbol is a data object)                name: __dso_handle
+
+index: 56	size:          0 	binding: GLOBAL  ( Global symbol )  visibility: default   (Default symbol visibility rules)      address: 0x7f03b00007f4	value:       149717832	type: FUNCTION (Symbol is a code object)                name: _fini
+
+index: 57	size:         43 	binding: GLOBAL  ( Global symbol )  visibility: default   (Default symbol visibility rules)      address: 0x7f03b0000650	value:     -1991643855	type: FUNCTION (Symbol is a code object)                name: _start
+
+index: 58	size:          0 	binding: GLOBAL  ( Global symbol )  visibility: default   (Default symbol visibility rules)      address: 0x7f03b0000608	value:       149717832	type: FUNCTION (Symbol is a code object)                name: _init
+
+index: 59	size:          0 	binding: GLOBAL  ( Global symbol )  visibility: hidden    (Symbol unavailable in other modules)  address: 0x7f03b0201010	value:       977486663	type: OBJECT   (Symbol is a data object)                name: __TMC_END__
+
+index: 60	size:          0 	binding: GLOBAL  ( Global symbol )  visibility: default   (Default symbol visibility rules)      address: 0x7f03b0201000	value:               0	type: NOTYPE   (Symbol type is unspecified)             name: __data_start
+
+index: 61	size:          0 	binding: GLOBAL  ( Global symbol )  visibility: default   (Default symbol visibility rules)      address: 0x7f03b0201048	value: 0x0000000201048	type: NOTYPE   (Symbol type is unspecified)             name: _end
+
+index: 62	size:          0 	binding: GLOBAL  ( Global symbol )  visibility: default   (Default symbol visibility rules)      address: 0x7f03b0201010	value:       977486663	type: NOTYPE   (Symbol type is unspecified)             name: __bss_start
+
+index: 63	size:        101 	binding: GLOBAL  ( Global symbol )  visibility: default   (Default symbol visibility rules)      address: 0x7f03b0000780	value:      1447122753	type: FUNCTION (Symbol is a code object)                name: __libc_csu_init
+
+index: 64	size:          0 	binding: WEAK    (  Weak symbol  )  visibility: default   (Default symbol visibility rules)      address: 0x7f03b0000000	value:           (nil)	type: NOTYPE   (Symbol type is unspecified)             name: _ITM_deregisterTMCloneTable
+
+index: 65	size:          0 	binding: GLOBAL  ( Global symbol )  visibility: default   (Default symbol visibility rules)      address: 0x7f03b0000000	value:           (nil)	type: FUNCTION (Symbol is a code object)                name: readelf_
+
+index: 66	size:          2 	binding: GLOBAL  ( Global symbol )  visibility: default   (Default symbol visibility rules)      address: 0x7f03b00007f0	value:           50163	type: FUNCTION (Symbol is a code object)                name: __libc_csu_fini
+
+index: 67	size:          0 	binding: GLOBAL  ( Global symbol )  visibility: default   (Default symbol visibility rules)      address: 0x7f03b0000000	value:           (nil)	type: FUNCTION (Symbol is a code object)                name: __libc_start_main@@GLIBC_2.2.5
+
+index: 68	size:          0 	binding: WEAK    (  Weak symbol  )  visibility: default   (Default symbol visibility rules)      address: 0x7f03b0000000	value:           (nil)	type: NOTYPE   (Symbol type is unspecified)             name: __gmon_start__
+
+index: 69	size:          0 	binding: WEAK    (  Weak symbol  )  visibility: default   (Default symbol visibility rules)      address: 0x7f03b0000000	value:           (nil)	type: NOTYPE   (Symbol type is unspecified)             name: _ITM_registerTMCloneTable
+
+
+[STRTAB                   (String table)                                        Section 33, Index 33]
+
+[STRTAB                   (String table)                                        Section 34, Index 34]
+30\2\0\0\0\0\0\0\5\0\0\0\0\0\0\0\20\4\0\0\0\0\0\0\6\0\0\0\0\0\0\0\330\2\0\0\0\0\0\0\n\0\0\0\0\0\0\0\346\0\0\0\0\0\0\0\v\0\0\0\0\0\0\0\30\0\0\0\0\0\0\0\25\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\3\0\0\0\0\0\0\0\270\17 \0\0\0\0\0\2\0\0\0\0\0\0\0\30\0\0\0\0\0\0\0\24\0\0\0\0\0\0\0\7\0\0\0\0\0\0\0\27\0\0\0\0\0\0\0\360\5\0\0\0\0\0\0\7\0\0\0\0\0\0\0000\5\0\0\0\0\0\0\10\0\0\0\0\0\0\0\300\0\0\0\0\0\0\0\t\0\0\0\0\0\0\0\30\0\0\0\0\0\0\0\36\0\0\0\0\0\0\0\10\0\0\0\0\0\0\0\373\377\377o\0\0\0\0\1\0\0\10\0\0\0\0\376\377\377o\0\0\0\0\20\5\0\0\0\0\0\0\377\377\377o\0\0\0\0\1\0\0\0\0\0\0\0\360\377\377o\0\0\0\0\366\4\0\0\0\0\0\0\371\377\377o\0\0\0\0\3\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\230\r \0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0006\6\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\10\20 \0\0\0\0\0GCC: (Ubuntu 7.3.0-27ubuntu1~18.04) 7.3.0\0,\0\0\0\2\0\0\0\0\0\10\0\0\0""\1\0\0\0\0\0\0\0\1\0\0\0\0\0\0\0\1\0\0\0\0\0\0\0r\0\0\0\0\0\0\0\1\0\0\0\0\0\0\0\204\0\0\0\0\0\0\0\1\0\0\0\0\0\0\0\227\0\0\0\0\0\0\0\f\0\0\0\0\0\0\0\10\6\0\0\0\0\0\0\r\0\0\0\0\0\0\0\364\7\0\0\0\0\0\0\31\0\0\0\0\0\0\0\210\r \0\0\0\0\0\33\0\0\0\0\0\0\0\10\0\0\0\0\0\0\0\32\0\0\0\0\0\0\0\220\r \0\0\0\0\0\34\0\0\0\0\0\0\0\10\0\0\0\0\0\0\0\365\376\377o\0\0\0\0\230\2\0\0\0\0\0\0\5\0\0\0\0\0\0\0\20\4\0\0\0\0\0\0\6\0\0\0\0\0\0\0\330\2\0\0\0\0\0\0\n\0\0\0\0\0\0\0\346\0\0\0\0\0\0\0\v\0\0\0\0\0\0\0\30\0\0\0\0\0\0\0\25\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\3\0\0\0\0\0\0\0\270\17 \0\0\0\0\0\2\0\0\0\0\0\0\0\30\0\0\0\0\0\0\0\24\0\0\0\0\0\0\0\7\0\0\0\0\0\0\0\27\0\0\0\0\0\0\0\360\5\0\0\0\0\0\0\7\0\0\0\0\0\0\0000\5\0\0\0\0\0\0\10\0\0\0\0\0\0\0\300\0\0\0\0\0\0\0\t\0\0\0\0\0\0\0\30\0\0\0\0\0\0\0\36\0\0\0\0\0\0\0\10\0\0\0\0\0\0\0\373\377\377o\0\0\0\0\1\0\0\10\0\0\0\0\376\377\377o\0\0\0\0\20\5\0\0\0\0\0\0\377\377\377o\0\0\0\0\1\0\0\0\0\0\0\0\360\377\377o\0\0\0\0\366\4\0\0\0\0\0\0\371\377\377o\0\0\0\0\3\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0""\4\0\0\0\20\0\0\0\1\0\0\0GNU\0\0\0\0\0\3\0\0\0\2\0\0\0\0\0\0\0\4\0\0\0\24\0\0\0\3\0\0\0GNU\0\212\342\244\274\375\30 \250l:\272\375\320\312\30\263CY\236\353""\1\33\3;8\0\0\0\6\0\0\0\34\376\377\377\204\0\0\0<\376\377\377\254\0\0\0L\376\377\377T\0\0\0V\377\377\377\304\0\0\0|\377\377\377\344\0\0\0\354\377\377\377,\1\0\0""""P\7\0\0\0\0\0\0\20\7\0\0\0\0\0\0\1\0\0\0\0\0\0\0\1\0\0\0\0\0\0\0\1\0\0\0\0\0\0\0r\0\0\0\0\0\0\0\1\0\0\0\0\0\0\0\204\0\0\0\0\0\0\0\1\0\0\0\0\0\0\0\227\0\0\0\0\0\0\0\f\0\0\0\0\0\0\0\10\6\0\0\0\0\0\0\r\0\0\0\0\0\0\0\364\7\0\0\0\0\0\0\31\0\0\0\0\0\0\0\210\r \0\0\0\0\0\33\0\0\0\0\0\0\0\10\0\0\0\0\0\0\0\32\0\0\0\0\0\0\0\220\r \0\0\0\0\0\34\0\0\0\0\0\0\0\10\0\0\0\0\0\0\0\365\376\377o\0\0\0\0\230\2\0\0\0\0\0\0\5\0\0\0\0\0\0\0\20\4\0\0\0\0\0\0\6\0\0\0\0\0\0\0\330\2\0\0\0\0\0\0\n\0\0\0\0\0\0\0\346\0\0\0\0\0\0\0\v\0\0\0\0\0\0\0\30\0\0\0\0\0\0\0\25\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\3\0\0\0\0\0\0\0\270\17 \0\0\0\0\0\2\0\0\0\0\0\0\0\30\0\0\0\0\0\0\0\24\0\0\0\0\0\0\0\7\0\0\0\0\0\0\0\27\0\0\0\0\0\0\0\360\5\0\0\0\0\0\0\7\0\0\0\0\0\0\0000\5\0\0\0\0\0\0\10\0\0\0\0\0\0\0\300\0\0\0\0\0\0\0\t\0\0\0\0\0\0\0\30\0\0\0\0\0\0\0\36\0\0\0\0\0\0\0\10\0\0\0\0\0\0\0\373\377\377o\0\0\0\0\1\0\0\10\0\0\0\0\376\377\377o\0\0\0\0\20\5\0\0\0\0\0\0\377\377\377o\0\0\0\0\1\0\0\0\0\0\0\0\360\377\377o\0\0\0\0\366\4\0\0\0\0\0\0\371\377\377o\0\0\0\0\3\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\230\r \0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0006\6\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0"

@@ -15,15 +15,15 @@ char ** argv;
 int
 readelf_(const char * filename);
 int main() {
-    readelf_(argv[0]);
+    readelf_(argv[1]);
 }
 #else
 // compiled with -fpic or -fPIC
 const char * global_quiet = "no";
-const char * symbol_quiet = "yes";
-const char * relocation_quiet = "yes";
+const char * symbol_quiet = "no";
+const char * relocation_quiet = "no";
 const char * analysis_quiet = "no";
-const char * ldd_quiet = "yes";
+const char * ldd_quiet = "no";
 
 // define all headers first
 
@@ -2308,6 +2308,7 @@ dlopen_(const char * cc);
 
 void *
 dlsym(const char * cc1, const char * cc2);
+
 Elf64_Word
 get_needed(const char * lib)
 {
@@ -3200,6 +3201,9 @@ init_(const char * filename) {
             r(library[library_index].mappingb + get_dynamic_entry(library[library_index].dynamic, DT_BIND_NOW), library[library_index].RELA_PLT_SIZE, relocation_quiet);
 //             r(library[library_index].mappingb + get_dynamic_entry(library[library_index].dynamic, DT_PLTREL), get_dynamic_entry(library[library_index].dynamic, DT_PLTRELSZ), relocation_quiet);
             r_summary();
+			
+			// call init
+			get_dynamic_entry(library[library_index].dynamic, DT_INIT);
         }
     } else return -1;
     library[library_index].init__ = 1;
@@ -4124,7 +4128,7 @@ readelf_(const char * filename) {
                 if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "correcting position by %014p\n", library[library_index]._elf_program_header[i].p_offset);
                 __lseek_string__(&tmp99, library[library_index]._elf_program_header[i].p_memsz, library[library_index]._elf_program_header[i].p_offset);
                 if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "reading                %d\n", library[library_index]._elf_program_header[i].p_memsz);
-                __print_quoted_string__(tmp99, library[library_index]._elf_program_header[i].p_memsz, 0, "print");
+//                 __print_quoted_string__(tmp99, library[library_index]._elf_program_header[i].p_memsz, 0, "print");
                 if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "\nREAD\n");
                 if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "p_flags:\t\t/* Segment flags */\t\t= %014p\np_offset:\t\t/* Segment file offset */\t= %014p\np_vaddr:\t\t/* Segment virtual address */\t= %014p\np_paddr:\t\t/* Segment physical address */\t= %014p\np_filesz:\t\t/* Segment size in file */\t= %014p\np_memsz:\t\t/* Segment size in memory */\t= %014p\np_align:\t\t/* Segment alignment */\t\t= %014p\n\n\n", library[library_index]._elf_program_header[i].p_flags, library[library_index]._elf_program_header[i].p_offset, library[library_index]._elf_program_header[i].p_vaddr+library[library_index].mappingb, library[library_index]._elf_program_header[i].p_paddr, library[library_index]._elf_program_header[i].p_filesz, library[library_index]._elf_program_header[i].p_memsz, library[library_index]._elf_program_header[i].p_align);
                 if (bytecmpq(global_quiet, "no") == 0) nl();
@@ -4174,7 +4178,7 @@ library[library_index]._elf_header->e_shoff = %014p)\n",\
             );
             read_section_header_table_(library[library_index].array, library[library_index]._elf_header, &library[library_index]._elf_symbol_table);
             print_section_headers_(library[library_index].array, library[library_index]._elf_header, library[library_index]._elf_symbol_table);
-            print_symbols(library[library_index].array, library[library_index]._elf_header, library[library_index]._elf_symbol_table);
+//             print_symbols(library[library_index].array, library[library_index]._elf_header, library[library_index]._elf_symbol_table);
         } else {
                 /* Not ELF file */
                 if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "ELFMAGIC not found\n");

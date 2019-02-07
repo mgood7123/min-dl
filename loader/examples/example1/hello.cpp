@@ -1,7 +1,7 @@
 #include <stdio.h>
 
 extern "C" void hello() {
-    printf("hello\n");
+    printf("hello!\n");
     /*
     initialization:
     in during relocation JMP_SLOT relocations are preformed, which write directly to the GOT, in this case "printf" is translated directly to "puts" at compile time

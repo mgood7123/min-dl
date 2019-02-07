@@ -1378,8 +1378,8 @@ void ElfFile<ElfFileParamNames>::printNeededLibs(const char * lib, int depth, in
     for (; rdi(dyn->d_tag) != DT_NULL; dyn++) {
         if (rdi(dyn->d_tag) == DT_NEEDED) {
             dynamic__ = 1;
-            const char * path1 = "/lib/";
-            const char * path2 = "/usr/lib/";
+            const char * path1 = "/lib/x86_64-linux-gnu/";
+            const char * path2 = "/usr/lib/x86_64-linux-gnu/";
             const char * path3 = "./";
             char * name = strTab + rdi(dyn->d_un.d_val);
             auto namefull_ = std::string(path1) + name;
