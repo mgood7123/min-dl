@@ -10,7 +10,7 @@ struct lib
     char library_first_character;
     char * library_len;
     char * library_symbol;
-    uintptr_t mappingb;
+    uintptr_t mapping_start;
     Elf64_Ehdr * _elf_header;
     Elf64_Phdr * _elf_program_header;
     Elf64_Shdr * _elf_symbol_table;
@@ -22,7 +22,7 @@ struct lib
     int is_mapped;
     size_t align;
     Elf64_Addr base_address;
-    Elf64_Addr mappingb_end;
+    Elf64_Addr mapping_end;
     int init__;
     int PT_DYNAMIC_;
     char * tmp99D;

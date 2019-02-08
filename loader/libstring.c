@@ -229,9 +229,9 @@ uintptr_t round_up(uintptr_t value, uintptr_t size)
 #define QUOTE_FORCE_HEXOLD				9998
 #define QUOTE_FORCE_LEN				9999
 #define error_msg printf
-int argc;
-char **argv;
-char ** saved_environ = NULL;
+int libstring_argc;
+char **libstring_argv;
+char ** libstring_env = NULL;
 void libauxv_initv (void);
 void init_env();
 void init_argX();
@@ -250,20 +250,20 @@ init_env (void)
     if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "----------------------------------------------------------------------->called %s() at line %d from %s\n", __func__, __LINE__, __FILE__);
     extern char ** __environ;
     assert(__environ!=NULL);
-    saved_environ = __environ;
-    assert(saved_environ!=NULL);
+    libstring_env = __environ;
+    assert(libstring_env!=NULL);
 }
 
 void
 init_argX() {
     if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "----------------------------------------------------------------------->called %s() at line %d from %s\n", __func__, __LINE__, __FILE__);
     size_t i;
-    char **p = &saved_environ[-2];
+    char **p = &libstring_env[-2];
     for (i = 1; i != *(size_t*)(p-1); i++) {
         p--;
     }
-    argc = (int)i;
-    argv = p;
+    libstring_argc = (int)i;
+    libstring_argv = p;
 }
 
 void __attribute__ ((__constructor__ (0)))
@@ -284,9 +284,9 @@ getaux(void * type) {
     int num = -1;
     void * AUXV_TYPE;
     char * AUXV_NAME;
-    for (i=argc+1; argv[i]; i++);
-    for (int ii=0; ii<=(argv+i+1)[0]+(2*20); ii+=2) { // 20 extra incase auxv does not have the same vectors for every machine (could have more than +4)
-        size_t tmp = (size_t)(argv+i+1+ii)[0];
+    for (i=libstring_argc+1; libstring_argv[i]; i++);
+    for (int ii=0; ii<=(libstring_argv+i+1)[0]+(2*20); ii+=2) { // 20 extra incase auxv does not have the same vectors for every machine (could have more than +4)
+        size_t tmp = (size_t)(libstring_argv+i+1+ii)[0];
         switch(tmp)
         {
                 case 0:
@@ -502,13 +502,13 @@ getaux(void * type) {
         }
         if (num == type) {
             if (AUXV_TYPE == "CHAR*") {
-            if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "%s = %s\n", AUXV_NAME, (void *)(argv+i+1+ii)[1]);
+            if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "%s = %s\n", AUXV_NAME, (void *)(libstring_argv+i+1+ii)[1]);
             } else if (AUXV_TYPE == "INT") {
-            if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "%s = %d\n", AUXV_NAME, (void *)(argv+i+1+ii)[1]);
+            if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "%s = %d\n", AUXV_NAME, (void *)(libstring_argv+i+1+ii)[1]);
             } else if (AUXV_TYPE == "ADDRESS") {
-            if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "%s = %p\n", AUXV_NAME, (void *)(argv+i+1+ii)[1]);
+            if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "%s = %p\n", AUXV_NAME, (void *)(libstring_argv+i+1+ii)[1]);
             }
-            return (argv+i+1+ii)[1];
+            return (libstring_argv+i+1+ii)[1];
         }
     }
 }
@@ -524,9 +524,9 @@ setaux(void * value, void * type) {
     int num = -1;
     void * AUXV_TYPE;
     char * AUXV_NAME;
-    for (i=argc+1; argv[i]; i++);
-    for (int ii=0; ii<=(argv+i+1)[0]+(2*20); ii+=2) { // 20 extra incase auxv does not have the same vectors for every machine (could have more than +4)
-        size_t tmp = (size_t *)(argv+i+1+ii)[0];
+    for (i=libstring_argc+1; libstring_argv[i]; i++);
+    for (int ii=0; ii<=(libstring_argv+i+1)[0]+(2*20); ii+=2) { // 20 extra incase auxv does not have the same vectors for every machine (could have more than +4)
+        size_t tmp = (size_t *)(libstring_argv+i+1+ii)[0];
         switch(tmp)
         {
                 case 0:
@@ -743,8 +743,8 @@ setaux(void * value, void * type) {
         if (num == type) {
         if (AUXV_TYPE == "CHAR*") {
             char * string = value;
-            char *j = (void *)(argv+i+1+ii)[1];
-            int len = strlen((void *)(argv+i+1+ii)[1]);
+            char *j = (void *)(libstring_argv+i+1+ii)[1];
+            int len = strlen((void *)(libstring_argv+i+1+ii)[1]);
             int len_ = strlen(string);
             for (int g = 0; g<=len_; g++) {
                 *j = string[g];
@@ -755,9 +755,9 @@ setaux(void * value, void * type) {
                 j+=1;
             }
         } else if (AUXV_TYPE == "INT") {
-            (argv+i+1+ii)[1] = value;
+            (libstring_argv+i+1+ii)[1] = value;
         } else if (AUXV_TYPE == "ADDRESS") {
-            (argv+i+1+ii)[1] = value;
+            (libstring_argv+i+1+ii)[1] = value;
         }
         }
     }
@@ -776,9 +776,9 @@ currentaux() {
     int num = -1;
     void * AUXV_TYPE;
     char * AUXV_NAME;
-    for (i=argc+1; argv[i]; i++);
-    for (int ii=0; ii<=(argv+i+1)[0]+(2*20); ii+=2) { // 20 extra incase auxv does not have the same vectors for every machine (could have more than +4)
-        size_t tmp = (size_t)(argv+i+1+ii)[0];
+    for (i=libstring_argc+1; libstring_argv[i]; i++);
+    for (int ii=0; ii<=(libstring_argv+i+1)[0]+(2*20); ii+=2) { // 20 extra incase auxv does not have the same vectors for every machine (could have more than +4)
+        size_t tmp = (size_t)(libstring_argv+i+1+ii)[0];
         switch(tmp)
         {
                 case 0:
@@ -994,13 +994,13 @@ currentaux() {
         }
 //         if (num == 31) {
             if (AUXV_TYPE == "CHAR*") {
-            if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "%s = %s\n", AUXV_NAME, (void *)(argv+i+1+ii)[1]);
+            if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "%s = %s\n", AUXV_NAME, (void *)(libstring_argv+i+1+ii)[1]);
             } else if (AUXV_TYPE == "INT") {
-            if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "%s = %d\n", AUXV_NAME, (void *)(argv+i+1+ii)[1]);
+            if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "%s = %d\n", AUXV_NAME, (void *)(libstring_argv+i+1+ii)[1]);
             } else if (AUXV_TYPE == "ADDRESS") {
-            if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "%s = %p\n", AUXV_NAME, (void *)(argv+i+1+ii)[1]);
+            if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "%s = %p\n", AUXV_NAME, (void *)(libstring_argv+i+1+ii)[1]);
             }
-//             return (void *)(argv+i+1+ii)[1];
+//             return (void *)(libstring_argv+i+1+ii)[1];
 //         }
     }
 }

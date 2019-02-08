@@ -7,7 +7,13 @@ Date:   Fri Mar 16 09:59:40 2018 +1000
 
 */
 
-char ** argv;
+#include <stdbool.h>
+extern int libstring_argc;
+extern char ** libstring_argv;
+extern char ** libstring_env;
+
+bool is_readelf = false;
+
 #ifndef __SHARED__
 // compiled without -fpic or -fPIC
 #warning recompile this with the flag -fpic or -fPIC to enable compiling this as a shared library
@@ -15,15 +21,15 @@ char ** argv;
 int
 readelf_(const char * filename);
 int main() {
-    readelf_(argv[1]);
+    readelf_(libstring_argv[1]);
 }
 #else
 // compiled with -fpic or -fPIC
-const char * global_quiet = "no";
-const char * symbol_quiet = "no";
-const char * relocation_quiet = "no";
-const char * analysis_quiet = "no";
-const char * ldd_quiet = "no";
+const char * global_quiet = "yes";
+const char * symbol_quiet = "yes";
+const char * relocation_quiet = "yes";
+const char * analysis_quiet = "yes";
+const char * ldd_quiet = "yes";
 
 // define all headers first
 
@@ -47,7 +53,8 @@ extern int errno;
 #include <fcntl.h>
 #include <assert.h>
 #include <sys/mman.h>
-
+#include "../../CCR/Scripts/Shell/builtins/env.h"
+#include "../../CCR/Scripts/Shell/builtins/printfmacro.h"
 
 // need to add every needed declaration into this struct
 
@@ -62,7 +69,7 @@ init_struct() {
     library[library_index].library_first_character;
     library[library_index].library_len;
     library[library_index].library_symbol;
-    library[library_index].mappingb;
+    library[library_index].mapping_start;
     library[library_index]._elf_header;
     library[library_index]._elf_program_header;
     library[library_index]._elf_symbol_table;
@@ -74,7 +81,7 @@ init_struct() {
     library[library_index].is_mapped = 0;
     library[library_index].align;
     library[library_index].base_address = 0x00000000;
-    library[library_index].mappingb_end = 0x00000000;
+    library[library_index].mapping_end = 0x00000000;
     library[library_index].init__ = 0;
     library[library_index].PT_DYNAMIC_ = NULL;
     library[library_index].tmp99D;
@@ -131,6 +138,8 @@ init_struct() {
     library[library_index].GOT2 = NULL;
     library[library_index].PLT = NULL;
 }
+
+Elf64_Dyn DYN_EMPTY = {0};
 
 int init_(const char * filename);
 int initv_(const char * filename);
@@ -524,15 +533,15 @@ int search(const char * lib) {
     while(1)
     {
         if (library[i].struct_init == "initialized") {
-            fprintf(stderr, "current index %d holds \"%s\"\n", i, library[i].last_lib);
+            if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "current index %d holds \"%s\"\n", i, library[i].last_lib);
             if ( bytecmpq(lib, library[i].last_lib) == -1 && bytecmpq("NULL", library[i].last_lib) == -1 ) i++;
             else if ( bytecmpq("NULL", library[i].last_lib) == -1 )
                  {
-                     fprintf(stderr, "index %d holds desired library \"%s\"\n", i, lib); // bugs
+                     if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "index %d holds desired library \"%s\"\n", i, lib); // bugs
                      break;
                  }
             else {
-                fprintf(stderr, "attempting to save to index %d\n", i);
+                if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "attempting to save to index %d\n", i);
                 break;
             }
         } else {
@@ -558,7 +567,7 @@ int searchq(const char * lib) {
                 break;
             }
         } else {
-            fprintf(stderr, "WARNING: index %d is %s\n", i, library[i].struct_init);
+            if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "WARNING: index %d is %s\n", i, library[i].struct_init);
             break;
         }
     }
@@ -567,7 +576,7 @@ int searchq(const char * lib) {
 
 int init(char * lib) {
     if (library[library_index].struct_init != "initialized") init_struct();
-    fprintf(stderr, "current index %d holds \"%s\"\nsearching indexes for \"%s\" incase it has already been loaded\n", library_index, library[library_index].last_lib, lib);
+    if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "current index %d holds \"%s\"\nsearching indexes for \"%s\" incase it has already been loaded\n", library_index, library[library_index].last_lib, lib);
     
     library_index = search(lib);
     library[library_index].last_lib = lib;
@@ -668,18 +677,18 @@ void map() {
 
         size_t pagesize = 0x1000;
 
-        read_fast_verifyb(library[library_index].array, library[library_index].len, &library[library_index].mappingb, span, library[library_index]._elf_program_header[library[library_index].First_Load_Header_index], library[library_index]._elf_program_header[library[library_index].Last_Load_Header_index]);
+        read_fast_verifyb(library[library_index].array, library[library_index].len, &library[library_index].mapping_start, span, library[library_index]._elf_program_header[library[library_index].First_Load_Header_index], library[library_index]._elf_program_header[library[library_index].Last_Load_Header_index]);
 
         library[library_index].align = round_down(library[library_index]._elf_program_header[library[library_index].Last_Load_Header_index].p_vaddr, pagesize);
-        library[library_index].base_address = library[library_index].mappingb - library[library_index].align;
-        library[library_index].mappingb_end = library[library_index].mappingb+span;
+        library[library_index].base_address = library[library_index].mapping_start - library[library_index].align;
+        library[library_index].mapping_end = library[library_index].mapping_start+span;
 
-//             if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "base address range = %014p - %014p\nmapping = %014p\n", library[library_index].mappingb, library[library_index].mappingb_end, mapping);
+//             if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "base address range = %014p - %014p\nmapping = %014p\n", library[library_index].mapping_start, library[library_index].mapping_end, mapping);
 
 // base address aquired, map all PT_LOAD segments adjusting by base address then continue with the rest
-        if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "\n\n\nfind %014p, %014p, (int) 1239\n\n\n\n", library[library_index].mappingb, library[library_index].mappingb_end);
+        if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "\n\n\nfind %014p, %014p, (int) 1239\n\n\n\n", library[library_index].mapping_start, library[library_index].mapping_end);
 
-        if (library[library_index].mappingb == 0x00000000) abort_();
+        if (library[library_index].mapping_start == 0x00000000) abort_();
         int PT_LOADS_CURRENT = 0;
         for (int i = 0; i < library[library_index]._elf_header->e_phnum; ++i) {
             switch(library[library_index]._elf_program_header[i].p_type)
@@ -689,7 +698,7 @@ void map() {
 //                         if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "mapping PT_LOAD number %d\n", PT_LOADS_CURRENT);
 //                         if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "\t\tp_flags:  %014p\n", library[library_index]._elf_program_header[i].p_flags);
 //                         if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "\t\tp_offset: %014p\n", library[library_index]._elf_program_header[i].p_offset);
-//                         if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "\t\tp_vaddr:  %014p\n", library[library_index]._elf_program_header[i].p_vaddr+library[library_index].mappingb);
+//                         if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "\t\tp_vaddr:  %014p\n", library[library_index]._elf_program_header[i].p_vaddr+library[library_index].mapping_start);
 //                         if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "\t\tp_paddr:  %014p\n", library[library_index]._elf_program_header[i].p_paddr);
 //                         if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "\t\tp_filesz: %014p\n", library[library_index]._elf_program_header[i].p_filesz);
 //                         if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "\t\tp_memsz:  %014p\n", library[library_index]._elf_program_header[i].p_memsz);
@@ -697,20 +706,20 @@ void map() {
 // 
 //                         if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "\tp_flags: %014p", library[library_index]._elf_program_header[i].p_flags);
 //                         if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, " p_offset: %014p", library[library_index]._elf_program_header[i].p_offset);
-//                         if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, " p_vaddr: %014p", library[library_index]._elf_program_header[i].p_vaddr+library[library_index].mappingb);
+//                         if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, " p_vaddr: %014p", library[library_index]._elf_program_header[i].p_vaddr+library[library_index].mapping_start);
 //                         if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, " p_paddr: %014p", library[library_index]._elf_program_header[i].p_paddr);
 //                         if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, " p_filesz: %014p", library[library_index]._elf_program_header[i].p_filesz);
 //                         if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, " p_memsz: %014p", library[library_index]._elf_program_header[i].p_memsz);
 //                         if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, " p_align: %014p\n\n\n", library[library_index]._elf_program_header[i].p_align);
 
-                    if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "mprotect(%014p+round_down(%014p, %014p), %014p, ", library[library_index].mappingb, library[library_index]._elf_program_header[i].p_vaddr, library[library_index]._elf_program_header[i].p_align, library[library_index]._elf_program_header[i].p_memsz);
+                    if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "mprotect(%014p+round_down(%014p, %014p), %014p, ", library[library_index].mapping_start, library[library_index]._elf_program_header[i].p_vaddr, library[library_index]._elf_program_header[i].p_align, library[library_index]._elf_program_header[i].p_memsz);
                     prot_from_phdr(library[library_index]._elf_program_header[i].p_flags);
                     if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, ");\n");
                     errno = 0;
-                    int check_mprotect_success = mprotect(library[library_index].mappingb+round_down(library[library_index]._elf_program_header[i].p_vaddr, library[library_index]._elf_program_header[i].p_align), round_up(library[library_index]._elf_program_header[i].p_memsz, library[library_index]._elf_program_header[i].p_align), library[library_index]._elf_program_header[i].p_flags);
+                    int check_mprotect_success = mprotect(library[library_index].mapping_start+round_down(library[library_index]._elf_program_header[i].p_vaddr, library[library_index]._elf_program_header[i].p_align), round_up(library[library_index]._elf_program_header[i].p_memsz, library[library_index]._elf_program_header[i].p_align), library[library_index]._elf_program_header[i].p_flags);
                     if (errno == 0)
                     {
-                        if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "mprotect on %014p succeded with size: %014p\n", library[library_index].mappingb+round_down(library[library_index]._elf_program_header[i].p_vaddr, library[library_index]._elf_program_header[i].p_align), round_up(library[library_index]._elf_program_header[i].p_memsz, library[library_index]._elf_program_header[i].p_align));
+                        if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "mprotect on %014p succeded with size: %014p\n", library[library_index].mapping_start+round_down(library[library_index]._elf_program_header[i].p_vaddr, library[library_index]._elf_program_header[i].p_align), round_up(library[library_index]._elf_program_header[i].p_memsz, library[library_index]._elf_program_header[i].p_align));
                         print_maps();
                     }
                     else
@@ -937,7 +946,7 @@ __print_quoted_string__(const char *str, unsigned int size, const unsigned int s
 //         return rc;
 }
 
-Elf64_Word
+Elf64_Dyn *
 get_dynamic_entryq(Elf64_Dyn *dynamic, int field);
 
 // read section header table
@@ -963,7 +972,7 @@ char * obtain_rela_plt_size(char * sourcePtr, Elf64_Ehdr * eh, Elf64_Shdr sh_tab
 
 char * print_section_headers_(char * sourcePtr, Elf64_Ehdr * eh, Elf64_Shdr sh_table[]) {
     if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "\n");
-    if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "eh->e_shstrndx = 0x%x (%d)\n", eh->e_shstrndx+library[library_index].mappingb, eh->e_shstrndx);
+    if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "eh->e_shstrndx = 0x%x (%d)\n", eh->e_shstrndx+library[library_index].mapping_start, eh->e_shstrndx);
     char * sh_str;
     sh_str = read_section_(sourcePtr, sh_table[eh->e_shstrndx]); // will fail untill section header table can be read
     if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "\t========================================");
@@ -975,7 +984,7 @@ char * print_section_headers_(char * sourcePtr, Elf64_Ehdr * eh, Elf64_Shdr sh_t
     for(int i=0; i<eh->e_shnum; i++) { // will fail untill section header table can be read
         if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "\t%03d ", i);
         if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "%014p ", library[library_index]._elf_symbol_table[i].sh_offset); // not sure if this should be adjusted to base address
-        if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "%014p ", library[library_index]._elf_symbol_table[i].sh_addr+library[library_index].mappingb);
+        if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "%014p ", library[library_index]._elf_symbol_table[i].sh_addr+library[library_index].mapping_start);
         if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "%014p ", library[library_index]._elf_symbol_table[i].sh_size);
         if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "%4d ", library[library_index]._elf_symbol_table[i].sh_addralign);
         if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "%014p ", library[library_index]._elf_symbol_table[i].sh_type);
@@ -1091,9 +1100,9 @@ int symbol1(char * arrayc, Elf64_Sym sym_tbl[], uint64_t symbol_table) {
                 break;
         }
         if ( ELF64_ST_TYPE(sym_tbl[i].st_info) == STT_FUNC)
-            if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "address: %014p\t", sym_tbl[i].st_value+library[library_index].mappingb+library[library_index].align);
+            if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "address: %014p\t", sym_tbl[i].st_value+library[library_index].mapping_start+library[library_index].align);
         else
-            if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "address: %014p\t", sym_tbl[i].st_value+library[library_index].mappingb);
+            if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "address: %014p\t", sym_tbl[i].st_value+library[library_index].mapping_start);
         if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "name: [Not obtained due to unavailability]\n");
     }
 }
@@ -1194,9 +1203,9 @@ int symbol(char * arrayc, Elf64_Shdr sh_table[], uint64_t symbol_table) {
                 if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "protected (Not preemptible, not exported)        ");
                 break;
         }
-        char * address = sym_tbl[i].st_value+library[library_index].mappingb;
+        char * address = sym_tbl[i].st_value+library[library_index].mapping_start;
         if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "address: %014p\t", address);
-        if ( address > library[library_index].mappingb && address < library[library_index].mappingb_end ) test(address);
+        if ( address > library[library_index].mapping_start && address < library[library_index].mapping_end ) test(address);
         else if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "value: %015p\t", sym_tbl[i].st_value);
         if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "type: ");
         switch (ELF64_ST_TYPE(sym_tbl[i].st_info)) {
@@ -1233,12 +1242,12 @@ int symbol(char * arrayc, Elf64_Shdr sh_table[], uint64_t symbol_table) {
 //             if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "t found\n");
 //                         
 // // #define JMP_ADDR(x) asm("\tjmp  *%0\n" :: "r" (x))
-// //             if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "(%014p+%014p=%014p)\n", library[library_index].mappingb, sym_tbl[i].st_value, sym_tbl[i].st_value+library[library_index].mappingb);
+// //             if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "(%014p+%014p=%014p)\n", library[library_index].mapping_start, sym_tbl[i].st_value, sym_tbl[i].st_value+library[library_index].mapping_start);
 // //             if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "JMP_ADDR(%014p);\n", address);
 // //             JMP_ADDR(address);
 //                         if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "int (*testb)()                               =%014p\n", address);
 // // 
-//             if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "(%014p+%014p=%014p)\n", library[library_index].mappingb, sym_tbl[i].st_value, sym_tbl[i].st_value+library[library_index].mappingb);
+//             if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "(%014p+%014p=%014p)\n", library[library_index].mapping_start, sym_tbl[i].st_value, sym_tbl[i].st_value+library[library_index].mapping_start);
 // // 
 //             int (*testb)() = lookup_symbol_by_name_("/chakra/home/universalpackagemanager/chroot/arch-chroot/arch-pkg-build/packages/glibc/repos/core-x86_64/min-dl/loader/files/test_lib.so", "t");
 //             if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "testb = %014p\n", testb);
@@ -1247,15 +1256,15 @@ int symbol(char * arrayc, Elf64_Shdr sh_table[], uint64_t symbol_table) {
 //             );
 // 
 //             if (bytecmpq(global_quiet, "no") == 0) nl();
-// //             int (*testc)() = library[library_index].mappingb+sym_tbl[i].st_value;
-// //             if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "int (*testc)()                =%014p ; testc();\n", library[library_index].mappingb+sym_tbl[i].st_value);
+// //             int (*testc)() = library[library_index].mapping_start+sym_tbl[i].st_value;
+// //             if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "int (*testc)()                =%014p ; testc();\n", library[library_index].mapping_start+sym_tbl[i].st_value);
 // //             testc();
 // //             if (bytecmpq(global_quiet, "no") == 0) nl();
 // //             int foo(int i){ return i + 1;}
 // // 
 // //             typedef int (*g)(int);  // Declare typedef
 // // 
-// //             g func = library[library_index].mappingb+sym_tbl[i].st_value;          // Define function-pointer variable, and initialise
+// //             g func = library[library_index].mapping_start+sym_tbl[i].st_value;          // Define function-pointer variable, and initialise
 // // 
 // //             int hvar = func(3);     // Call function through pointer
 //             if (bytecmpq(global_quiet, "no") == 0) nl();
@@ -1363,15 +1372,15 @@ int relocation(char * arrayc, Elf64_Shdr sh_table[], uint64_t symbol_table) {
         char * address;
         if ( ELF64_ST_TYPE(sym_tbl[i].st_info) == STT_FUNC)
         {
-            address = sym_tbl[i].st_value+library[library_index].mappingb+library[library_index].align;
+            address = sym_tbl[i].st_value+library[library_index].mapping_start+library[library_index].align;
             if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "address: %014p\t", address);
         }
         else
         {
-            address = sym_tbl[i].st_value+library[library_index].mappingb;
+            address = sym_tbl[i].st_value+library[library_index].mapping_start;
             if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "address: %014p\t", address);
         }
-        if ( address > library[library_index].mappingb && address < library[library_index].mappingb_end ) test(address);
+        if ( address > library[library_index].mapping_start && address < library[library_index].mapping_end ) test(address);
         else if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "value: %15s\t", "invalid range");
         if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "type: ");
         switch (ELF64_ST_TYPE(sym_tbl[i].st_info)) {
@@ -1691,13 +1700,13 @@ char * symbol_lookup_name(char * arrayc, Elf64_Shdr sh_table[], uint64_t symbol_
     for(int i=0; i< symbol_count; i++) {
         char * name = demangle_it(str_tbl + sym_tbl[i].st_name);
         if (bytecmpq(name,name_) == 0) {
-            char * address = sym_tbl[i].st_value+library[library_index].mappingb;
-            if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "requested symbol name \"%s\" found in table %d at address %014p is \"%s\"\n", name_, symbol_table, address, name);
+            char * address = sym_tbl[i].st_value+library[library_index].mapping_start;
+            if (bytecmpq(symbol_quiet, "no") == 0) fprintf(stderr, "requested symbol name \"%s\" found in table %d at address %014p is \"%s\"\n", name_, symbol_table, address, name);
 
             return analyse_address(address, name);
         }
     }
-    if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "\nrequested symbol name \"%s\" could not be found in table %d\n\n", name_, symbol_table);
+    if (bytecmpq(symbol_quiet, "no") == 0) fprintf(stderr, "\nrequested symbol name \"%s\" could not be found in table %d\n\n", name_, symbol_table);
     return NULL;
 }
 
@@ -1793,7 +1802,7 @@ void * lookup_symbol_by_index(const char * arrayb, Elf64_Ehdr * eh, int symbol_i
         return symbol;
 }
 
-Elf64_Word
+Elf64_Dyn *
 get_dynamic_entry(Elf64_Dyn *dynamic, int field)
 {
     if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "called get_dynamic_entry\n");
@@ -2281,20 +2290,17 @@ get_dynamic_entry(Elf64_Dyn *dynamic, int field)
                 break;
         }
         if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "\n");
-        if (dynamic->d_tag == field) {
-            if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "returning %014p\n", dynamic->d_un.d_val);
-            return dynamic->d_un.d_val;
-        }
+        if (dynamic->d_tag == field) return dynamic;
     }
     if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "returning 0\n");
-    return 0;
+    return &DYN_EMPTY;
 }
 
-Elf64_Word
+Elf64_Dyn *
 get_dynamic_entryq(Elf64_Dyn *dynamic, int field)
 {
-    for (; dynamic->d_tag != DT_NULL; dynamic++) if (dynamic->d_tag == field) return dynamic->d_un.d_val;
-    return 0;
+    for (; dynamic->d_tag != DT_NULL; dynamic++) if (dynamic->d_tag == field) return dynamic;
+    return &DYN_EMPTY;
 }
 
 int
@@ -2687,7 +2693,7 @@ R_386_GOTPC         This relocation type resembles R_386_PC32, except it uses th
                     instructs the link editor to build the global offset table.
 
 */
-    if (relocs != library[library_index].mappingb && relocs_size != 0) {
+    if (relocs != library[library_index].mapping_start && relocs_size != 0) {
         for (int i = 0; i < relocs_size  / sizeof(Elf64_Rela); i++) {
             Elf64_Rela *reloc = &relocs[i];
             int reloc_type = ELF64_R_TYPE(reloc->r_info);
@@ -2704,8 +2710,8 @@ R_386_GOTPC         This relocation type resembles R_386_PC32, except it uses th
                 {
                     if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) fprintf(stderr, "\n\n\nR_X86_64_64                  calculation: S + A (symbol value + r_addend)\n");
                     if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) fprintf(stderr, "reloc->r_offset = %014p\n", reloc->r_offset);
-                    *((char**)((char*)library[library_index].mappingb + reloc->r_offset)) = lookup_symbol_by_index(library[library_index].array, library[library_index]._elf_header, ELF64_R_SYM(reloc->r_info), symbol_mode_S, symbol_quiet) + reloc->r_addend+library[library_index].mappingb;
-                    if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) fprintf(stderr, "((char*)library[library_index].mappingb + reloc->r_offset)            = %014p\n", ((char*)library[library_index].mappingb + reloc->r_offset));
+                    *((char**)((char*)library[library_index].mapping_start + reloc->r_offset)) = lookup_symbol_by_index(library[library_index].array, library[library_index]._elf_header, ELF64_R_SYM(reloc->r_info), symbol_mode_S, symbol_quiet) + reloc->r_addend+library[library_index].mapping_start;
+                    if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) fprintf(stderr, "((char*)library[library_index].mapping_start + reloc->r_offset)            = %014p\n", ((char*)library[library_index].mapping_start + reloc->r_offset));
                     library[library_index]._R_X86_64_64++;
                     break;
                 }
@@ -2713,8 +2719,8 @@ R_386_GOTPC         This relocation type resembles R_386_PC32, except it uses th
                 {
                     if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) fprintf(stderr, "\n\n\nR_X86_64_PC32                calculation: S + A - P (symbol value + r_addend - (P: This means the place (section offset or address) of the storage unit being relocated (computed using r_offset ).)\n");
                     if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) fprintf(stderr, "reloc->r_offset = %014p\n", reloc->r_offset);
-                    *((char**)((char*)library[library_index].mappingb + reloc->r_offset)) = lookup_symbol_by_index(library[library_index].array, library[library_index]._elf_header, ELF64_R_SYM(reloc->r_info), symbol_mode_S, symbol_quiet) + reloc->r_addend+library[library_index].mappingb;
-                    if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) fprintf(stderr, "((char*)library[library_index].mappingb + reloc->r_offset)            = %014p\n", ((char*)library[library_index].mappingb + reloc->r_offset));
+                    *((char**)((char*)library[library_index].mapping_start + reloc->r_offset)) = lookup_symbol_by_index(library[library_index].array, library[library_index]._elf_header, ELF64_R_SYM(reloc->r_info), symbol_mode_S, symbol_quiet) + reloc->r_addend+library[library_index].mapping_start;
+                    if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) fprintf(stderr, "((char*)library[library_index].mapping_start + reloc->r_offset)            = %014p\n", ((char*)library[library_index].mapping_start + reloc->r_offset));
                     library[library_index]._R_X86_64_PC32++;
                     break;
                 }
@@ -2740,9 +2746,9 @@ R_386_GOTPC         This relocation type resembles R_386_PC32, except it uses th
                 case R_X86_64_GLOB_DAT:
                 {
                     if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) fprintf(stderr, "\n\n\nR_X86_64_GLOB_DAT            calculation: S (symbol value)\n");
-                    if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) fprintf(stderr, "reloc->r_offset = %014p+%014p=%014p\n", library[library_index].mappingb, reloc->r_offset, library[library_index].mappingb+reloc->r_offset);
-                    *((char**)((char*)library[library_index].mappingb + reloc->r_offset)) = lookup_symbol_by_index(library[library_index].array, library[library_index]._elf_header, ELF64_R_SYM(reloc->r_info), symbol_mode_S, symbol_quiet)+library[library_index].mappingb;
-                    char ** addr = reloc->r_offset + library[library_index].mappingb;
+                    if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) fprintf(stderr, "reloc->r_offset = %014p+%014p=%014p\n", library[library_index].mapping_start, reloc->r_offset, library[library_index].mapping_start+reloc->r_offset);
+                    *((char**)((char*)library[library_index].mapping_start + reloc->r_offset)) = lookup_symbol_by_index(library[library_index].array, library[library_index]._elf_header, ELF64_R_SYM(reloc->r_info), symbol_mode_S, symbol_quiet)+library[library_index].mapping_start;
+                    char ** addr = reloc->r_offset + library[library_index].mapping_start;
                     if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) test_address(addr);
                     library[library_index]._R_X86_64_GLOB_DAT++;
                     break;
@@ -2750,10 +2756,10 @@ R_386_GOTPC         This relocation type resembles R_386_PC32, except it uses th
                 case R_X86_64_JUMP_SLOT:
                 {
                     if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) fprintf(stderr, "\n\n\nR_X86_64_JUMP_SLOT           calculation: S (symbol value)\n");
-                    if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) fprintf(stderr, "library[library_index].mappingb    = %014p\n", library[library_index].mappingb);
-                    if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) fprintf(stderr, "reloc->r_offset = %014p+%014p=%014p\n", library[library_index].mappingb, reloc->r_offset, library[library_index].mappingb+reloc->r_offset);
-                    *((char**)((char*)library[library_index].mappingb + reloc->r_offset)) = lookup_symbol_by_index(library[library_index].array, library[library_index]._elf_header, ELF64_R_SYM(reloc->r_info), symbol_mode_S, symbol_quiet)+library[library_index].mappingb;
-                    char ** addr = reloc->r_offset + library[library_index].mappingb;
+                    if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) fprintf(stderr, "library[library_index].mapping_start    = %014p\n", library[library_index].mapping_start);
+                    if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) fprintf(stderr, "reloc->r_offset = %014p+%014p=%014p\n", library[library_index].mapping_start, reloc->r_offset, library[library_index].mapping_start+reloc->r_offset);
+                    *((char**)((char*)library[library_index].mapping_start + reloc->r_offset)) = lookup_symbol_by_index(library[library_index].array, library[library_index]._elf_header, ELF64_R_SYM(reloc->r_info), symbol_mode_S, symbol_quiet)+library[library_index].mapping_start;
+                    char ** addr = reloc->r_offset + library[library_index].mapping_start;
                     if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) test_address(addr);
                     library[library_index]._R_X86_64_JUMP_SLOT++;
                     break;
@@ -2761,13 +2767,13 @@ R_386_GOTPC         This relocation type resembles R_386_PC32, except it uses th
                 case R_X86_64_RELATIVE:
                 {
                     if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) fprintf(stderr, "\n\n\nR_X86_64_RELATIVE            calculation: B + A (base address + r_addend)\n");
-                    if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) fprintf(stderr, "library[library_index].mappingb    = %014p\n", library[library_index].mappingb);
-                    if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) fprintf(stderr, "reloc->r_offset = %014p+%014p=%014p\n", library[library_index].mappingb, reloc->r_offset, library[library_index].mappingb+reloc->r_offset);
-                    if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) fprintf(stderr, "reloc->r_addend = %014p+%014p=%014p\n", library[library_index].mappingb, reloc->r_addend, ((char*)library[library_index].mappingb + reloc->r_addend) );
-                    *((char**)((char*)library[library_index].mappingb + reloc->r_offset)) = ((char*)library[library_index].mappingb + reloc->r_addend);
-                    char ** addr = reloc->r_offset + library[library_index].mappingb;
+                    if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) fprintf(stderr, "library[library_index].mapping_start    = %014p\n", library[library_index].mapping_start);
+                    if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) fprintf(stderr, "reloc->r_offset = %014p+%014p=%014p\n", library[library_index].mapping_start, reloc->r_offset, library[library_index].mapping_start+reloc->r_offset);
+                    if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) fprintf(stderr, "reloc->r_addend = %014p+%014p=%014p\n", library[library_index].mapping_start, reloc->r_addend, ((char*)library[library_index].mapping_start + reloc->r_addend) );
+                    *((char**)((char*)library[library_index].mapping_start + reloc->r_offset)) = ((char*)library[library_index].mapping_start + reloc->r_addend);
+                    char ** addr = reloc->r_offset + library[library_index].mapping_start;
                     if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) test_address(addr);
-                    if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) fprintf(stderr, "((char*)library[library_index].mappingb + reloc->r_offset)            = %014p\n", ((char*)library[library_index].mappingb + reloc->r_offset));
+                    if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) fprintf(stderr, "((char*)library[library_index].mapping_start + reloc->r_offset)            = %014p\n", ((char*)library[library_index].mapping_start + reloc->r_offset));
                     library[library_index]._R_X86_64_RELATIVE++;
                     break;
                 }
@@ -2783,8 +2789,8 @@ R_386_GOTPC         This relocation type resembles R_386_PC32, except it uses th
                 {
                     if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) fprintf(stderr, "\n\n\nR_X86_64_32                  calculation: S + A (symbol value + r_addend)\n");
                     if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) fprintf(stderr, "reloc->r_offset = %014p\n", reloc->r_offset);
-                    *((char**)((char*)library[library_index].mappingb + reloc->r_offset)) = lookup_symbol_by_index(library[library_index].array, library[library_index]._elf_header, ELF64_R_SYM(reloc->r_info), symbol_mode_S, symbol_quiet) + reloc->r_addend+library[library_index].mappingb;
-                    if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) fprintf(stderr, "((char*)library[library_index].mappingb + reloc->r_offset)            = %014p\n", ((char*)library[library_index].mappingb + reloc->r_offset));
+                    *((char**)((char*)library[library_index].mapping_start + reloc->r_offset)) = lookup_symbol_by_index(library[library_index].array, library[library_index]._elf_header, ELF64_R_SYM(reloc->r_info), symbol_mode_S, symbol_quiet) + reloc->r_addend+library[library_index].mapping_start;
+                    if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) fprintf(stderr, "((char*)library[library_index].mapping_start + reloc->r_offset)            = %014p\n", ((char*)library[library_index].mapping_start + reloc->r_offset));
                     library[library_index]._R_X86_64_32++;
                     break;
                 }
@@ -2792,8 +2798,8 @@ R_386_GOTPC         This relocation type resembles R_386_PC32, except it uses th
                 {
                     if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) fprintf(stderr, "\n\n\nR_X86_64_32S                 calculation: S + A (symbol value + r_addend)\n");
                     if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) fprintf(stderr, "reloc->r_offset = %014p\n", reloc->r_offset);
-                    *((char**)((char*)library[library_index].mappingb + reloc->r_offset)) = lookup_symbol_by_index(library[library_index].array, library[library_index]._elf_header, ELF64_R_SYM(reloc->r_info), symbol_mode_S, symbol_quiet) + reloc->r_addend+library[library_index].mappingb;
-                    if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) fprintf(stderr, "((char*)library[library_index].mappingb + reloc->r_offset)            = %014p\n", ((char*)library[library_index].mappingb + reloc->r_offset));
+                    *((char**)((char*)library[library_index].mapping_start + reloc->r_offset)) = lookup_symbol_by_index(library[library_index].array, library[library_index]._elf_header, ELF64_R_SYM(reloc->r_info), symbol_mode_S, symbol_quiet) + reloc->r_addend+library[library_index].mapping_start;
+                    if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) fprintf(stderr, "((char*)library[library_index].mapping_start + reloc->r_offset)            = %014p\n", ((char*)library[library_index].mapping_start + reloc->r_offset));
                     library[library_index]._R_X86_64_32S++;
                     break;
                 }
@@ -2801,8 +2807,8 @@ R_386_GOTPC         This relocation type resembles R_386_PC32, except it uses th
                 {
                     if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) fprintf(stderr, "\n\n\nR_X86_64_16                  calculation: S + A (symbol value + r_addend)\n");
                     if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) fprintf(stderr, "reloc->r_offset = %014p\n", reloc->r_offset);
-                    *((char**)((char*)library[library_index].mappingb + reloc->r_offset)) = lookup_symbol_by_index(library[library_index].array, library[library_index]._elf_header, ELF64_R_SYM(reloc->r_info), symbol_mode_S, symbol_quiet) + reloc->r_addend+library[library_index].mappingb;
-                    if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) fprintf(stderr, "((char*)library[library_index].mappingb + reloc->r_offset)            = %014p\n", ((char*)library[library_index].mappingb + reloc->r_offset));
+                    *((char**)((char*)library[library_index].mapping_start + reloc->r_offset)) = lookup_symbol_by_index(library[library_index].array, library[library_index]._elf_header, ELF64_R_SYM(reloc->r_info), symbol_mode_S, symbol_quiet) + reloc->r_addend+library[library_index].mapping_start;
+                    if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) fprintf(stderr, "((char*)library[library_index].mapping_start + reloc->r_offset)            = %014p\n", ((char*)library[library_index].mapping_start + reloc->r_offset));
                     library[library_index]._R_X86_64_16++;
                     break;
                 }
@@ -2810,8 +2816,8 @@ R_386_GOTPC         This relocation type resembles R_386_PC32, except it uses th
                 {
                     if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) fprintf(stderr, "\n\n\nR_X86_64_PC16                calculation: S + A - P (symbol value + r_addend - (P: This means the place (section offset or address) of the storage unit being relocated (computed using r_offset ).))\n");
                     if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) fprintf(stderr, "reloc->r_offset = %014p\n", reloc->r_offset);
-                    *((char**)((char*)library[library_index].mappingb + reloc->r_offset)) = lookup_symbol_by_index(library[library_index].array, library[library_index]._elf_header, ELF64_R_SYM(reloc->r_info), symbol_mode_S, symbol_quiet) + reloc->r_addend+library[library_index].mappingb;
-                    if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) fprintf(stderr, "((char*)library[library_index].mappingb + reloc->r_offset)            = %014p\n", ((char*)library[library_index].mappingb + reloc->r_offset));
+                    *((char**)((char*)library[library_index].mapping_start + reloc->r_offset)) = lookup_symbol_by_index(library[library_index].array, library[library_index]._elf_header, ELF64_R_SYM(reloc->r_info), symbol_mode_S, symbol_quiet) + reloc->r_addend+library[library_index].mapping_start;
+                    if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) fprintf(stderr, "((char*)library[library_index].mapping_start + reloc->r_offset)            = %014p\n", ((char*)library[library_index].mapping_start + reloc->r_offset));
                     library[library_index]._R_X86_64_PC16++;
                     break;
                 }
@@ -2819,8 +2825,8 @@ R_386_GOTPC         This relocation type resembles R_386_PC32, except it uses th
                 {
                     if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) fprintf(stderr, "\n\n\nR_X86_64_8                   calculation: S + A (symbol value + r_addend)\n");
                     if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) fprintf(stderr, "reloc->r_offset = %014p\n", reloc->r_offset);
-                    *((char**)((char*)library[library_index].mappingb + reloc->r_offset)) = lookup_symbol_by_index(library[library_index].array, library[library_index]._elf_header, ELF64_R_SYM(reloc->r_info), symbol_mode_S, symbol_quiet) + reloc->r_addend+library[library_index].mappingb;
-                    if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) fprintf(stderr, "((char*)library[library_index].mappingb + reloc->r_offset)            = %014p\n", ((char*)library[library_index].mappingb + reloc->r_offset));
+                    *((char**)((char*)library[library_index].mapping_start + reloc->r_offset)) = lookup_symbol_by_index(library[library_index].array, library[library_index]._elf_header, ELF64_R_SYM(reloc->r_info), symbol_mode_S, symbol_quiet) + reloc->r_addend+library[library_index].mapping_start;
+                    if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) fprintf(stderr, "((char*)library[library_index].mapping_start + reloc->r_offset)            = %014p\n", ((char*)library[library_index].mapping_start + reloc->r_offset));
                     library[library_index]._R_X86_64_8++;
                     break;
                 }
@@ -2828,8 +2834,8 @@ R_386_GOTPC         This relocation type resembles R_386_PC32, except it uses th
                 {
                     if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) fprintf(stderr, "\n\n\nR_X86_64_PC8                 calculation: S + A - P (symbol value + r_addend - (P: This means the place (section offset or address) of the storage unit being relocated (computed using r_offset ).))\n");
                     if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) fprintf(stderr, "reloc->r_offset = %014p\n", reloc->r_offset);
-                    *((char**)((char*)library[library_index].mappingb + reloc->r_offset)) = lookup_symbol_by_index(library[library_index].array, library[library_index]._elf_header, ELF64_R_SYM(reloc->r_info), symbol_mode_S, symbol_quiet) + reloc->r_addend+library[library_index].mappingb;
-                    if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) fprintf(stderr, "((char*)library[library_index].mappingb + reloc->r_offset)            = %014p\n", ((char*)library[library_index].mappingb + reloc->r_offset));
+                    *((char**)((char*)library[library_index].mapping_start + reloc->r_offset)) = lookup_symbol_by_index(library[library_index].array, library[library_index]._elf_header, ELF64_R_SYM(reloc->r_info), symbol_mode_S, symbol_quiet) + reloc->r_addend+library[library_index].mapping_start;
+                    if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) fprintf(stderr, "((char*)library[library_index].mapping_start + reloc->r_offset)            = %014p\n", ((char*)library[library_index].mapping_start + reloc->r_offset));
                     library[library_index]._R_X86_64_PC8++;
                     break;
                 }
@@ -2886,8 +2892,8 @@ R_386_GOTPC         This relocation type resembles R_386_PC32, except it uses th
                 {
                     if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) fprintf(stderr, "\n\n\nR_X86_64_PC64                calculation: S + A - P (symbol value + r_addend - (P: This means the place (section offset or address) of the storage unit being relocated (computed using r_offset ).))\n");
                     if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) fprintf(stderr, "reloc->r_offset = %014p\n", reloc->r_offset);
-                    *((char**)((char*)library[library_index].mappingb + reloc->r_offset)) = lookup_symbol_by_index(library[library_index].array, library[library_index]._elf_header, ELF64_R_SYM(reloc->r_info), symbol_mode_S, symbol_quiet) + reloc->r_addend+library[library_index].mappingb;
-                    if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) fprintf(stderr, "((char*)library[library_index].mappingb + reloc->r_offset)            = %014p\n", ((char*)library[library_index].mappingb + reloc->r_offset));
+                    *((char**)((char*)library[library_index].mapping_start + reloc->r_offset)) = lookup_symbol_by_index(library[library_index].array, library[library_index]._elf_header, ELF64_R_SYM(reloc->r_info), symbol_mode_S, symbol_quiet) + reloc->r_addend+library[library_index].mapping_start;
+                    if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) fprintf(stderr, "((char*)library[library_index].mapping_start + reloc->r_offset)            = %014p\n", ((char*)library[library_index].mapping_start + reloc->r_offset));
                     library[library_index]._R_X86_64_PC64++;
                     break;
                 }
@@ -2895,8 +2901,8 @@ R_386_GOTPC         This relocation type resembles R_386_PC32, except it uses th
                 {
                     if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) fprintf(stderr, "\n\n\nR_X86_64_GOTOFF64            calculation: S + A - GOT (symbol value + r_addend - address of global offset table)\n");
                     if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) fprintf(stderr, "reloc->r_offset = %014p\n", reloc->r_offset);
-                    *((char**)((char*)library[library_index].mappingb + reloc->r_offset)) = lookup_symbol_by_index(library[library_index].array, library[library_index]._elf_header, ELF64_R_SYM(reloc->r_info), symbol_mode_S, symbol_quiet) + reloc->r_addend+library[library_index].mappingb;
-                    if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) fprintf(stderr, "((char*)library[library_index].mappingb + reloc->r_offset)            = %014p\n", ((char*)library[library_index].mappingb + reloc->r_offset));
+                    *((char**)((char*)library[library_index].mapping_start + reloc->r_offset)) = lookup_symbol_by_index(library[library_index].array, library[library_index]._elf_header, ELF64_R_SYM(reloc->r_info), symbol_mode_S, symbol_quiet) + reloc->r_addend+library[library_index].mapping_start;
+                    if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) fprintf(stderr, "((char*)library[library_index].mapping_start + reloc->r_offset)            = %014p\n", ((char*)library[library_index].mapping_start + reloc->r_offset));
                     Elf64_Addr * GOT = lookup_symbol_by_name(library[library_index].array, library[library_index]._elf_header, "_GLOBAL_OFFSET_TABLE_");
                     library[library_index]._R_X86_64_GOTOFF64++;
                     break;
@@ -2947,8 +2953,8 @@ R_386_GOTPC         This relocation type resembles R_386_PC32, except it uses th
                 {
                     if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) fprintf(stderr, "\n\n\nR_X86_64_SIZE32                 calculation: Z + A (symbol size + r_addend)\n");
                     if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) fprintf(stderr, "reloc->r_offset = %014p\n", reloc->r_offset);
-                    *((char**)((char*)library[library_index].mappingb + reloc->r_offset)) = lookup_symbol_by_index(library[library_index].array, library[library_index]._elf_header, ELF64_R_SYM(reloc->r_info), symbol_mode_Z, symbol_quiet) + reloc->r_addend+library[library_index].mappingb;
-                    if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) fprintf(stderr, "((char*)library[library_index].mappingb + reloc->r_offset)            = %014p\n", ((char*)library[library_index].mappingb + reloc->r_offset));
+                    *((char**)((char*)library[library_index].mapping_start + reloc->r_offset)) = lookup_symbol_by_index(library[library_index].array, library[library_index]._elf_header, ELF64_R_SYM(reloc->r_info), symbol_mode_Z, symbol_quiet) + reloc->r_addend+library[library_index].mapping_start;
+                    if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) fprintf(stderr, "((char*)library[library_index].mapping_start + reloc->r_offset)            = %014p\n", ((char*)library[library_index].mapping_start + reloc->r_offset));
                     library[library_index]._R_X86_64_SIZE32++;
                     break;
                 }
@@ -2956,8 +2962,8 @@ R_386_GOTPC         This relocation type resembles R_386_PC32, except it uses th
                 {
                     if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) fprintf(stderr, "\n\n\nR_X86_64_SIZE64                 calculation: Z + A (symbol size + r_addend)\n");
                     if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) fprintf(stderr, "reloc->r_offset = %014p\n", reloc->r_offset);
-                    *((char**)((char*)library[library_index].mappingb + reloc->r_offset)) = lookup_symbol_by_index(library[library_index].array, library[library_index]._elf_header, ELF64_R_SYM(reloc->r_info), symbol_mode_Z, symbol_quiet) + reloc->r_addend+library[library_index].mappingb;
-                    if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) fprintf(stderr, "((char*)library[library_index].mappingb + reloc->r_offset)            = %014p\n", ((char*)library[library_index].mappingb + reloc->r_offset));
+                    *((char**)((char*)library[library_index].mapping_start + reloc->r_offset)) = lookup_symbol_by_index(library[library_index].array, library[library_index]._elf_header, ELF64_R_SYM(reloc->r_info), symbol_mode_Z, symbol_quiet) + reloc->r_addend+library[library_index].mapping_start;
+                    if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) fprintf(stderr, "((char*)library[library_index].mapping_start + reloc->r_offset)            = %014p\n", ((char*)library[library_index].mapping_start + reloc->r_offset));
                     library[library_index]._R_X86_64_SIZE64++;
                     break;
                 }
@@ -2984,33 +2990,33 @@ R_386_GOTPC         This relocation type resembles R_386_PC32, except it uses th
                 {
 
                     if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) fprintf(stderr, "\n\n\nR_X86_64_IRELATIVE                 calculation: (indirect) B + A (base address + r_addend)\n");
-                    if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) fprintf(stderr, "library[library_index].mappingb    = %014p\n", library[library_index].mappingb);
-                    if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) fprintf(stderr, "reloc->r_offset = %014p+%014p=%014p\n", library[library_index].mappingb, reloc->r_offset, library[library_index].mappingb+reloc->r_offset);
-                    if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) fprintf(stderr, "reloc->r_addend = %014p+%014p=%014p\n", library[library_index].mappingb, reloc->r_addend, ((char*)library[library_index].mappingb + reloc->r_addend) );
+                    if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) fprintf(stderr, "library[library_index].mapping_start    = %014p\n", library[library_index].mapping_start);
+                    if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) fprintf(stderr, "reloc->r_offset = %014p+%014p=%014p\n", library[library_index].mapping_start, reloc->r_offset, library[library_index].mapping_start+reloc->r_offset);
+                    if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) fprintf(stderr, "reloc->r_addend = %014p+%014p=%014p\n", library[library_index].mapping_start, reloc->r_addend, ((char*)library[library_index].mapping_start + reloc->r_addend) );
                     Elf64_Addr value;
 //                     // changed, somehow this may cause a seg fault, dont use
-//                     value = ((char*)library[library_index].mappingb + reloc->r_addend);
+//                     value = ((char*)library[library_index].mapping_start + reloc->r_addend);
 //                     value = ((Elf64_Addr (*) (void)) value) ();
-//                     *((char**)((char*)library[library_index].mappingb + reloc->r_offset)) = value;
+//                     *((char**)((char*)library[library_index].mapping_start + reloc->r_offset)) = value;
                     // original
-                    *((char**)((char*)library[library_index].mappingb + reloc->r_offset)) = ((char*)library[library_index].mappingb + reloc->r_addend);
+                    *((char**)((char*)library[library_index].mapping_start + reloc->r_offset)) = ((char*)library[library_index].mapping_start + reloc->r_addend);
                     //
-                    char ** addr = reloc->r_offset + library[library_index].mappingb;
+                    char ** addr = reloc->r_offset + library[library_index].mapping_start;
                     if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) test_address(addr);
-                    if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) fprintf(stderr, "((char*)library[library_index].mappingb + reloc->r_offset)            = %014p\n", ((char*)library[library_index].mappingb + reloc->r_offset));
+                    if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) fprintf(stderr, "((char*)library[library_index].mapping_start + reloc->r_offset)            = %014p\n", ((char*)library[library_index].mapping_start + reloc->r_offset));
                     library[library_index]._R_X86_64_IRELATIVE++;
                     break;
                 }
                 case R_X86_64_RELATIVE64:
                 {
                     if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) fprintf(stderr, "\n\n\nR_X86_64_RELATIVE64                 calculation: B + A (base address + r_addend)\n");
-                    if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) fprintf(stderr, "library[library_index].mappingb    = %014p\n", library[library_index].mappingb);
-                    if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) fprintf(stderr, "reloc->r_offset = %014p+%014p=%014p\n", library[library_index].mappingb, reloc->r_offset, library[library_index].mappingb+reloc->r_offset);
-                    if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) fprintf(stderr, "reloc->r_addend = %014p+%014p=%014p\n", library[library_index].mappingb, reloc->r_addend, ((char*)library[library_index].mappingb + reloc->r_addend) );
-                    *((char**)((char*)library[library_index].mappingb + reloc->r_offset)) = ((char*)library[library_index].mappingb + reloc->r_addend);
-                    char ** addr = reloc->r_offset + library[library_index].mappingb;
+                    if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) fprintf(stderr, "library[library_index].mapping_start    = %014p\n", library[library_index].mapping_start);
+                    if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) fprintf(stderr, "reloc->r_offset = %014p+%014p=%014p\n", library[library_index].mapping_start, reloc->r_offset, library[library_index].mapping_start+reloc->r_offset);
+                    if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) fprintf(stderr, "reloc->r_addend = %014p+%014p=%014p\n", library[library_index].mapping_start, reloc->r_addend, ((char*)library[library_index].mapping_start + reloc->r_addend) );
+                    *((char**)((char*)library[library_index].mapping_start + reloc->r_offset)) = ((char*)library[library_index].mapping_start + reloc->r_addend);
+                    char ** addr = reloc->r_offset + library[library_index].mapping_start;
                     if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) test_address(addr);
-                    if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) fprintf(stderr, "((char*)library[library_index].mappingb + reloc->r_offset)            = %014p\n", ((char*)library[library_index].mappingb + reloc->r_offset));
+                    if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) fprintf(stderr, "((char*)library[library_index].mapping_start + reloc->r_offset)            = %014p\n", ((char*)library[library_index].mapping_start + reloc->r_offset));
                     library[library_index]._R_X86_64_RELATIVE64++;
                     break;
                 }
@@ -3096,6 +3102,73 @@ int r_summary() {
     _R_X86_64_NUM               = %d\n \
     _R_X86_64_UNKNOWN           = %d\n \
     total                       = %d\n", library[library_index]._R_X86_64_NONE, library[library_index]._R_X86_64_64, library[library_index]._R_X86_64_PC32, library[library_index]._R_X86_64_GOT32, library[library_index]._R_X86_64_PLT32, library[library_index]._R_X86_64_COPY, library[library_index]._R_X86_64_GLOB_DAT, library[library_index]._R_X86_64_JUMP_SLOT, library[library_index]._R_X86_64_RELATIVE, library[library_index]._R_X86_64_GOTPCREL, library[library_index]._R_X86_64_32, library[library_index]._R_X86_64_32S, library[library_index]._R_X86_64_16, library[library_index]._R_X86_64_PC16, library[library_index]._R_X86_64_8, library[library_index]._R_X86_64_PC8, library[library_index]._R_X86_64_DTPMOD64, library[library_index]._R_X86_64_DTPOFF64, library[library_index]._R_X86_64_TPOFF64, library[library_index]._R_X86_64_TLSGD, library[library_index]._R_X86_64_TLSLD, library[library_index]._R_X86_64_DTPOFF32, library[library_index]._R_X86_64_GOTTPOFF, library[library_index]._R_X86_64_TPOFF32, library[library_index]._R_X86_64_PC64, library[library_index]._R_X86_64_GOTOFF64, library[library_index]._R_X86_64_GOTPC32, library[library_index]._R_X86_64_GOT64, library[library_index]._R_X86_64_GOTPCREL64, library[library_index]._R_X86_64_GOTPC64, library[library_index]._Deprecated1, library[library_index]._R_X86_64_PLTOFF64, library[library_index]._R_X86_64_SIZE32, library[library_index]._R_X86_64_SIZE64, library[library_index]._R_X86_64_GOTPC32_TLSDESC, library[library_index]._R_X86_64_TLSDESC_CALL, library[library_index]._R_X86_64_TLSDESC, library[library_index]._R_X86_64_IRELATIVE, library[library_index]._R_X86_64_RELATIVE64, library[library_index]._Deprecated2, library[library_index]._Deprecated3, library[library_index]._R_X86_64_GOTPLT64, library[library_index]._R_X86_64_GOTPCRELX, library[library_index]._R_X86_64_REX_GOTPCRELX, library[library_index]._R_X86_64_NUM, library[library_index]._R_X86_64_UNKNOWN, library[library_index]._R_X86_64_NONE + library[library_index]._R_X86_64_64 + library[library_index]._R_X86_64_PC32 + library[library_index]._R_X86_64_GOT32 + library[library_index]._R_X86_64_PLT32 + library[library_index]._R_X86_64_COPY + library[library_index]._R_X86_64_GLOB_DAT + library[library_index]._R_X86_64_JUMP_SLOT + library[library_index]._R_X86_64_RELATIVE + library[library_index]._R_X86_64_GOTPCREL + library[library_index]._R_X86_64_32 + library[library_index]._R_X86_64_32S + library[library_index]._R_X86_64_16 + library[library_index]._R_X86_64_PC16 + library[library_index]._R_X86_64_8 + library[library_index]._R_X86_64_PC8 + library[library_index]._R_X86_64_DTPMOD64 + library[library_index]._R_X86_64_DTPOFF64 + library[library_index]._R_X86_64_TPOFF64 + library[library_index]._R_X86_64_TLSGD + library[library_index]._R_X86_64_TLSLD + library[library_index]._R_X86_64_DTPOFF32 + library[library_index]._R_X86_64_GOTTPOFF + library[library_index]._R_X86_64_TPOFF32 + library[library_index]._R_X86_64_PC64 + library[library_index]._R_X86_64_GOTOFF64 + library[library_index]._R_X86_64_GOTPC32 + library[library_index]._R_X86_64_GOT64 + library[library_index]._R_X86_64_GOTPCREL64 + library[library_index]._R_X86_64_GOTPC64 + library[library_index]._Deprecated1 + library[library_index]._R_X86_64_PLTOFF64 + library[library_index]._R_X86_64_SIZE32 + library[library_index]._R_X86_64_SIZE64 + library[library_index]._R_X86_64_GOTPC32_TLSDESC + library[library_index]._R_X86_64_TLSDESC_CALL + library[library_index]._R_X86_64_TLSDESC + library[library_index]._R_X86_64_IRELATIVE + library[library_index]._R_X86_64_RELATIVE64 + library[library_index]._Deprecated2 + library[library_index]._Deprecated3 + library[library_index]._R_X86_64_GOTPLT64 + library[library_index]._R_X86_64_GOTPCRELX + library[library_index]._R_X86_64_REX_GOTPCRELX + library[library_index]._R_X86_64_NUM + library[library_index]._R_X86_64_UNKNOWN);
+}
+
+bool DYN_IS_NULL(Elf64_Dyn * DYN) {
+	return (DYN->d_un.d_ptr != 0 && DYN->d_un.d_val != 0);
+}
+
+/* Type of the initializer.  */
+typedef void (*init_t) (int, char **, char **);
+# define DL_CALL_DT_INIT(start, argc, argv, env) ((init_t) (start)) (argc, argv, env)
+# define DL_CALL_DT_FINI(map, start) ((fini_t) (start)) ()
+
+void call_init_(int library_index) {
+	Elf64_Dyn * INIT = get_dynamic_entry(library[library_index].dynamic, DT_INIT);
+	pp(library[library_index].dynamic[DT_INIT])
+	pp(INIT)
+	if (DYN_IS_NULL(INIT)) {
+		printf("attempting to call DT_INIT for %s\n", library[library_index].current_lib);
+		px(library[library_index].base_address)
+		pp(library[library_index].base_address)
+		px(library[library_index].mapping_start)
+		pp(library[library_index].mapping_start)
+		px(INIT->d_un.d_ptr)
+		pp(INIT->d_un.d_ptr)
+		px(library[library_index].base_address + INIT->d_un.d_ptr)
+		pp(library[library_index].base_address + INIT->d_un.d_ptr)
+		px(library[library_index].mapping_start + INIT->d_un.d_ptr)
+		pp(library[library_index].mapping_start + INIT->d_un.d_ptr)
+		pi(libstring_argc)
+		pp(libstring_argv)
+		pp(libstring_env)
+		pb(is_readelf);
+		puts("testing library[library_index].base_address + INIT->d_un.d_ptr");
+		test_address(library[library_index].base_address + INIT->d_un.d_ptr);
+		puts("testing library[library_index].mapping_start + INIT->d_un.d_ptr");
+		test_address(library[library_index].mapping_start + INIT->d_un.d_ptr);
+		DL_CALL_DT_INIT(library[library_index].base_address + INIT->d_un.d_ptr, libstring_argc, libstring_argv, libstring_env);
+		puts("DT_INIT CALLED");
+	}
+	else {
+		puts("NO DT_INIT");
+		pi(INIT->d_un.d_ptr)
+		pi(INIT->d_un.d_val)
+	}
+			
+	/* Next see whether there is an array with initialization functions.  */
+	Elf64_Dyn *init_array = get_dynamic_entry(library[library_index].dynamic, DT_INIT_ARRAY);
+	if (DYN_IS_NULL(init_array)) {
+		unsigned int j;
+		unsigned int jm;
+		Elf64_Addr *addrs;
+
+		jm = get_dynamic_entry(library[library_index].dynamic, DT_INIT_ARRAYSZ)->d_un.d_val / sizeof (Elf64_Addr);
+
+		puts("testing library[library_index].base_address + init_array->d_un.d_ptr");
+		analyse_address(library[library_index].base_address + init_array->d_un.d_ptr, "");
+		puts("testing library[library_index].mapping_start + init_array->d_un.d_ptr");
+		analyse_address(library[library_index].mapping_start + init_array->d_un.d_ptr, "");
+		addrs = (Elf64_Addr *) (init_array->d_un.d_ptr + library[library_index].mapping_start);
+		for (j = 0; j < jm; ++j) {
+			pi(j)
+			pi(jm)
+			pp(addrs[j]);
+			puts("testing addrs[j]");
+			analyse_address(&addrs[j], "&addrs[j]");
+			((init_t) addrs[j]) (libstring_argc, libstring_argv, libstring_env);
+		}
+	}
 }
 
 int
@@ -3193,17 +3266,64 @@ init_(const char * filename) {
                 abort_();
             }
             library[library_index].dynamic = library[library_index].tmp99D;
-            library[library_index].GOT2 = library[library_index].mappingb + get_dynamic_entry(library[library_index].dynamic, DT_PLTGOT);
+            library[library_index].GOT2 = library[library_index].mapping_start + get_dynamic_entry(library[library_index].dynamic, DT_PLTGOT)->d_un.d_val;
 
             r_init();
-            r(library[library_index].mappingb + get_dynamic_entry(library[library_index].dynamic, DT_RELA), get_dynamic_entry(library[library_index].dynamic, DT_RELASZ), relocation_quiet);
-            r(library[library_index].mappingb + get_dynamic_entry(library[library_index].dynamic, DT_JMPREL), library[library_index].RELA_PLT_SIZE, relocation_quiet);
-            r(library[library_index].mappingb + get_dynamic_entry(library[library_index].dynamic, DT_BIND_NOW), library[library_index].RELA_PLT_SIZE, relocation_quiet);
-//             r(library[library_index].mappingb + get_dynamic_entry(library[library_index].dynamic, DT_PLTREL), get_dynamic_entry(library[library_index].dynamic, DT_PLTRELSZ), relocation_quiet);
+            r(library[library_index].mapping_start + get_dynamic_entry(library[library_index].dynamic, DT_RELA)->d_un.d_val, get_dynamic_entry(library[library_index].dynamic, DT_RELASZ)->d_un.d_val, relocation_quiet);
+            r(library[library_index].mapping_start + get_dynamic_entry(library[library_index].dynamic, DT_JMPREL)->d_un.d_val, library[library_index].RELA_PLT_SIZE, relocation_quiet);
+            r(library[library_index].mapping_start + get_dynamic_entry(library[library_index].dynamic, DT_BIND_NOW)->d_un.d_val, library[library_index].RELA_PLT_SIZE, relocation_quiet);
+//             r(library[library_index].mapping_start + get_dynamic_entry(library[library_index].dynamic, DT_PLTREL)->d_un.d_val, get_dynamic_entry(library[library_index].dynamic, DT_PLTRELSZ)->d_un.d_val, relocation_quiet);
             r_summary();
 			
 			// call init
-			get_dynamic_entry(library[library_index].dynamic, DT_INIT);
+			
+  Elf64_Dyn *preinit_array = get_dynamic_entry(library[library_index].dynamic, DT_PREINIT_ARRAY);
+  Elf64_Dyn *preinit_array_size = get_dynamic_entry(library[library_index].dynamic, DT_PREINIT_ARRAYSZ);
+  unsigned int i;
+  
+//   if (__glibc_unlikely (GL(dl_initfirst) != NULL))
+//     {
+//       call_init (GL(dl_initfirst), argc, argv, env);
+//       GL(dl_initfirst) = NULL;
+//     }
+// 
+//   /* Don't do anything if there is no preinit array.  */
+	pp(library[library_index].dynamic[DT_PREINIT_ARRAY])
+	pp(preinit_array)
+  if (DYN_IS_NULL(preinit_array)
+      && DYN_IS_NULL(preinit_array_size)
+      && (i = preinit_array_size->d_un.d_val / sizeof (Elf64_Addr)) > 0)
+    {
+      Elf64_Addr *addrs;
+      unsigned int cnt;
+
+	  printf("\ncalling preinit: %s\n\n", library[library_index].current_lib);
+
+	  addrs = (Elf64_Addr *) (preinit_array->d_un.d_ptr + library[library_index].base_address);
+      for (cnt = 0; cnt < i; ++cnt) {
+		  ((init_t) addrs[cnt]) (libstring_argc, libstring_argv, libstring_env);
+	  }
+    }
+    else {
+		puts("NO DT_PREINIT_ARRAY");
+		pi(preinit_array->d_un.d_ptr)
+		pi(preinit_array->d_un.d_val)
+	}
+
+	/* Stupid users forced the ELF specification to be changed.  It now
+		says that the dynamic loader is responsible for determining the
+		order in which the constructors have to run.  The constructors
+		for all dependencies of an object must run before the constructor
+		for the object itself.  Circular dependencies are left unspecified.
+
+		This is highly questionable since it puts the burden on the dynamic
+		loader which has to find the dependencies at runtime instead of
+		letting the user do it right.  Stupidity rules!  */
+// 
+//   i = main_map->l_searchlist.r_nlist;
+//   while (i-- > 0)
+//     call_init (main_map->l_initfini[i], argc, argv, env);
+			call_init_(library_index);
         }
     } else return -1;
     library[library_index].init__ = 1;
@@ -3570,11 +3690,11 @@ initv_(const char * filename) {
                 if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "reading                %d\n", library[library_index]._elf_program_header[i].p_memsz);
                 __print_quoted_string__(tmp99, library[library_index]._elf_program_header[i].p_memsz, 0, "print");
                 if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "\nREAD\n");
-                if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "p_flags:\t\t/* Segment flags */\t\t= %014p\np_offset:\t\t/* Segment file offset */\t= %014p\np_vaddr:\t\t/* Segment virtual address */\t= %014p\np_paddr:\t\t/* Segment physical address */\t= %014p\np_filesz:\t\t/* Segment size in file */\t= %014p\np_memsz:\t\t/* Segment size in memory */\t= %014p\np_align:\t\t/* Segment alignment */\t\t= %014p\n\n\n", library[library_index]._elf_program_header[i].p_flags, library[library_index]._elf_program_header[i].p_offset, library[library_index]._elf_program_header[i].p_vaddr+library[library_index].mappingb, library[library_index]._elf_program_header[i].p_paddr, library[library_index]._elf_program_header[i].p_filesz, library[library_index]._elf_program_header[i].p_memsz, library[library_index]._elf_program_header[i].p_align);
+                if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "p_flags:\t\t/* Segment flags */\t\t= %014p\np_offset:\t\t/* Segment file offset */\t= %014p\np_vaddr:\t\t/* Segment virtual address */\t= %014p\np_paddr:\t\t/* Segment physical address */\t= %014p\np_filesz:\t\t/* Segment size in file */\t= %014p\np_memsz:\t\t/* Segment size in memory */\t= %014p\np_align:\t\t/* Segment alignment */\t\t= %014p\n\n\n", library[library_index]._elf_program_header[i].p_flags, library[library_index]._elf_program_header[i].p_offset, library[library_index]._elf_program_header[i].p_vaddr+library[library_index].mapping_start, library[library_index]._elf_program_header[i].p_paddr, library[library_index]._elf_program_header[i].p_filesz, library[library_index]._elf_program_header[i].p_memsz, library[library_index]._elf_program_header[i].p_align);
                 if (bytecmpq(global_quiet, "no") == 0) nl();
                 if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "\t\tp_flags: %014p", library[library_index]._elf_program_header[i].p_flags);
                 if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, " p_offset: %014p", library[library_index]._elf_program_header[i].p_offset);
-                if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, " p_vaddr:  %014p", library[library_index]._elf_program_header[i].p_vaddr+library[library_index].mappingb);
+                if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, " p_vaddr:  %014p", library[library_index]._elf_program_header[i].p_vaddr+library[library_index].mapping_start);
                 if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, " p_paddr: %014p", library[library_index]._elf_program_header[i].p_paddr);
                 if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, " p_filesz: %014p", library[library_index]._elf_program_header[i].p_filesz);
                 if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, " p_memsz: %014p", library[library_index]._elf_program_header[i].p_memsz);
@@ -3593,11 +3713,11 @@ initv_(const char * filename) {
 // 
 
                 if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "PT_LOAD 1 = \n");
-                if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "p_flags:\t\t/* Segment flags */\t\t= %014p\np_offset:\t\t/* Segment file offset */\t= %014p\np_vaddr:\t\t/* Segment virtual address */\t= %014p\np_paddr:\t\t/* Segment physical address */\t= %014p\np_filesz:\t\t/* Segment size in file */\t= %014p\np_memsz:\t\t/* Segment size in memory */\t= %014p\np_align:\t\t/* Segment alignment */\t\t= %014p\n\n\n", library[library_index]._elf_program_header[library[library_index].First_Load_Header_index].p_flags, library[library_index]._elf_program_header[library[library_index].First_Load_Header_index].p_offset, library[library_index]._elf_program_header[library[library_index].First_Load_Header_index].p_vaddr+library[library_index].mappingb, library[library_index]._elf_program_header[library[library_index].First_Load_Header_index].p_paddr, library[library_index]._elf_program_header[library[library_index].First_Load_Header_index].p_filesz, library[library_index]._elf_program_header[library[library_index].First_Load_Header_index].p_memsz, library[library_index]._elf_program_header[library[library_index].First_Load_Header_index].p_align);
+                if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "p_flags:\t\t/* Segment flags */\t\t= %014p\np_offset:\t\t/* Segment file offset */\t= %014p\np_vaddr:\t\t/* Segment virtual address */\t= %014p\np_paddr:\t\t/* Segment physical address */\t= %014p\np_filesz:\t\t/* Segment size in file */\t= %014p\np_memsz:\t\t/* Segment size in memory */\t= %014p\np_align:\t\t/* Segment alignment */\t\t= %014p\n\n\n", library[library_index]._elf_program_header[library[library_index].First_Load_Header_index].p_flags, library[library_index]._elf_program_header[library[library_index].First_Load_Header_index].p_offset, library[library_index]._elf_program_header[library[library_index].First_Load_Header_index].p_vaddr+library[library_index].mapping_start, library[library_index]._elf_program_header[library[library_index].First_Load_Header_index].p_paddr, library[library_index]._elf_program_header[library[library_index].First_Load_Header_index].p_filesz, library[library_index]._elf_program_header[library[library_index].First_Load_Header_index].p_memsz, library[library_index]._elf_program_header[library[library_index].First_Load_Header_index].p_align);
                 if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "PT_LOAD 2 = \n");
-                if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "p_flags:\t\t/* Segment flags */\t\t= %014p\np_offset:\t\t/* Segment file offset */\t= %014p\np_vaddr:\t\t/* Segment virtual address */\t= %014p\np_paddr:\t\t/* Segment physical address */\t= %014p\np_filesz:\t\t/* Segment size in file */\t= %014p\np_memsz:\t\t/* Segment size in memory */\t= %014p\np_align:\t\t/* Segment alignment */\t\t= %014p\n\n\n", library[library_index]._elf_program_header[library[library_index].Last_Load_Header_index].p_flags, library[library_index]._elf_program_header[library[library_index].Last_Load_Header_index].p_offset, library[library_index]._elf_program_header[library[library_index].Last_Load_Header_index].p_vaddr+library[library_index].mappingb, library[library_index]._elf_program_header[library[library_index].Last_Load_Header_index].p_paddr, library[library_index]._elf_program_header[library[library_index].Last_Load_Header_index].p_filesz, library[library_index]._elf_program_header[library[library_index].Last_Load_Header_index].p_memsz, library[library_index]._elf_program_header[library[library_index].Last_Load_Header_index].p_align);
-                if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "first PT_LOAD library[library_index]._elf_program_header[%d]->p_paddr = \n%014p\n", library[library_index].First_Load_Header_index, library[library_index]._elf_program_header[library[library_index].First_Load_Header_index].p_paddr+library[library_index].mappingb);
-                if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "Second PT_LOAD library[library_index]._elf_program_header[%d]->p_paddr = \n%014p\n", library[library_index].Last_Load_Header_index, library[library_index]._elf_program_header[library[library_index].Last_Load_Header_index].p_paddr+library[library_index].mappingb);
+                if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "p_flags:\t\t/* Segment flags */\t\t= %014p\np_offset:\t\t/* Segment file offset */\t= %014p\np_vaddr:\t\t/* Segment virtual address */\t= %014p\np_paddr:\t\t/* Segment physical address */\t= %014p\np_filesz:\t\t/* Segment size in file */\t= %014p\np_memsz:\t\t/* Segment size in memory */\t= %014p\np_align:\t\t/* Segment alignment */\t\t= %014p\n\n\n", library[library_index]._elf_program_header[library[library_index].Last_Load_Header_index].p_flags, library[library_index]._elf_program_header[library[library_index].Last_Load_Header_index].p_offset, library[library_index]._elf_program_header[library[library_index].Last_Load_Header_index].p_vaddr+library[library_index].mapping_start, library[library_index]._elf_program_header[library[library_index].Last_Load_Header_index].p_paddr, library[library_index]._elf_program_header[library[library_index].Last_Load_Header_index].p_filesz, library[library_index]._elf_program_header[library[library_index].Last_Load_Header_index].p_memsz, library[library_index]._elf_program_header[library[library_index].Last_Load_Header_index].p_align);
+                if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "first PT_LOAD library[library_index]._elf_program_header[%d]->p_paddr = \n%014p\n", library[library_index].First_Load_Header_index, library[library_index]._elf_program_header[library[library_index].First_Load_Header_index].p_paddr+library[library_index].mapping_start);
+                if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "Second PT_LOAD library[library_index]._elf_program_header[%d]->p_paddr = \n%014p\n", library[library_index].Last_Load_Header_index, library[library_index]._elf_program_header[library[library_index].Last_Load_Header_index].p_paddr+library[library_index].mapping_start);
                 library[library_index].dynamic = library[library_index].tmp99D;
                 for (; library[library_index].dynamic->d_tag != DT_NULL; library[library_index].dynamic++) {
                     if (library[library_index].dynamic->d_tag == DT_STRTAB) {
@@ -3611,21 +3731,21 @@ initv_(const char * filename) {
                 }
                 library[library_index].dynamic = library[library_index].tmp99D;
 
-                library[library_index].GOT2 = library[library_index].mappingb + get_dynamic_entry(library[library_index].dynamic, DT_PLTGOT);
-//                 library[library_index].PLT = library[library_index].mappingb + get_dynamic_entry(library[library_index].dynamic, DT_PLTREL);
+                library[library_index].GOT2 = library[library_index].mapping_start + get_dynamic_entry(library[library_index].dynamic, DT_PLTGOT)->d_un.d_val;
+//                 library[library_index].PLT = library[library_index].mapping_start + get_dynamic_entry(library[library_index].dynamic, DT_PLTREL)->d_un.d_val;
 
 //                 if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "printing symbol data\n");
-//                 Elf64_Sym *syms = library[library_index].mappingb + get_dynamic_entry(library[library_index].dynamic, DT_SYMTAB);
+//                 Elf64_Sym *syms = library[library_index].mapping_start + get_dynamic_entry(library[library_index].dynamic, DT_SYMTAB)->d_un.d_val;
 //                 symbol1(library[library_index].array, syms, 0);
                 if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "examining current entries:\n");
                 get_dynamic_entry(library[library_index].dynamic, -1);
                 if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "printing relocation data\n");
                 // needs to be the address of the mapping itself, not the base address
                 r_init();
-                r(library[library_index].mappingb + get_dynamic_entry(library[library_index].dynamic, DT_RELA), get_dynamic_entry(library[library_index].dynamic, DT_RELASZ), relocation_quiet);
-                r(library[library_index].mappingb + get_dynamic_entry(library[library_index].dynamic, DT_JMPREL), library[library_index].RELA_PLT_SIZE, relocation_quiet);
-                r(library[library_index].mappingb + get_dynamic_entry(library[library_index].dynamic, DT_BIND_NOW), library[library_index].RELA_PLT_SIZE, relocation_quiet);
-//                 r(library[library_index].mappingb + get_dynamic_entry(library[library_index].dynamic, DT_PLTREL), get_dynamic_entry(library[library_index].dynamic, DT_PLTRELSZ), relocation_quiet);
+                r(library[library_index].mapping_start + get_dynamic_entry(library[library_index].dynamic, DT_RELA)->d_un.d_val, get_dynamic_entry(library[library_index].dynamic, DT_RELASZ)->d_un.d_val, relocation_quiet);
+                r(library[library_index].mapping_start + get_dynamic_entry(library[library_index].dynamic, DT_JMPREL)->d_un.d_val, library[library_index].RELA_PLT_SIZE, relocation_quiet);
+                r(library[library_index].mapping_start + get_dynamic_entry(library[library_index].dynamic, DT_BIND_NOW)->d_un.d_val, library[library_index].RELA_PLT_SIZE, relocation_quiet);
+//                 r(library[library_index].mapping_start + get_dynamic_entry(library[library_index].dynamic, DT_PLTREL)->d_un.d_val, get_dynamic_entry(library[library_index].dynamic, DT_PLTRELSZ)->d_un.d_val, relocation_quiet);
                 r_summary();
             }
 //             if (bytecmpq(global_quiet, "no") == 0) nl();
@@ -3704,7 +3824,7 @@ dlsym(const char * cc1, const char * cc2)
     in during relocation JMP_SLOT relocations are preformed, which write directly to the GOT, in this case "printf" is translated directly to "puts" at compile time
     ->
     R_X86_64_JUMP_SLOT           calculation: S (symbol value)
-    library[library_index].mappingb    = 0x7ffff0000000
+    library[library_index].mapping_start    = 0x7ffff0000000
     reloc->r_offset = 0x7ffff0000000+0x000000201018=0x7ffff0201018
     attempting to look up symbol, index = 2
     looking up index 2 of table 3
@@ -3781,6 +3901,7 @@ dlsym(const char * cc1, const char * cc2)
 
 int
 readelf_(const char * filename) {
+	is_readelf = true;
     setlocale(LC_NUMERIC, "en_US.utf-8"); /* important */
     init_(filename);
         if(!strncmp((char*)library[library_index]._elf_header->e_ident, "\177ELF", 4)) {
@@ -4130,11 +4251,11 @@ readelf_(const char * filename) {
                 if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "reading                %d\n", library[library_index]._elf_program_header[i].p_memsz);
 //                 __print_quoted_string__(tmp99, library[library_index]._elf_program_header[i].p_memsz, 0, "print");
                 if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "\nREAD\n");
-                if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "p_flags:\t\t/* Segment flags */\t\t= %014p\np_offset:\t\t/* Segment file offset */\t= %014p\np_vaddr:\t\t/* Segment virtual address */\t= %014p\np_paddr:\t\t/* Segment physical address */\t= %014p\np_filesz:\t\t/* Segment size in file */\t= %014p\np_memsz:\t\t/* Segment size in memory */\t= %014p\np_align:\t\t/* Segment alignment */\t\t= %014p\n\n\n", library[library_index]._elf_program_header[i].p_flags, library[library_index]._elf_program_header[i].p_offset, library[library_index]._elf_program_header[i].p_vaddr+library[library_index].mappingb, library[library_index]._elf_program_header[i].p_paddr, library[library_index]._elf_program_header[i].p_filesz, library[library_index]._elf_program_header[i].p_memsz, library[library_index]._elf_program_header[i].p_align);
+                if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "p_flags:\t\t/* Segment flags */\t\t= %014p\np_offset:\t\t/* Segment file offset */\t= %014p\np_vaddr:\t\t/* Segment virtual address */\t= %014p\np_paddr:\t\t/* Segment physical address */\t= %014p\np_filesz:\t\t/* Segment size in file */\t= %014p\np_memsz:\t\t/* Segment size in memory */\t= %014p\np_align:\t\t/* Segment alignment */\t\t= %014p\n\n\n", library[library_index]._elf_program_header[i].p_flags, library[library_index]._elf_program_header[i].p_offset, library[library_index]._elf_program_header[i].p_vaddr+library[library_index].mapping_start, library[library_index]._elf_program_header[i].p_paddr, library[library_index]._elf_program_header[i].p_filesz, library[library_index]._elf_program_header[i].p_memsz, library[library_index]._elf_program_header[i].p_align);
                 if (bytecmpq(global_quiet, "no") == 0) nl();
                 if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "\t\tp_flags: %014p", library[library_index]._elf_program_header[i].p_flags);
                 if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, " p_offset: %014p", library[library_index]._elf_program_header[i].p_offset);
-                if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, " p_vaddr:  %014p", library[library_index]._elf_program_header[i].p_vaddr+library[library_index].mappingb);
+                if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, " p_vaddr:  %014p", library[library_index]._elf_program_header[i].p_vaddr+library[library_index].mapping_start);
                 if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, " p_paddr: %014p", library[library_index]._elf_program_header[i].p_paddr);
                 if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, " p_filesz: %014p", library[library_index]._elf_program_header[i].p_filesz);
                 if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, " p_memsz: %014p", library[library_index]._elf_program_header[i].p_memsz);
@@ -4153,11 +4274,11 @@ readelf_(const char * filename) {
 // 
 
                 if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "PT_LOAD 1 = \n");
-                if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "p_flags:\t\t/* Segment flags */\t\t= %014p\np_offset:\t\t/* Segment file offset */\t= %014p\np_vaddr:\t\t/* Segment virtual address */\t= %014p\np_paddr:\t\t/* Segment physical address */\t= %014p\np_filesz:\t\t/* Segment size in file */\t= %014p\np_memsz:\t\t/* Segment size in memory */\t= %014p\np_align:\t\t/* Segment alignment */\t\t= %014p\n\n\n", library[library_index]._elf_program_header[library[library_index].First_Load_Header_index].p_flags, library[library_index]._elf_program_header[library[library_index].First_Load_Header_index].p_offset, library[library_index]._elf_program_header[library[library_index].First_Load_Header_index].p_vaddr+library[library_index].mappingb, library[library_index]._elf_program_header[library[library_index].First_Load_Header_index].p_paddr, library[library_index]._elf_program_header[library[library_index].First_Load_Header_index].p_filesz, library[library_index]._elf_program_header[library[library_index].First_Load_Header_index].p_memsz, library[library_index]._elf_program_header[library[library_index].First_Load_Header_index].p_align);
+                if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "p_flags:\t\t/* Segment flags */\t\t= %014p\np_offset:\t\t/* Segment file offset */\t= %014p\np_vaddr:\t\t/* Segment virtual address */\t= %014p\np_paddr:\t\t/* Segment physical address */\t= %014p\np_filesz:\t\t/* Segment size in file */\t= %014p\np_memsz:\t\t/* Segment size in memory */\t= %014p\np_align:\t\t/* Segment alignment */\t\t= %014p\n\n\n", library[library_index]._elf_program_header[library[library_index].First_Load_Header_index].p_flags, library[library_index]._elf_program_header[library[library_index].First_Load_Header_index].p_offset, library[library_index]._elf_program_header[library[library_index].First_Load_Header_index].p_vaddr+library[library_index].mapping_start, library[library_index]._elf_program_header[library[library_index].First_Load_Header_index].p_paddr, library[library_index]._elf_program_header[library[library_index].First_Load_Header_index].p_filesz, library[library_index]._elf_program_header[library[library_index].First_Load_Header_index].p_memsz, library[library_index]._elf_program_header[library[library_index].First_Load_Header_index].p_align);
                 if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "PT_LOAD 2 = \n");
-                if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "p_flags:\t\t/* Segment flags */\t\t= %014p\np_offset:\t\t/* Segment file offset */\t= %014p\np_vaddr:\t\t/* Segment virtual address */\t= %014p\np_paddr:\t\t/* Segment physical address */\t= %014p\np_filesz:\t\t/* Segment size in file */\t= %014p\np_memsz:\t\t/* Segment size in memory */\t= %014p\np_align:\t\t/* Segment alignment */\t\t= %014p\n\n\n", library[library_index]._elf_program_header[library[library_index].Last_Load_Header_index].p_flags, library[library_index]._elf_program_header[library[library_index].Last_Load_Header_index].p_offset, library[library_index]._elf_program_header[library[library_index].Last_Load_Header_index].p_vaddr+library[library_index].mappingb, library[library_index]._elf_program_header[library[library_index].Last_Load_Header_index].p_paddr, library[library_index]._elf_program_header[library[library_index].Last_Load_Header_index].p_filesz, library[library_index]._elf_program_header[library[library_index].Last_Load_Header_index].p_memsz, library[library_index]._elf_program_header[library[library_index].Last_Load_Header_index].p_align);
-                if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "first PT_LOAD library[library_index]._elf_program_header[%d]->p_paddr = \n%014p\n", library[library_index].First_Load_Header_index, library[library_index]._elf_program_header[library[library_index].First_Load_Header_index].p_paddr+library[library_index].mappingb);
-                if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "Second PT_LOAD library[library_index]._elf_program_header[%d]->p_paddr = \n%014p\n", library[library_index].Last_Load_Header_index, library[library_index]._elf_program_header[library[library_index].Last_Load_Header_index].p_paddr+library[library_index].mappingb);
+                if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "p_flags:\t\t/* Segment flags */\t\t= %014p\np_offset:\t\t/* Segment file offset */\t= %014p\np_vaddr:\t\t/* Segment virtual address */\t= %014p\np_paddr:\t\t/* Segment physical address */\t= %014p\np_filesz:\t\t/* Segment size in file */\t= %014p\np_memsz:\t\t/* Segment size in memory */\t= %014p\np_align:\t\t/* Segment alignment */\t\t= %014p\n\n\n", library[library_index]._elf_program_header[library[library_index].Last_Load_Header_index].p_flags, library[library_index]._elf_program_header[library[library_index].Last_Load_Header_index].p_offset, library[library_index]._elf_program_header[library[library_index].Last_Load_Header_index].p_vaddr+library[library_index].mapping_start, library[library_index]._elf_program_header[library[library_index].Last_Load_Header_index].p_paddr, library[library_index]._elf_program_header[library[library_index].Last_Load_Header_index].p_filesz, library[library_index]._elf_program_header[library[library_index].Last_Load_Header_index].p_memsz, library[library_index]._elf_program_header[library[library_index].Last_Load_Header_index].p_align);
+                if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "first PT_LOAD library[library_index]._elf_program_header[%d]->p_paddr = \n%014p\n", library[library_index].First_Load_Header_index, library[library_index]._elf_program_header[library[library_index].First_Load_Header_index].p_paddr+library[library_index].mapping_start);
+                if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "Second PT_LOAD library[library_index]._elf_program_header[%d]->p_paddr = \n%014p\n", library[library_index].Last_Load_Header_index, library[library_index]._elf_program_header[library[library_index].Last_Load_Header_index].p_paddr+library[library_index].mapping_start);
                 Elf64_Dyn * dynamic = library[library_index].tmp99D;
 
                 if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "examining current entries:\n");
@@ -4180,16 +4301,18 @@ library[library_index]._elf_header->e_shoff = %014p)\n",\
             print_section_headers_(library[library_index].array, library[library_index]._elf_header, library[library_index]._elf_symbol_table);
 //             print_symbols(library[library_index].array, library[library_index]._elf_header, library[library_index]._elf_symbol_table);
         } else {
-                /* Not ELF file */
-                if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "ELFMAGIC not found\n");
-                if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "header = ");
-                __print_quoted_string__(library[library_index].array, sizeof(library[library_index]._elf_header->e_ident), QUOTE_OMIT_LEADING_TRAILING_QUOTES, "print");
-                if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "\n");
-                if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "ELF Identifier\t %s (", library[library_index]._elf_header->e_ident);
-                __print_quoted_string__(library[library_index]._elf_header->e_ident, sizeof(library[library_index]._elf_header->e_ident), QUOTE_FORCE_HEX|QUOTE_OMIT_LEADING_TRAILING_QUOTES, "print");
-                if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, " )\n");
+			/* Not ELF file */
+			if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "ELFMAGIC not found\n");
+			if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "header = ");
+			__print_quoted_string__(library[library_index].array, sizeof(library[library_index]._elf_header->e_ident), QUOTE_OMIT_LEADING_TRAILING_QUOTES, "print");
+			if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "\n");
+			if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "ELF Identifier\t %s (", library[library_index]._elf_header->e_ident);
+			__print_quoted_string__(library[library_index]._elf_header->e_ident, sizeof(library[library_index]._elf_header->e_ident), QUOTE_FORCE_HEX|QUOTE_OMIT_LEADING_TRAILING_QUOTES, "print");
+			if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, " )\n");
+			is_readelf = false;
             return 0;
         }
+	is_readelf = false;
     return 0;
 }
 
