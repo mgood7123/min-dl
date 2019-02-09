@@ -6,11 +6,13 @@
 
 *    To launch the package without requiring host dependancies unless necessary
 
-*    aims to be a fully functional dlopen, dlsym, dlclose, implimentation on top of a fully functional dynamic loader, currently only supports musl libc applications due to glibc requiring symbols for certain functions (for example: puts() ) from its own dynamic loader ld.so (ld-linux-x86_64.so) that it does not specify explicitly as required
+*    aims to be a fully functional dlopen, dlsym, dlclose, implimentation on top of a fully functional dynamic loader, currently only supports musl libc applications due to glibc requiring symbols for certain functions (for example: puts() ) from its own dynamic loader ld.so (ld-linux-x86_64.so) that it does not specify explicitly as required, aswell as glibc requiring that libraries be initialized via `DT_INIT`/`DT_INIT_ARRAY`/`DT_PREARRAY`, something musl does not seem to need at least for its `libc.so`
 
 *    also features a slightly modified C++ symbol demangler function (from cfilt++) for aiding in attempting to dlopen C++ functions (uses libiberty)
 
-*    this also aims to (once stable) optimise dynamic loading for size by mapping only the minimum amount required, and unmapping the rest, moving mappings to make room for more mappings should there not be enough free space to map another file into the process address space, kinda like lazy mapping but smartly, in that only the needed parts are mapped and all other parts are unmapped for example if the only needed function is write() then only the write() function will be mapped instead of the entire libc.so, wich does not sound like much given only one dependancy but given hundreads of applications to execute and potentially thousands of dependancies, even with shared memory, could reduce total memory usage considerably as the full size of the dependancies are not loaded into memory and as a result, is not wasting space that could be used for other tasks
+*    this also aims to (once stable) optimise dynamic loading for size by mapping only the minimum amount required, and unmapping the rest, moving mappings to make room for more mappings should there not be enough free space to map another file into the process address space, kinda like lazy mapping but smartly, in that only the needed parts are mapped and all other parts are unmapped
+
+*	for example if the only needed/used function is write() then only the write() function (and all dependancies of that write() function, for example... say it was something like `write(...) { printf(...); }` even though thats invalid, it would depend on printf, and printf probably calls vprintf or vfprintf, and that probably calls write, strlen, and other functions) will be mapped (eg assuming previous, only `write`, `printf`, `vprintf`/`vfprintf`, `strlen`, and any other dependancies are mapped) instead of the entire libc.so, wich does not sound like much given only one dependancy but given hundreads of applications to execute and potentially thousands of dependancies, even with shared memory (eg in shared memory when two shared objects (.so) (given the exact same path) are mapped and loaded, the .so loaded first is prefered and the one to be loaded second is just not loaded and instead redirected to the one that was loaded first and so on untill it gets unloaded, for example, in psuedo, `load("/my.so"); load("/my.so") ; load("/my2.so"); load("/my.so") ; load ("/my2.so");` the FIRST call to load loads my.so, the SECOND call to load attempts to load the same my.so again, but since it has already been loaded it just returns, the third loads my2.so, the THIRD attempts to load and returns, the FOURTH attempts to load and returns, and so on), could reduce total memory usage considerably as the full size of the dependancies are not loaded into memory and as a result, is not wasting space that could be used for other tasks, tho this greatly depends on the total size of the shared objects themselves as to how much memory is saved and how many are loaded, and OBVIOUSLY this will be complex asf to attempt to call trace from every function, so instead it will attempt to determine what functions will be used based on the `call` asm instruction and equivilalent, as even if a function EXISTS but is never actually used, since no function will `call` that function it is not needed and can safely be unmapped, though this gets a bit complicated given the instance where a function is introduced that calls a function that has previously been unmapped, in this case the library will be re mapped, re initialized, then re-unmapped the same way it does when initially loaded the library, tho it can be sortcutted by using the existing unmapped partial library as a reference of what has already been done, compare that to the new lib, analize the new lib taking into account for new functions and marking the new functions as needed thus will not unmap them, granted that EVENTUALLY every function in a library such as libc will end up being needed this is not garenteed to be permenant, as when an application closes, or exits, its needed functions will be re-anylized and ONLY if no other functions depend on x functions will they be unmapped and thus freed, so the chances of ALL functions being required at any given time are very small
 
 ## rules
 
@@ -46,14 +48,12 @@ re-written loader is in loader (https://github.com/mgood7123/universal-dynamic-l
 
 #### compilation: (direct copy and paste into shell)
 
+```
 git clone https://github.com/mgood7123/universal-dynamic-loader.git
-
 cd min-dl-dynamic-loader/loader
-
 ./make_loader
-
 cd ../
-
+```
 
 
 
