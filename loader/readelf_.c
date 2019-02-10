@@ -3157,15 +3157,16 @@ void call_init_(int library_index) {
 
 		Elf64_Addr *addrs = (Elf64_Addr *) (library[library_index].base_address + init_array->d_un.d_ptr);
 		for (j=0; j<jm;j++) {
-			printf("((Elf64_Addr *) (library[library_index].base_address + init_array->d_un.d_ptr))[%d] = 0x%014x", j, ((Elf64_Addr *) (library[library_index].base_address + init_array->d_un.d_ptr))[j]);
+			printf("((Elf64_Addr *) (library[library_index].base_address + init_array->d_un.d_ptr))[%d] = 0x%012x", j, ((Elf64_Addr *) (library[library_index].base_address + init_array->d_un.d_ptr))[j]);
 			if (j+1!=jm) printf(", ");
 		}
 		puts("");
 
-		printf("addrs[0] = 0x%014x\n", addrs[0]);
-		printf("addrs[1] = 0x%014x\n", addrs[1]);
+		printf("addrs    = %p\n", addrs);
+		printf("addrs[0] = 0x%012x\n", addrs[0]);
+		printf("addrs[1] = 0x%012x\n", addrs[1]);
 		for (j = 0; j < jm; ++j) {
-			printf("addrs[%d] = 0x%014x\n", j, addrs[j]);
+			printf("addrs[%d] = 0x%012x\n", j, addrs[j]);
 			printf("executing ((init_t) addrs[%d]) (libstring_argc, libstring_argv, libstring_env)\n", j);
 			// gdb ./files/loader -ex "handle SIGSEGV nostop pass noprint" -ex "r" -ex "break readelf_.c:3158"
 			((init_t) addrs[j]) (libstring_argc, libstring_argv, libstring_env);
