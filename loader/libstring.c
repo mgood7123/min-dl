@@ -209,17 +209,33 @@ void nl() {
     if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "\n");
 }
 
+uintptr_t round_nearest(uintptr_t value, uintptr_t size)
+{
+    printf("calling %s\n", __func__);
+    uintptr_t result = 0;
+    uintptr_t remainder = value % size;
+    if (remainder < size/2) { result = value - remainder; } else { result = value + size - remainder; }
+	printf("returning = %014p\n", result);
+    return result;
+}
+
+
 uintptr_t round_down(uintptr_t value, uintptr_t size)
 {
-    if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "called round_down\nreturning %014p\n", value ? size * (value / size) : value);
-    return value ? size * (value / size) : value;
+    printf("calling %s\n", __func__);
+    uintptr_t result = 0;
+	result = (value/size)*size;
+	printf("returning = %014p\n", result);
+    return result;
 }
 
 uintptr_t round_up(uintptr_t value, uintptr_t size)
 {
-    if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "called round_up\nreturning %014p\n", value ? size * ((value + (size - 1)) / size) : size);
-//     return size * ((value + (size - 1)) / size);
-    return value ? size * ((value + (size - 1)) / size) : size;
+    printf("calling %s\n", __func__);
+    uintptr_t result = 0;
+	result = value ? size * ((value + (size - 1)) / size) : size;
+	printf("returning = %014p\n", result);
+    return result;
 }
 
 #define QUOTE_0_TERMINATED			0x01
