@@ -1,0 +1,2058 @@
+----------------------------------------------------------------------->called init_aux() at line 287 from libstring.c
+----------------------------------------------------------------------->called init_env() at line 266 from libstring.c
+----------------------------------------------------------------------->called init_argX() at line 275 from libstring.c
+----------------------------------------------------------------------->called currentaux() at line 785 from libstring.c
+AT_SYSINFO_EHDR = 0x7ffcbd1d5000
+AT_HWCAP = 0x178bfbff
+AT_PAGESZ = 4096
+AT_CLKTCK = 100
+AT_PHDR = 0x562a58c8a040
+AT_PHENT = 56
+AT_PHNUM = 9
+AT_BASE = 0x7f9550d72000
+AT_FLAGS = (nil)
+AT_ENTRY = 0x562a58c8a700
+AT_UID = 1000
+AT_EUID = 1000
+AT_GID = 1000
+AT_EGID = 1000
+AT_SECURE = 0
+AT_HWCAP2 = (nil)
+AT_EXECFN = ./files/loader
+AT_PLATFORM = x86_64
+
+
+aquiring "./DT_INIT.so"
+current index 0 holds "NULL"
+searching indexes for "./DT_INIT.so" incase it has already been loaded
+checking if ./DT_INIT.so index 0 is locked
+get_needed: UNLOCKED
+init
+./DT_INIT.so has a null array
+index 0 get_needed: UNLOCKING
+status: UNLOCKED
+current index 0 holds "./DT_INIT.so"
+searching indexes for "./DT_INIT.so" incase it has already been loaded
+current index 0 holds "./DT_INIT.so"
+index 0 holds desired library "./DT_INIT.so"
+map succeded with address: 0x7f9550f92000
+memmove: round_up(0x7f953f500010, 0x000010000000)+0x000000200000 = 0x7f9540200000
+dest = 0x7f9540200000
+dest = 0x7f9540000000
+library[library_index]._elf_program_header[library[library_index].Last_Load_Header_index].p_vaddr = 0x000000200e78
+library[library_index]._elf_program_header[lowest_idx].p_paddr = 0x000000200e78
+library[library_index]._elf_program_header[lowest_idx].p_vaddr = 0x000000200e78
+base address range = 0x7f9540000000 - 0x7f9540201028
+mapping = 0x7f9540000000
+base address = 0x7f9540000000
+
+
+
+find 0x7f9540000000, 0x7f9540201028, (int) 1239
+
+
+
+mapping PT_LOAD number 1
+		p_flags:  0x000000000005
+		p_offset:          (nil)
+		p_vaddr:           (nil)
+		p_paddr:           (nil)
+		p_filesz: 0x000000000654
+		p_memsz:  0x000000000654
+		p_align:  0x000000200000
+
+	p_flags: 0x000000000005 p_offset:          (nil) p_vaddr:          (nil) p_paddr:          (nil) p_filesz: 0x000000000654 p_memsz: 0x000000000654 p_align: 0x000000200000
+
+
+mprotect(0x7f9540000000+round_down(         (nil), 0x000000200000), 0x000000000654, PROT_READ|PROT_EXEC|);
+mprotect on 0x7f9540000000 succeded with size: 0x000000200000
+562a58c8a000-562a58c8c000 r-xp 00000000 08:05 8802724                    /home/neon/git/universal-dynamic-loader/loader/files/loader
+562a58e8b000-562a58e8c000 r--p 00001000 08:05 8802724                    /home/neon/git/universal-dynamic-loader/loader/files/loader
+562a58e8c000-562a58e8d000 rw-p 00002000 08:05 8802724                    /home/neon/git/universal-dynamic-loader/loader/files/loader
+562a5ac8a000-562a5acab000 rw-p 00000000 00:00 0                          [heap]
+7f953f500000-7f9540000000 rw-p 00000000 00:00 0 
+7f9540000000-7f9540200000 r-xp 00000000 00:00 0 
+7f9540200000-7f954f902000 rw-p 00000000 00:00 0 
+7f954f902000-7f954fa9f000 r-xp 00000000 08:02 4723381                    /lib/x86_64-linux-gnu/libm-2.27.so
+7f954fa9f000-7f954fc9e000 ---p 0019d000 08:02 4723381                    /lib/x86_64-linux-gnu/libm-2.27.so
+7f954fc9e000-7f954fc9f000 r--p 0019c000 08:02 4723381                    /lib/x86_64-linux-gnu/libm-2.27.so
+7f954fc9f000-7f954fca0000 rw-p 0019d000 08:02 4723381                    /lib/x86_64-linux-gnu/libm-2.27.so
+7f954fca2000-7f954fcb9000 r-xp 00000000 08:02 4723355                    /lib/x86_64-linux-gnu/libgcc_s.so.1
+7f954fcb9000-7f954feb8000 ---p 00017000 08:02 4723355                    /lib/x86_64-linux-gnu/libgcc_s.so.1
+7f954feb8000-7f954feb9000 r--p 00016000 08:02 4723355                    /lib/x86_64-linux-gnu/libgcc_s.so.1
+7f954feb9000-7f954feba000 rw-p 00017000 08:02 4723355                    /lib/x86_64-linux-gnu/libgcc_s.so.1
+7f954feba000-7f9550033000 r-xp 00000000 08:02 17835254                   /usr/lib/x86_64-linux-gnu/libstdc++.so.6.0.25
+7f9550033000-7f9550233000 ---p 00179000 08:02 17835254                   /usr/lib/x86_64-linux-gnu/libstdc++.so.6.0.25
+7f9550233000-7f955023d000 r--p 00179000 08:02 17835254                   /usr/lib/x86_64-linux-gnu/libstdc++.so.6.0.25
+7f955023d000-7f955023f000 rw-p 00183000 08:02 17835254                   /usr/lib/x86_64-linux-gnu/libstdc++.so.6.0.25
+7f955023f000-7f9550243000 rw-p 00000000 00:00 0 
+7f955024a000-7f9550431000 r-xp 00000000 08:02 4723318                    /lib/x86_64-linux-gnu/libc-2.27.so
+7f9550431000-7f9550631000 ---p 001e7000 08:02 4723318                    /lib/x86_64-linux-gnu/libc-2.27.so
+7f9550631000-7f9550635000 r--p 001e7000 08:02 4723318                    /lib/x86_64-linux-gnu/libc-2.27.so
+7f9550635000-7f9550637000 rw-p 001eb000 08:02 4723318                    /lib/x86_64-linux-gnu/libc-2.27.so
+7f9550637000-7f955063b000 rw-p 00000000 00:00 0 
+7f9550642000-7f9550651000 r-xp 00000000 08:05 8802715                    /home/neon/git/universal-dynamic-loader/loader/files/libstring.so
+7f9550651000-7f9550850000 ---p 0000f000 08:05 8802715                    /home/neon/git/universal-dynamic-loader/loader/files/libstring.so
+7f9550850000-7f9550851000 r--p 0000e000 08:05 8802715                    /home/neon/git/universal-dynamic-loader/loader/files/libstring.so
+7f9550851000-7f9550852000 rw-p 0000f000 08:05 8802715                    /home/neon/git/universal-dynamic-loader/loader/files/libstring.so
+7f9550852000-7f9550855000 rw-p 00000000 00:00 0 
+7f955085a000-7f95508b7000 r-xp 00000000 08:05 8802721                    /home/neon/git/universal-dynamic-loader/loader/files/patchelf.so
+7f95508b7000-7f9550ab6000 ---p 0005d000 08:05 8802721                    /home/neon/git/universal-dynamic-loader/loader/files/patchelf.so
+7f9550ab6000-7f9550ab7000 r--p 0005c000 08:05 8802721                    /home/neon/git/universal-dynamic-loader/loader/files/patchelf.so
+7f9550ab7000-7f9550ab9000 rw-p 0005d000 08:05 8802721                    /home/neon/git/universal-dynamic-loader/loader/files/patchelf.so
+7f9550ab9000-7f9550aef000 rw-p 00000000 00:00 0 
+7f9550af2000-7f9550b34000 r-xp 00000000 08:05 8802717                    /home/neon/git/universal-dynamic-loader/loader/files/readelf_.so
+7f9550b34000-7f9550d34000 ---p 00042000 08:05 8802717                    /home/neon/git/universal-dynamic-loader/loader/files/readelf_.so
+7f9550d34000-7f9550d36000 r--p 00042000 08:05 8802717                    /home/neon/git/universal-dynamic-loader/loader/files/readelf_.so
+7f9550d36000-7f9550d37000 rw-p 00044000 08:05 8802717                    /home/neon/git/universal-dynamic-loader/loader/files/readelf_.so
+7f9550d37000-7f9550d6c000 rw-p 00000000 00:00 0 
+7f9550d72000-7f9550d99000 r-xp 00000000 08:02 4723292                    /lib/x86_64-linux-gnu/ld-2.27.so
+7f9550f77000-7f9550f7a000 rw-p 00000000 00:00 0 
+7f9550f92000-7f9550f94000 r--p 00000000 08:05 8687872                    /home/neon/git/universal-dynamic-loader/loader/DT_INIT.so
+7f9550f99000-7f9550f9a000 r--p 00027000 08:02 4723292                    /lib/x86_64-linux-gnu/ld-2.27.so
+7f9550f9a000-7f9550f9b000 rw-p 00028000 08:02 4723292                    /lib/x86_64-linux-gnu/ld-2.27.so
+7f9550f9b000-7f9550f9e000 rw-p 00000000 00:00 0 
+7f9550f9e000-7f9550fa0000 rw-p 00000000 00:00 0 
+7ffcbd161000-7ffcbd182000 rw-p 00000000 00:00 0                          [stack]
+7ffcbd1d2000-7ffcbd1d5000 r--p 00000000 00:00 0                          [vvar]
+7ffcbd1d5000-7ffcbd1d7000 r-xp 00000000 00:00 0                          [vdso]
+ffffffffff600000-ffffffffff601000 r-xp 00000000 00:00 0                  [vsyscall]
+mapping PT_LOAD number 2
+		p_flags:  0x000000000006
+		p_offset: 0x000000000e78
+		p_vaddr:  0x000000200e78
+		p_paddr:  0x000000200e78
+		p_filesz: 0x0000000001a8
+		p_memsz:  0x0000000001b0
+		p_align:  0x000000200000
+
+	p_flags: 0x000000000006 p_offset: 0x000000000e78 p_vaddr: 0x000000200e78 p_paddr: 0x000000200e78 p_filesz: 0x0000000001a8 p_memsz: 0x0000000001b0 p_align: 0x000000200000
+
+
+mprotect(0x7f9540000000+round_down(0x000000200e78, 0x000000200000), 0x0000000001b0, PROT_READ|PROT_WRITE|);
+mprotect on 0x7f9540200000 succeded with size: 0x000000200000
+562a58c8a000-562a58c8c000 r-xp 00000000 08:05 8802724                    /home/neon/git/universal-dynamic-loader/loader/files/loader
+562a58e8b000-562a58e8c000 r--p 00001000 08:05 8802724                    /home/neon/git/universal-dynamic-loader/loader/files/loader
+562a58e8c000-562a58e8d000 rw-p 00002000 08:05 8802724                    /home/neon/git/universal-dynamic-loader/loader/files/loader
+562a5ac8a000-562a5acab000 rw-p 00000000 00:00 0                          [heap]
+7f953f500000-7f9540000000 rw-p 00000000 00:00 0 
+7f9540000000-7f9540200000 r-xp 00000000 00:00 0 
+7f9540200000-7f9540400000 -wxp 00000000 00:00 0 
+7f9540400000-7f954f902000 rw-p 00000000 00:00 0 
+7f954f902000-7f954fa9f000 r-xp 00000000 08:02 4723381                    /lib/x86_64-linux-gnu/libm-2.27.so
+7f954fa9f000-7f954fc9e000 ---p 0019d000 08:02 4723381                    /lib/x86_64-linux-gnu/libm-2.27.so
+7f954fc9e000-7f954fc9f000 r--p 0019c000 08:02 4723381                    /lib/x86_64-linux-gnu/libm-2.27.so
+7f954fc9f000-7f954fca0000 rw-p 0019d000 08:02 4723381                    /lib/x86_64-linux-gnu/libm-2.27.so
+7f954fca2000-7f954fcb9000 r-xp 00000000 08:02 4723355                    /lib/x86_64-linux-gnu/libgcc_s.so.1
+7f954fcb9000-7f954feb8000 ---p 00017000 08:02 4723355                    /lib/x86_64-linux-gnu/libgcc_s.so.1
+7f954feb8000-7f954feb9000 r--p 00016000 08:02 4723355                    /lib/x86_64-linux-gnu/libgcc_s.so.1
+7f954feb9000-7f954feba000 rw-p 00017000 08:02 4723355                    /lib/x86_64-linux-gnu/libgcc_s.so.1
+7f954feba000-7f9550033000 r-xp 00000000 08:02 17835254                   /usr/lib/x86_64-linux-gnu/libstdc++.so.6.0.25
+7f9550033000-7f9550233000 ---p 00179000 08:02 17835254                   /usr/lib/x86_64-linux-gnu/libstdc++.so.6.0.25
+7f9550233000-7f955023d000 r--p 00179000 08:02 17835254                   /usr/lib/x86_64-linux-gnu/libstdc++.so.6.0.25
+7f955023d000-7f955023f000 rw-p 00183000 08:02 17835254                   /usr/lib/x86_64-linux-gnu/libstdc++.so.6.0.25
+7f955023f000-7f9550243000 rw-p 00000000 00:00 0 
+7f955024a000-7f9550431000 r-xp 00000000 08:02 4723318                    /lib/x86_64-linux-gnu/libc-2.27.so
+7f9550431000-7f9550631000 ---p 001e7000 08:02 4723318                    /lib/x86_64-linux-gnu/libc-2.27.so
+7f9550631000-7f9550635000 r--p 001e7000 08:02 4723318                    /lib/x86_64-linux-gnu/libc-2.27.so
+7f9550635000-7f9550637000 rw-p 001eb000 08:02 4723318                    /lib/x86_64-linux-gnu/libc-2.27.so
+7f9550637000-7f955063b000 rw-p 00000000 00:00 0 
+7f9550642000-7f9550651000 r-xp 00000000 08:05 8802715                    /home/neon/git/universal-dynamic-loader/loader/files/libstring.so
+7f9550651000-7f9550850000 ---p 0000f000 08:05 8802715                    /home/neon/git/universal-dynamic-loader/loader/files/libstring.so
+7f9550850000-7f9550851000 r--p 0000e000 08:05 8802715                    /home/neon/git/universal-dynamic-loader/loader/files/libstring.so
+7f9550851000-7f9550852000 rw-p 0000f000 08:05 8802715                    /home/neon/git/universal-dynamic-loader/loader/files/libstring.so
+7f9550852000-7f9550855000 rw-p 00000000 00:00 0 
+7f955085a000-7f95508b7000 r-xp 00000000 08:05 8802721                    /home/neon/git/universal-dynamic-loader/loader/files/patchelf.so
+7f95508b7000-7f9550ab6000 ---p 0005d000 08:05 8802721                    /home/neon/git/universal-dynamic-loader/loader/files/patchelf.so
+7f9550ab6000-7f9550ab7000 r--p 0005c000 08:05 8802721                    /home/neon/git/universal-dynamic-loader/loader/files/patchelf.so
+7f9550ab7000-7f9550ab9000 rw-p 0005d000 08:05 8802721                    /home/neon/git/universal-dynamic-loader/loader/files/patchelf.so
+7f9550ab9000-7f9550aef000 rw-p 00000000 00:00 0 
+7f9550af2000-7f9550b34000 r-xp 00000000 08:05 8802717                    /home/neon/git/universal-dynamic-loader/loader/files/readelf_.so
+7f9550b34000-7f9550d34000 ---p 00042000 08:05 8802717                    /home/neon/git/universal-dynamic-loader/loader/files/readelf_.so
+7f9550d34000-7f9550d36000 r--p 00042000 08:05 8802717                    /home/neon/git/universal-dynamic-loader/loader/files/readelf_.so
+7f9550d36000-7f9550d37000 rw-p 00044000 08:05 8802717                    /home/neon/git/universal-dynamic-loader/loader/files/readelf_.so
+7f9550d37000-7f9550d6c000 rw-p 00000000 00:00 0 
+7f9550d72000-7f9550d99000 r-xp 00000000 08:02 4723292                    /lib/x86_64-linux-gnu/ld-2.27.so
+7f9550f77000-7f9550f7a000 rw-p 00000000 00:00 0 
+7f9550f92000-7f9550f94000 r--p 00000000 08:05 8687872                    /home/neon/git/universal-dynamic-loader/loader/DT_INIT.so
+7f9550f99000-7f9550f9a000 r--p 00027000 08:02 4723292                    /lib/x86_64-linux-gnu/ld-2.27.so
+7f9550f9a000-7f9550f9b000 rw-p 00028000 08:02 4723292                    /lib/x86_64-linux-gnu/ld-2.27.so
+7f9550f9b000-7f9550f9e000 rw-p 00000000 00:00 0 
+7f9550f9e000-7f9550fa0000 rw-p 00000000 00:00 0 
+7ffcbd161000-7ffcbd182000 rw-p 00000000 00:00 0                          [stack]
+7ffcbd1d2000-7ffcbd1d5000 r--p 00000000 00:00 0                          [vvar]
+7ffcbd1d5000-7ffcbd1d7000 r-xp 00000000 00:00 0                          [vdso]
+ffffffffff600000-ffffffffff601000 r-xp 00000000 00:00 0                  [vsyscall]
+called get_dynamic_entry
+testing if DT_INIT == DT_PLTGOT
+testing if DT_FINI == DT_PLTGOT
+testing if DT_INIT_ARRAY == DT_PLTGOT
+testing if DT_INIT_ARRAYSZ == DT_PLTGOT
+testing if DT_FINI_ARRAY == DT_PLTGOT
+testing if DT_FINI_ARRAYSZ == DT_PLTGOT
+testing if 1879047925 == DT_PLTGOT
+testing if DT_STRTAB == DT_PLTGOT
+testing if DT_SYMTAB == DT_PLTGOT
+testing if DT_STRSZ == DT_PLTGOT
+testing if DT_SYMENT == DT_PLTGOT
+testing if DT_PLTGOT == DT_PLTGOT
+called get_dynamic_entry
+testing if DT_INIT == DT_RELASZ
+testing if DT_FINI == DT_RELASZ
+testing if DT_INIT_ARRAY == DT_RELASZ
+testing if DT_INIT_ARRAYSZ == DT_RELASZ
+testing if DT_FINI_ARRAY == DT_RELASZ
+testing if DT_FINI_ARRAYSZ == DT_RELASZ
+testing if 1879047925 == DT_RELASZ
+testing if DT_STRTAB == DT_RELASZ
+testing if DT_SYMTAB == DT_RELASZ
+testing if DT_STRSZ == DT_RELASZ
+testing if DT_SYMENT == DT_RELASZ
+testing if DT_PLTGOT == DT_RELASZ
+testing if DT_RELA == DT_RELASZ
+testing if DT_RELASZ == DT_RELASZ
+called get_dynamic_entry
+testing if DT_INIT == DT_RELA
+testing if DT_FINI == DT_RELA
+testing if DT_INIT_ARRAY == DT_RELA
+testing if DT_INIT_ARRAYSZ == DT_RELA
+testing if DT_FINI_ARRAY == DT_RELA
+testing if DT_FINI_ARRAYSZ == DT_RELA
+testing if 1879047925 == DT_RELA
+testing if DT_STRTAB == DT_RELA
+testing if DT_SYMTAB == DT_RELA
+testing if DT_STRSZ == DT_RELA
+testing if DT_SYMENT == DT_RELA
+testing if DT_PLTGOT == DT_RELA
+testing if DT_RELA == DT_RELA
+i = 0,		ELF64_R_TYPE(reloc->r_info)	= 
+
+
+R_X86_64_RELATIVE            calculation: B + A (base address + r_addend)
+library[library_index].base_address    = 0x7f9540000000
+reloc->r_offset = 0x7f9540000000+0x000000200e78=0x7f9540200e78
+reloc->r_addend = 0x7f9540000000+0x000000000590=0x7f9540000590
+0x7f9540200e78 = 0x7f9540000590
+((char*)library[library_index].base_address + reloc->r_offset)            = 0x7f9540200e78
+i = 1,		ELF64_R_TYPE(reloc->r_info)	= 
+
+
+R_X86_64_RELATIVE            calculation: B + A (base address + r_addend)
+library[library_index].base_address    = 0x7f9540000000
+reloc->r_offset = 0x7f9540000000+0x000000200e88=0x7f9540200e88
+reloc->r_addend = 0x7f9540000000+0x000000000550=0x7f9540000550
+0x7f9540200e88 = 0x7f9540000550
+((char*)library[library_index].base_address + reloc->r_offset)            = 0x7f9540200e88
+i = 2,		ELF64_R_TYPE(reloc->r_info)	= 
+
+
+R_X86_64_RELATIVE            calculation: B + A (base address + r_addend)
+library[library_index].base_address    = 0x7f9540000000
+reloc->r_offset = 0x7f9540000000+0x000000201018=0x7f9540201018
+reloc->r_addend = 0x7f9540000000+0x000000201018=0x7f9540201018
+0x7f9540201018 = 0x7f9540201018
+((char*)library[library_index].base_address + reloc->r_offset)            = 0x7f9540201018
+i = 3,		ELF64_R_TYPE(reloc->r_info)	= 
+
+
+R_X86_64_64                  calculation: S + A (symbol value + r_addend)
+reloc->r_offset = 0x000000200e80
+attempting to look up symbol, index = 7
+looking up index 7 of table 3
+requested symbol name for index 7 is test_constructor
+symbol = 1434 (0x00000000059a)
+((char*)library[library_index].mapping_start + reloc->r_offset)            = 0x7f9540200e80
+i = 4,		ELF64_R_TYPE(reloc->r_info)	= 
+
+
+R_X86_64_GLOB_DAT            calculation: S (symbol value)
+reloc->r_offset = 0x7f9540000000+0x000000200fe0=0x7f9540200fe0
+attempting to look up symbol, index = 1
+looking up index 1 of table 3
+requested symbol name for index 1 is __cxa_finalize
+symbol = 0 (         (nil))
+0x7f9540200fe0 = 0x7f9540000000
+i = 5,		ELF64_R_TYPE(reloc->r_info)	= 
+
+
+R_X86_64_GLOB_DAT            calculation: S (symbol value)
+reloc->r_offset = 0x7f9540000000+0x000000200fe8=0x7f9540200fe8
+attempting to look up symbol, index = 2
+looking up index 2 of table 3
+requested symbol name for index 2 is _ITM_registerTMCloneTable
+symbol = 0 (         (nil))
+0x7f9540200fe8 = 0x7f9540000000
+i = 6,		ELF64_R_TYPE(reloc->r_info)	= 
+
+
+R_X86_64_GLOB_DAT            calculation: S (symbol value)
+reloc->r_offset = 0x7f9540000000+0x000000200ff0=0x7f9540200ff0
+attempting to look up symbol, index = 3
+looking up index 3 of table 3
+requested symbol name for index 3 is _ITM_deregisterTMCloneTable
+symbol = 0 (         (nil))
+0x7f9540200ff0 = 0x7f9540000000
+i = 7,		ELF64_R_TYPE(reloc->r_info)	= 
+
+
+R_X86_64_GLOB_DAT            calculation: S (symbol value)
+reloc->r_offset = 0x7f9540000000+0x000000200ff8=0x7f9540200ff8
+attempting to look up symbol, index = 4
+looking up index 4 of table 3
+requested symbol name for index 4 is __gmon_start__
+symbol = 0 (         (nil))
+0x7f9540200ff8 = 0x7f9540000000
+
+
+
+called get_dynamic_entry
+testing if DT_INIT == DT_JMPREL
+testing if DT_FINI == DT_JMPREL
+testing if DT_INIT_ARRAY == DT_JMPREL
+testing if DT_INIT_ARRAYSZ == DT_JMPREL
+testing if DT_FINI_ARRAY == DT_JMPREL
+testing if DT_FINI_ARRAYSZ == DT_JMPREL
+testing if 1879047925 == DT_JMPREL
+testing if DT_STRTAB == DT_JMPREL
+testing if DT_SYMTAB == DT_JMPREL
+testing if DT_STRSZ == DT_JMPREL
+testing if DT_SYMENT == DT_JMPREL
+testing if DT_PLTGOT == DT_JMPREL
+testing if DT_RELA == DT_JMPREL
+testing if DT_RELASZ == DT_JMPREL
+testing if DT_RELAENT == DT_JMPREL
+testing if DT_RELACOUNT == DT_JMPREL
+returning 0
+
+
+
+called get_dynamic_entry
+testing if DT_INIT == DT_BIND_NOW
+testing if DT_FINI == DT_BIND_NOW
+testing if DT_INIT_ARRAY == DT_BIND_NOW
+testing if DT_INIT_ARRAYSZ == DT_BIND_NOW
+testing if DT_FINI_ARRAY == DT_BIND_NOW
+testing if DT_FINI_ARRAYSZ == DT_BIND_NOW
+testing if 1879047925 == DT_BIND_NOW
+testing if DT_STRTAB == DT_BIND_NOW
+testing if DT_SYMTAB == DT_BIND_NOW
+testing if DT_STRSZ == DT_BIND_NOW
+testing if DT_SYMENT == DT_BIND_NOW
+testing if DT_PLTGOT == DT_BIND_NOW
+testing if DT_RELA == DT_BIND_NOW
+testing if DT_RELASZ == DT_BIND_NOW
+testing if DT_RELAENT == DT_BIND_NOW
+testing if DT_RELACOUNT == DT_BIND_NOW
+returning 0
+
+
+
+called get_dynamic_entry
+testing if DT_INIT == DT_ENCODING (or DT_PREINIT_ARRAY)
+testing if DT_FINI == DT_ENCODING (or DT_PREINIT_ARRAY)
+testing if DT_INIT_ARRAY == DT_ENCODING (or DT_PREINIT_ARRAY)
+testing if DT_INIT_ARRAYSZ == DT_ENCODING (or DT_PREINIT_ARRAY)
+testing if DT_FINI_ARRAY == DT_ENCODING (or DT_PREINIT_ARRAY)
+testing if DT_FINI_ARRAYSZ == DT_ENCODING (or DT_PREINIT_ARRAY)
+testing if 1879047925 == DT_ENCODING (or DT_PREINIT_ARRAY)
+testing if DT_STRTAB == DT_ENCODING (or DT_PREINIT_ARRAY)
+testing if DT_SYMTAB == DT_ENCODING (or DT_PREINIT_ARRAY)
+testing if DT_STRSZ == DT_ENCODING (or DT_PREINIT_ARRAY)
+testing if DT_SYMENT == DT_ENCODING (or DT_PREINIT_ARRAY)
+testing if DT_PLTGOT == DT_ENCODING (or DT_PREINIT_ARRAY)
+testing if DT_RELA == DT_ENCODING (or DT_PREINIT_ARRAY)
+testing if DT_RELASZ == DT_ENCODING (or DT_PREINIT_ARRAY)
+testing if DT_RELAENT == DT_ENCODING (or DT_PREINIT_ARRAY)
+testing if DT_RELACOUNT == DT_ENCODING (or DT_PREINIT_ARRAY)
+returning 0
+called get_dynamic_entry
+testing if DT_INIT == DT_PREINIT_ARRAYSZ
+testing if DT_FINI == DT_PREINIT_ARRAYSZ
+testing if DT_INIT_ARRAY == DT_PREINIT_ARRAYSZ
+testing if DT_INIT_ARRAYSZ == DT_PREINIT_ARRAYSZ
+testing if DT_FINI_ARRAY == DT_PREINIT_ARRAYSZ
+testing if DT_FINI_ARRAYSZ == DT_PREINIT_ARRAYSZ
+testing if 1879047925 == DT_PREINIT_ARRAYSZ
+testing if DT_STRTAB == DT_PREINIT_ARRAYSZ
+testing if DT_SYMTAB == DT_PREINIT_ARRAYSZ
+testing if DT_STRSZ == DT_PREINIT_ARRAYSZ
+testing if DT_SYMENT == DT_PREINIT_ARRAYSZ
+testing if DT_PLTGOT == DT_PREINIT_ARRAYSZ
+testing if DT_RELA == DT_PREINIT_ARRAYSZ
+testing if DT_RELASZ == DT_PREINIT_ARRAYSZ
+testing if DT_RELAENT == DT_PREINIT_ARRAYSZ
+testing if DT_RELACOUNT == DT_PREINIT_ARRAYSZ
+returning 0
+called get_dynamic_entry
+testing if DT_INIT == DT_INIT
+0x7f9540000488 = 0x65058b4808ec8348
+OPENING LIBRARIES
+calling round_up
+returning = 0x7f9540000000
+calling round_up
+returning = 0x7f9540000000
+calling round_down
+returning = 0x000000200000
+calling round_down
+returning = 0x000000200000
+calling round_nearest
+returning = 0x000000201000
+calling round_up
+returning = 0x000000200000
+calling round_down
+returning =          (nil)
+calling round_up
+returning = 0x000000200000
+calling round_down
+returning =          (nil)
+calling round_up
+returning = 0x000000200000
+calling round_down
+returning = 0x000000200000
+calling round_up
+returning = 0x000000200000
+calling round_down
+returning = 0x000000200000
+calling round_up
+returning = 0x562a5ac9d000
+((char**)((char*)library[library_index].base_address + reloc->r_offset)) = 0x7f9540200e78
+*((char**)((char*)library[library_index].base_address + reloc->r_offset)) = 0x590
+*((char**)((char*)library[library_index].base_address + reloc->r_offset)) = 0x1
+((char**)((char*)library[library_index].base_address + reloc->r_offset)) = 0x7f9540200e88
+*((char**)((char*)library[library_index].base_address + reloc->r_offset)) = 0x550
+*((char**)((char*)library[library_index].base_address + reloc->r_offset)) = 0x1
+((char**)((char*)library[library_index].base_address + reloc->r_offset)) = 0x7f9540201018
+*((char**)((char*)library[library_index].base_address + reloc->r_offset)) = 0x201018
+*((char**)((char*)library[library_index].base_address + reloc->r_offset)) = 0x1
+relocation summary:
+     R_X86_64_NONE              = 0
+     R_X86_64_64                = 1
+     R_X86_64_PC32              = 0
+     R_X86_64_GOT32             = 0
+     R_X86_64_PLT32             = 0
+     R_X86_64_COPY              = 0
+     R_X86_64_GLOB_DAT          = 4
+     R_X86_64_JUMP_SLOT         = 0
+     R_X86_64_RELATIVE          = 3
+     R_X86_64_GOTPCREL          = 0
+     R_X86_64_32                = 0
+     R_X86_64_32S               = 0
+     R_X86_64_16                = 0
+     R_X86_64_PC16              = 0
+     R_X86_64_8                 = 0
+     R_X86_64_PC8               = 0
+     R_X86_64_DTPMOD64          = 0
+     R_X86_64_DTPOFF64          = 0
+     R_X86_64_TPOFF64           = 0
+     R_X86_64_TLSGD             = 0
+     R_X86_64_TLSLD             = 0
+     R_X86_64_DTPOFF32          = 0
+     R_X86_64_GOTTPOFF          = 0
+     R_X86_64_TPOFF32           = 0
+     R_X86_64_PC64              = 0
+     R_X86_64_GOTOFF64          = 0
+     R_X86_64_GOTPC32           = 0
+     R_X86_64_GOT64             = 0
+     R_X86_64_GOTPCREL64        = 0
+     R_X86_64_GOTPC64           = 0
+     Deprecated1                = 0
+     R_X86_64_PLTOFF64          = 0
+     R_X86_64_SIZE32            = 0
+     R_X86_64_SIZE64            = 0
+     R_X86_64_GOTPC32_TLSDESC   = 0
+     R_X86_64_TLSDESC_CALL      = 0
+     R_X86_64_TLSDESC           = 0
+     R_X86_64_IRELATIVE         = 0
+     R_X86_64_RELATIVE64        = 0
+     Deprecated2                = 0
+     Deprecated3                = 0
+     R_X86_64_GOTPLT64          = 0
+     R_X86_64_GOTPCRELX         = 0
+     R_X86_64_REX_GOTPCRELX     = 0
+     R_X86_64_NUM               = 0
+     R_X86_64_UNKNOWN           = 0
+     total                       = 8
+library[library_index].dynamic[DT_PREINIT_ARRAY] = (nil)
+NO DT_PREINIT_ARRAY
+preinit_array->d_un.d_ptr = 0
+preinit_array->d_un.d_val = 0
+library[library_index].dynamic[DT_INIT] = 0x7
+INIT = 0x562a5ac9ee90
+attempting to call DT_INIT for ./DT_INIT.so
+library[library_index].base_address = 40000000
+library[library_index].base_address = 0x7f9540000000
+library[library_index].mapping_start = 40000000
+library[library_index].mapping_start = 0x7f9540000000
+INIT->d_un.d_ptr = 488
+INIT->d_un.d_ptr = 0x488
+library[library_index].base_address + INIT->d_un.d_ptr = 40000488
+library[library_index].base_address + INIT->d_un.d_ptr = 0x7f9540000488
+library[library_index].mapping_start + INIT->d_un.d_ptr = 40000488
+library[library_index].mapping_start + INIT->d_un.d_ptr = 0x7f9540000488
+libstring_argc = 1
+libstring_argv = 0x7ffcbd180648
+libstring_env = 0x7ffcbd180658
+is_readelf = false
+testing library[library_index].base_address + INIT->d_un.d_ptr
+testing library[library_index].m0x7f9540000488 = 0x65058b4808ec8348
+                                                                                                                        received signal (11)
+NOTICE
+received SegFault (11)
+addr:   0x7f9540000000
+signo:  11
+errno:  0
+code:   2 (If this is less than or equal to 0, then the signal was generated by a process)
+0x7f9540000488 = INVALID
+called get_dynamic_entry
+testing if DT_INIT == DT_INIT_ARRAY
+testing if DT_FINI == DT_INIT_ARRAY
+testing if DT_INIT_ARRAY == DT_INIT_ARRAY
+called get_dynamic_entry
+testing if DT_INIT == DT_INIT_ARRAYSZ
+testing if DT_FINI == DT_INIT_ARRAYSZ
+testing if DT_INIT_ARRAY == DT_INIT_ARRAYSZ
+testing if DT_INIT_ARRAYSZ == DT_INIT_ARRAYSZ
+called get_dynamic_entry
+testing if DT_INIT == DT_INIT_ARRAYSZ
+testing if DT_FINI == DT_INIT_ARRAYSZ
+testing if DT_INIT_ARRAY == DT_INIT_ARRAYSZ
+testing if DT_INIT_ARRAYSZ == DT_INIT_ARRAYSZ
+dlopen: adding ./DT_INIT.so to index 0
+current index 0 holds "./DT_INIT.so"
+index 0 holds desired library "./DT_INIT.so"
+dlsym: adding  from ./DT_INIT.so
+current index 0 holds "./DT_INIT.so"
+searching indexes for "./DT_INIT.so" incase it has already been loaded
+current index 0 holds "./DT_INIT.so"
+index 0 holds desired library "./DT_INIT.so"
+
+requested symbol name "_GLOBAL_OFFSET_TABLE_" could not be found in table 3
+
+requested symbol name "_GLOBAL_OFFSET_TABLE_" found in table 21 at address 0x7f9540201000 is "_GLOBAL_OFFSET_TABLE_"
+analysing address 0x7f9540201000
+0x7f9540201000 = 0x000000200e90
+                                                                                                                        received signal (11)
+NOTICE
+received SegFault (11)
+addr:   0x000000200e90
+signo:  11
+errno:  0
+code:   1 (If this is less than or equal to 0, then the signal was generated by a process)
+0x000000200e90 = INVALID
+pointers: 0
+data  _GLOBAL_OFFSET_TABLE_
+returning 0x7f9540201000
+
+
+address of GOT   = 0x7f9540201000
+address of GOT[1] =          (nil)
+address of GOT[2] =          (nil)
+address of GOT[3] = 0x7f9540201018
+address of GOT[4] = 0x625528203a434347
+address of GOT[5] = 0x332e372075746e75
+address of GOT[6] = 0x75627537322d302e
+address of GOT[7] = 0x2e38317e3175746e
+current index 0 holds "./DT_INIT.so"
+searching indexes for "./DT_INIT.so" incase it has already been loaded
+current index 0 holds "./DT_INIT.so"
+index 0 holds desired library "./DT_INIT.so"
+
+requested symbol name "" could not be found in table 3
+
+
+requested symbol name "" could not be found in table 21
+
+init done
+current index 0 holds "./DT_INIT.so"
+searching indexes for "./DT_INIT.so" incase it has already been loaded
+apping_start + INIT->d_un.d_ptr
+DT_INIT CALLED
+get_dynamic_entry(library[library_index].dynamic, DT_INIT_ARRAYSZ)->d_un.d_val / sizeof (Elf64_Addr) = 2, ((Elf64_Addr *) (library[library_index].base_address + init_array->d_un.d_ptr))[0] = 0x000040000590, ((Elf64_Addr *) (library[library_index].base_address + init_array->d_un.d_ptr))[1] = 0x00004000059a
+addrs    = 0x7f9540200e78
+addrs[0] = 0x000040000590
+addrs[1] = 0x00004000059a
+addrs[0] = 0x000040000590
+executing ((init_t) addrs[0]) (libstring_argc, libstring_argv, libstring_env)
+addrs[1] = 0x00004000059a
+executing ((init_t) addrs[1]) (libstring_argc, libstring_argv, libstring_env)
+ DT_NEEDED start: ./DT_INIT.so
+     ./DT_INIT.so => has no DT_NEEDED sections
+ DT_NEEDED end: ./DT_INIT.so
+index 0 get_needed: UNLOCKING
+status: UNLOCKED
+current index 0 holds "./DT_INIT.so"
+searching indexes for "./DT_INIT.so" incase it has already been loaded
+current index 0 holds "./DT_INIT.so"
+index 0 holds desired library "./DT_INIT.so"
+dlopen: adding ./DT_INIT.so to index 0
+
+
+aquiring "./files/libstring.so"
+current index 0 holds "./DT_INIT.so"
+searching indexes for "./files/libstring.so" incase it has already been loaded
+WARNING: index 1 is (null)
+checking if ./files/libstring.so index 1 is locked
+get_needed: UNLOCKED
+init
+./files/libstring.so has a null array
+index 1 get_needed: UNLOCKING
+status: UNLOCKED
+current index 1 holds "NULL"
+searching indexes for "./files/libstring.so" incase it has already been loaded
+current index 0 holds "./DT_INIT.so"
+current index 1 holds "NULL"
+attempting to save to index 1
+map succeded with address: 0x7f9550f32000
+memmove: round_up(0x7f952d0e9010, 0x000010000000)+0x000000200000 = 0x7f9530200000
+dest = 0x7f9530200000
+dest = 0x7f9530000000
+library[library_index]._elf_program_header[library[library_index].Last_Load_Header_index].p_vaddr = 0x00000020ed80
+library[library_index]._elf_program_header[lowest_idx].p_paddr = 0x00000020ed80
+library[library_index]._elf_program_header[lowest_idx].p_vaddr = 0x00000020ed80
+base address range = 0x7f9530000000 - 0x7f95302122a0
+mapping = 0x7f9530000000
+base address = 0x7f9530000000
+
+
+
+find 0x7f9530000000, 0x7f95302122a0, (int) 1239
+
+
+
+mapping PT_LOAD number 1
+		p_flags:  0x000000000005
+		p_offset:          (nil)
+		p_vaddr:           (nil)
+		p_paddr:           (nil)
+		p_filesz: 0x00000000e7f8
+		p_memsz:  0x00000000e7f8
+		p_align:  0x000000200000
+
+	p_flags: 0x000000000005 p_offset:          (nil) p_vaddr:          (nil) p_paddr:          (nil) p_filesz: 0x00000000e7f8 p_memsz: 0x00000000e7f8 p_align: 0x000000200000
+
+
+mprotect(0x7f9530000000+round_down(         (nil), 0x000000200000), 0x00000000e7f8, PROT_READ|PROT_EXEC|);
+mprotect on 0x7f9530000000 succeded with size: 0x000000200000
+562a58c8a000-562a58c8c000 r-xp 00000000 08:05 8802724                    /home/neon/git/universal-dynamic-loader/loader/files/loader
+562a58e8b000-562a58e8c000 r--p 00001000 08:05 8802724                    /home/neon/git/universal-dynamic-loader/loader/files/loader
+562a58e8c000-562a58e8d000 rw-p 00002000 08:05 8802724                    /home/neon/git/universal-dynamic-loader/loader/files/loader
+562a5ac8a000-562a5acab000 rw-p 00000000 00:00 0                          [heap]
+7f952d0e9000-7f9530000000 rw-p 00000000 00:00 0 
+7f9530000000-7f9530200000 r-xp 00000000 00:00 0 
+7f9530200000-7f9540000000 rw-p 00000000 00:00 0 
+7f9540000000-7f9540200000 r-xp 00000000 00:00 0 
+7f9540200000-7f9540400000 -wxp 00000000 00:00 0 
+7f9540400000-7f954f902000 rw-p 00000000 00:00 0 
+7f954f902000-7f954fa9f000 r-xp 00000000 08:02 4723381                    /lib/x86_64-linux-gnu/libm-2.27.so
+7f954fa9f000-7f954fc9e000 ---p 0019d000 08:02 4723381                    /lib/x86_64-linux-gnu/libm-2.27.so
+7f954fc9e000-7f954fc9f000 r--p 0019c000 08:02 4723381                    /lib/x86_64-linux-gnu/libm-2.27.so
+7f954fc9f000-7f954fca0000 rw-p 0019d000 08:02 4723381                    /lib/x86_64-linux-gnu/libm-2.27.so
+7f954fca2000-7f954fcb9000 r-xp 00000000 08:02 4723355                    /lib/x86_64-linux-gnu/libgcc_s.so.1
+7f954fcb9000-7f954feb8000 ---p 00017000 08:02 4723355                    /lib/x86_64-linux-gnu/libgcc_s.so.1
+7f954feb8000-7f954feb9000 r--p 00016000 08:02 4723355                    /lib/x86_64-linux-gnu/libgcc_s.so.1
+7f954feb9000-7f954feba000 rw-p 00017000 08:02 4723355                    /lib/x86_64-linux-gnu/libgcc_s.so.1
+7f954feba000-7f9550033000 r-xp 00000000 08:02 17835254                   /usr/lib/x86_64-linux-gnu/libstdc++.so.6.0.25
+7f9550033000-7f9550233000 ---p 00179000 08:02 17835254                   /usr/lib/x86_64-linux-gnu/libstdc++.so.6.0.25
+7f9550233000-7f955023d000 r--p 00179000 08:02 17835254                   /usr/lib/x86_64-linux-gnu/libstdc++.so.6.0.25
+7f955023d000-7f955023f000 rw-p 00183000 08:02 17835254                   /usr/lib/x86_64-linux-gnu/libstdc++.so.6.0.25
+7f955023f000-7f9550243000 rw-p 00000000 00:00 0 
+7f955024a000-7f9550431000 r-xp 00000000 08:02 4723318                    /lib/x86_64-linux-gnu/libc-2.27.so
+7f9550431000-7f9550631000 ---p 001e7000 08:02 4723318                    /lib/x86_64-linux-gnu/libc-2.27.so
+7f9550631000-7f9550635000 r--p 001e7000 08:02 4723318                    /lib/x86_64-linux-gnu/libc-2.27.so
+7f9550635000-7f9550637000 rw-p 001eb000 08:02 4723318                    /lib/x86_64-linux-gnu/libc-2.27.so
+7f9550637000-7f955063b000 rw-p 00000000 00:00 0 
+7f9550642000-7f9550651000 r-xp 00000000 08:05 8802715                    /home/neon/git/universal-dynamic-loader/loader/files/libstring.so
+7f9550651000-7f9550850000 ---p 0000f000 08:05 8802715                    /home/neon/git/universal-dynamic-loader/loader/files/libstring.so
+7f9550850000-7f9550851000 r--p 0000e000 08:05 8802715                    /home/neon/git/universal-dynamic-loader/loader/files/libstring.so
+7f9550851000-7f9550852000 rw-p 0000f000 08:05 8802715                    /home/neon/git/universal-dynamic-loader/loader/files/libstring.so
+7f9550852000-7f9550855000 rw-p 00000000 00:00 0 
+7f955085a000-7f95508b7000 r-xp 00000000 08:05 8802721                    /home/neon/git/universal-dynamic-loader/loader/files/patchelf.so
+7f95508b7000-7f9550ab6000 ---p 0005d000 08:05 8802721                    /home/neon/git/universal-dynamic-loader/loader/files/patchelf.so
+7f9550ab6000-7f9550ab7000 r--p 0005c000 08:05 8802721                    /home/neon/git/universal-dynamic-loader/loader/files/patchelf.so
+7f9550ab7000-7f9550ab9000 rw-p 0005d000 08:05 8802721                    /home/neon/git/universal-dynamic-loader/loader/files/patchelf.so
+7f9550ab9000-7f9550aef000 rw-p 00000000 00:00 0 
+7f9550af2000-7f9550b34000 r-xp 00000000 08:05 8802717                    /home/neon/git/universal-dynamic-loader/loader/files/readelf_.so
+7f9550b34000-7f9550d34000 ---p 00042000 08:05 8802717                    /home/neon/git/universal-dynamic-loader/loader/files/readelf_.so
+7f9550d34000-7f9550d36000 r--p 00042000 08:05 8802717                    /home/neon/git/universal-dynamic-loader/loader/files/readelf_.so
+7f9550d36000-7f9550d37000 rw-p 00044000 08:05 8802717                    /home/neon/git/universal-dynamic-loader/loader/files/readelf_.so
+7f9550d37000-7f9550d6c000 rw-p 00000000 00:00 0 
+7f9550d72000-7f9550d99000 r-xp 00000000 08:02 4723292                    /lib/x86_64-linux-gnu/ld-2.27.so
+7f9550f32000-7f9550f74000 r--p 00000000 08:05 8802715                    /home/neon/git/universal-dynamic-loader/loader/files/libstring.so
+7f9550f77000-7f9550f7a000 rw-p 00000000 00:00 0 
+7f9550f92000-7f9550f94000 r--p 00000000 08:05 8687872                    /home/neon/git/universal-dynamic-loader/loader/DT_INIT.so
+7f9550f99000-7f9550f9a000 r--p 00027000 08:02 4723292                    /lib/x86_64-linux-gnu/ld-2.27.so
+7f9550f9a000-7f9550f9b000 rw-p 00028000 08:02 4723292                    /lib/x86_64-linux-gnu/ld-2.27.so
+7f9550f9b000-7f9550f9e000 rw-p 00000000 00:00 0 
+7f9550f9e000-7f9550fa0000 rw-p 00000000 00:00 0 
+7ffcbd161000-7ffcbd182000 rw-p 00000000 00:00 0                          [stack]
+7ffcbd1d2000-7ffcbd1d5000 r--p 00000000 00:00 0                          [vvar]
+7ffcbd1d5000-7ffcbd1d7000 r-xp 00000000 00:00 0                          [vdso]
+ffffffffff600000-ffffffffff601000 r-xp 00000000 00:00 0                  [vsyscall]
+mapping PT_LOAD number 2
+		p_flags:  0x000000000006
+		p_offset: 0x00000000ed80
+		p_vaddr:  0x00000020ed80
+		p_paddr:  0x00000020ed80
+		p_filesz: 0x0000000004e0
+		p_memsz:  0x000000003520
+		p_align:  0x000000200000
+
+	p_flags: 0x000000000006 p_offset: 0x00000000ed80 p_vaddr: 0x00000020ed80 p_paddr: 0x00000020ed80 p_filesz: 0x0000000004e0 p_memsz: 0x000000003520 p_align: 0x000000200000
+
+
+mprotect(0x7f9530000000+round_down(0x00000020ed80, 0x000000200000), 0x000000003520, PROT_READ|PROT_WRITE|);
+mprotect on 0x7f9530200000 succeded with size: 0x000000200000
+562a58c8a000-562a58c8c000 r-xp 00000000 08:05 8802724                    /home/neon/git/universal-dynamic-loader/loader/files/loader
+562a58e8b000-562a58e8c000 r--p 00001000 08:05 8802724                    /home/neon/git/universal-dynamic-loader/loader/files/loader
+562a58e8c000-562a58e8d000 rw-p 00002000 08:05 8802724                    /home/neon/git/universal-dynamic-loader/loader/files/loader
+562a5ac8a000-562a5acab000 rw-p 00000000 00:00 0                          [heap]
+7f952d0e9000-7f9530000000 rw-p 00000000 00:00 0 
+7f9530000000-7f9530200000 r-xp 00000000 00:00 0 
+7f9530200000-7f9530400000 -wxp 00000000 00:00 0 
+7f9530400000-7f9540000000 rw-p 00000000 00:00 0 
+7f9540000000-7f9540200000 r-xp 00000000 00:00 0 
+7f9540200000-7f9540400000 -wxp 00000000 00:00 0 
+7f9540400000-7f954f902000 rw-p 00000000 00:00 0 
+7f954f902000-7f954fa9f000 r-xp 00000000 08:02 4723381                    /lib/x86_64-linux-gnu/libm-2.27.so
+7f954fa9f000-7f954fc9e000 ---p 0019d000 08:02 4723381                    /lib/x86_64-linux-gnu/libm-2.27.so
+7f954fc9e000-7f954fc9f000 r--p 0019c000 08:02 4723381                    /lib/x86_64-linux-gnu/libm-2.27.so
+7f954fc9f000-7f954fca0000 rw-p 0019d000 08:02 4723381                    /lib/x86_64-linux-gnu/libm-2.27.so
+7f954fca2000-7f954fcb9000 r-xp 00000000 08:02 4723355                    /lib/x86_64-linux-gnu/libgcc_s.so.1
+7f954fcb9000-7f954feb8000 ---p 00017000 08:02 4723355                    /lib/x86_64-linux-gnu/libgcc_s.so.1
+7f954feb8000-7f954feb9000 r--p 00016000 08:02 4723355                    /lib/x86_64-linux-gnu/libgcc_s.so.1
+7f954feb9000-7f954feba000 rw-p 00017000 08:02 4723355                    /lib/x86_64-linux-gnu/libgcc_s.so.1
+7f954feba000-7f9550033000 r-xp 00000000 08:02 17835254                   /usr/lib/x86_64-linux-gnu/libstdc++.so.6.0.25
+7f9550033000-7f9550233000 ---p 00179000 08:02 17835254                   /usr/lib/x86_64-linux-gnu/libstdc++.so.6.0.25
+7f9550233000-7f955023d000 r--p 00179000 08:02 17835254                   /usr/lib/x86_64-linux-gnu/libstdc++.so.6.0.25
+7f955023d000-7f955023f000 rw-p 00183000 08:02 17835254                   /usr/lib/x86_64-linux-gnu/libstdc++.so.6.0.25
+7f955023f000-7f9550243000 rw-p 00000000 00:00 0 
+7f955024a000-7f9550431000 r-xp 00000000 08:02 4723318                    /lib/x86_64-linux-gnu/libc-2.27.so
+7f9550431000-7f9550631000 ---p 001e7000 08:02 4723318                    /lib/x86_64-linux-gnu/libc-2.27.so
+7f9550631000-7f9550635000 r--p 001e7000 08:02 4723318                    /lib/x86_64-linux-gnu/libc-2.27.so
+7f9550635000-7f9550637000 rw-p 001eb000 08:02 4723318                    /lib/x86_64-linux-gnu/libc-2.27.so
+7f9550637000-7f955063b000 rw-p 00000000 00:00 0 
+7f9550642000-7f9550651000 r-xp 00000000 08:05 8802715                    /home/neon/git/universal-dynamic-loader/loader/files/libstring.so
+7f9550651000-7f9550850000 ---p 0000f000 08:05 8802715                    /home/neon/git/universal-dynamic-loader/loader/files/libstring.so
+7f9550850000-7f9550851000 r--p 0000e000 08:05 8802715                    /home/neon/git/universal-dynamic-loader/loader/files/libstring.so
+7f9550851000-7f9550852000 rw-p 0000f000 08:05 8802715                    /home/neon/git/universal-dynamic-loader/loader/files/libstring.so
+7f9550852000-7f9550855000 rw-p 00000000 00:00 0 
+7f955085a000-7f95508b7000 r-xp 00000000 08:05 8802721                    /home/neon/git/universal-dynamic-loader/loader/files/patchelf.so
+7f95508b7000-7f9550ab6000 ---p 0005d000 08:05 8802721                    /home/neon/git/universal-dynamic-loader/loader/files/patchelf.so
+7f9550ab6000-7f9550ab7000 r--p 0005c000 08:05 8802721                    /home/neon/git/universal-dynamic-loader/loader/files/patchelf.so
+7f9550ab7000-7f9550ab9000 rw-p 0005d000 08:05 8802721                    /home/neon/git/universal-dynamic-loader/loader/files/patchelf.so
+7f9550ab9000-7f9550aef000 rw-p 00000000 00:00 0 
+7f9550af2000-7f9550b34000 r-xp 00000000 08:05 8802717                    /home/neon/git/universal-dynamic-loader/loader/files/readelf_.so
+7f9550b34000-7f9550d34000 ---p 00042000 08:05 8802717                    /home/neon/git/universal-dynamic-loader/loader/files/readelf_.so
+7f9550d34000-7f9550d36000 r--p 00042000 08:05 8802717                    /home/neon/git/universal-dynamic-loader/loader/files/readelf_.so
+7f9550d36000-7f9550d37000 rw-p 00044000 08:05 8802717                    /home/neon/git/universal-dynamic-loader/loader/files/readelf_.so
+7f9550d37000-7f9550d6c000 rw-p 00000000 00:00 0 
+7f9550d72000-7f9550d99000 r-xp 00000000 08:02 4723292                    /lib/x86_64-linux-gnu/ld-2.27.so
+7f9550f32000-7f9550f74000 r--p 00000000 08:05 8802715                    /home/neon/git/universal-dynamic-loader/loader/files/libstring.so
+7f9550f77000-7f9550f7a000 rw-p 00000000 00:00 0 
+7f9550f92000-7f9550f94000 r--p 00000000 08:05 8687872                    /home/neon/git/universal-dynamic-loader/loader/DT_INIT.so
+7f9550f99000-7f9550f9a000 r--p 00027000 08:02 4723292                    /lib/x86_64-linux-gnu/ld-2.27.so
+7f9550f9a000-7f9550f9b000 rw-p 00028000 08:02 4723292                    /lib/x86_64-linux-gnu/ld-2.27.so
+7f9550f9b000-7f9550f9e000 rw-p 00000000 00:00 0 
+7f9550f9e000-7f9550fa0000 rw-p 00000000 00:00 0 
+7ffcbd161000-7ffcbd182000 rw-p 00000000 00:00 0                          [stack]
+7ffcbd1d2000-7ffcbd1d5000 r--p 00000000 00:00 0                          [vvar]
+7ffcbd1d5000-7ffcbd1d7000 r-xp 00000000 00:00 0                          [vdso]
+ffffffffff600000-ffffffffff601000 r-xp 00000000 00:00 0                  [vsyscall]
+called get_dynamic_entry
+testing if DT_NEEDED == DT_PLTGOT
+testing if DT_INIT == DT_PLTGOT
+testing if DT_FINI == DT_PLTGOT
+testing if DT_INIT_ARRAY == DT_PLTGOT
+testing if DT_INIT_ARRAYSZ == DT_PLTGOT
+testing if DT_FINI_ARRAY == DT_PLTGOT
+testing if DT_FINI_ARRAYSZ == DT_PLTGOT
+testing if 1879047925 == DT_PLTGOT
+testing if DT_STRTAB == DT_PLTGOT
+testing if DT_SYMTAB == DT_PLTGOT
+testing if DT_STRSZ == DT_PLTGOT
+testing if DT_SYMENT == DT_PLTGOT
+testing if DT_PLTGOT == DT_PLTGOT
+called get_dynamic_entry
+testing if DT_NEEDED == DT_RELASZ
+testing if DT_INIT == DT_RELASZ
+testing if DT_FINI == DT_RELASZ
+testing if DT_INIT_ARRAY == DT_RELASZ
+testing if DT_INIT_ARRAYSZ == DT_RELASZ
+testing if DT_FINI_ARRAY == DT_RELASZ
+testing if DT_FINI_ARRAYSZ == DT_RELASZ
+testing if 1879047925 == DT_RELASZ
+testing if DT_STRTAB == DT_RELASZ
+testing if DT_SYMTAB == DT_RELASZ
+testing if DT_STRSZ == DT_RELASZ
+testing if DT_SYMENT == DT_RELASZ
+testing if DT_PLTGOT == DT_RELASZ
+testing if DT_PLTRELSZ == DT_RELASZ
+testing if DT_PLTREL == DT_RELASZ
+testing if DT_JMPREL == DT_RELASZ
+testing if DT_RELA == DT_RELASZ
+testing if DT_RELASZ == DT_RELASZ
+called get_dynamic_entry
+testing if DT_NEEDED == DT_RELA
+testing if DT_INIT == DT_RELA
+testing if DT_FINI == DT_RELA
+testing if DT_INIT_ARRAY == DT_RELA
+testing if DT_INIT_ARRAYSZ == DT_RELA
+testing if DT_FINI_ARRAY == DT_RELA
+testing if DT_FINI_ARRAYSZ == DT_RELA
+testing if 1879047925 == DT_RELA
+testing if DT_STRTAB == DT_RELA
+testing if DT_SYMTAB == DT_RELA
+testing if DT_STRSZ == DT_RELA
+testing if DT_SYMENT == DT_RELA
+testing if DT_PLTGOT == DT_RELA
+testing if DT_PLTRELSZ == DT_RELA
+testing if DT_PLTREL == DT_RELA
+testing if DT_JMPREL == DT_RELA
+testing if DT_RELA == DT_RELA
+i = 0,		ELF64_R_TYPE(reloc->r_info)	= 
+
+
+R_X86_64_RELATIVE            calculation: B + A (base address + r_addend)
+library[library_index].base_address    = 0x7f9530000000
+reloc->r_offset = 0x7f9530000000+0x00000020ed88=0x7f953020ed88
+reloc->r_addend = 0x7f9530000000+0x0000000026a0=0x7f95300026a0
+0x7f953020ed88 = 0x7f95300026a0
+((char*)library[library_index].base_address + reloc->r_offset)            = 0x7f953020ed88
+i = 1,		ELF64_R_TYPE(reloc->r_info)	= 
+
+
+R_X86_64_RELATIVE            calculation: B + A (base address + r_addend)
+library[library_index].base_address    = 0x7f9530000000
+reloc->r_offset = 0x7f9530000000+0x00000020ed98=0x7f953020ed98
+reloc->r_addend = 0x7f9530000000+0x000000002660=0x7f9530002660
+0x7f953020ed98 = 0x7f9530002660
+((char*)library[library_index].base_address + reloc->r_offset)            = 0x7f953020ed98
+i = 2,		ELF64_R_TYPE(reloc->r_info)	= 
+
+
+R_X86_64_RELATIVE            calculation: B + A (base address + r_addend)
+library[library_index].base_address    = 0x7f9530000000
+reloc->r_offset = 0x7f9530000000+0x00000020f238=0x7f953020f238
+reloc->r_addend = 0x7f9530000000+0x00000020f238=0x7f953020f238
+0x7f953020f238 = 0x7f953020f238
+((char*)library[library_index].base_address + reloc->r_offset)            = 0x7f953020f238
+i = 3,		ELF64_R_TYPE(reloc->r_info)	= 
+
+
+R_X86_64_RELATIVE            calculation: B + A (base address + r_addend)
+library[library_index].base_address    = 0x7f9530000000
+reloc->r_offset = 0x7f9530000000+0x00000020f258=0x7f953020f258
+reloc->r_addend = 0x7f9530000000+0x00000000c700=0x7f953000c700
+0x7f953020f258 = 0x7f953000c700
+((char*)library[library_index].base_address + reloc->r_offset)            = 0x7f953020f258
+i = 4,		ELF64_R_TYPE(reloc->r_info)	= 
+
+
+R_X86_64_64                  calculation: S + A (symbol value + r_addend)
+reloc->r_offset = 0x00000020ed80
+attempting to look up symbol, index = 56
+looking up index 56 of table 3
+requested symbol name for index 56 is init_aux
+symbol = 13965 (0x00000000368d)
+((char*)library[library_index].mapping_start + reloc->r_offset)            = 0x7f953020ed80
+i = 5,		ELF64_R_TYPE(reloc->r_info)	= 
+
+
+R_X86_64_64                  calculation: S + A (symbol value + r_addend)
+reloc->r_offset = 0x00000020ed90
+attempting to look up symbol, index = 65
+looking up index 65 of table 3
+requested symbol name for index 65 is currentaux
+symbol = 17710 (0x00000000452e)
+((char*)library[library_index].mapping_start + reloc->r_offset)            = 0x7f953020ed90
+i = 6,		ELF64_R_TYPE(reloc->r_info)	= 
+
+
+R_X86_64_GLOB_DAT            calculation: S (symbol value)
+reloc->r_offset = 0x7f9530000000+0x00000020ef60=0x7f953020ef60
+attempting to look up symbol, index = 82
+looking up index 82 of table 3
+requested symbol name for index 82 is findyourself_save_path
+symbol = 2159232 (0x00000020f280)
+0x7f953020ef60 = 0x7f953020f280
+i = 7,		ELF64_R_TYPE(reloc->r_info)	= 
+
+
+R_X86_64_GLOB_DAT            calculation: S (symbol value)
+reloc->r_offset = 0x7f9530000000+0x00000020ef68=0x7f953020ef68
+attempting to look up symbol, index = 4
+looking up index 4 of table 3
+requested symbol name for index 4 is _ITM_deregisterTMCloneTable
+symbol = 0 (         (nil))
+0x7f953020ef68 = 0x7f9530000000
+i = 8,		ELF64_R_TYPE(reloc->r_info)	= 
+
+
+R_X86_64_GLOB_DAT            calculation: S (symbol value)
+reloc->r_offset = 0x7f9530000000+0x00000020ef70=0x7f953020ef70
+attempting to look up symbol, index = 76
+looking up index 76 of table 3
+requested symbol name for index 76 is findyourself_save_pwd
+symbol = 2163328 (0x000000210280)
+0x7f953020ef70 = 0x7f9530210280
+i = 9,		ELF64_R_TYPE(reloc->r_info)	= 
+
+
+R_X86_64_GLOB_DAT            calculation: S (symbol value)
+reloc->r_offset = 0x7f9530000000+0x00000020ef78=0x7f953020ef78
+attempting to look up symbol, index = 125
+looking up index 125 of table 3
+requested symbol name for index 125 is libstring_argc
+symbol = 2167424 (0x000000211280)
+0x7f953020ef78 = 0x7f9530211280
+i = 10,		ELF64_R_TYPE(reloc->r_info)	= 
+
+
+R_X86_64_GLOB_DAT            calculation: S (symbol value)
+reloc->r_offset = 0x7f9530000000+0x00000020ef80=0x7f953020ef80
+attempting to look up symbol, index = 91
+looking up index 91 of table 3
+requested symbol name for index 91 is findyourself_debug
+symbol = 2159184 (0x00000020f250)
+0x7f953020ef80 = 0x7f953020f250
+i = 11,		ELF64_R_TYPE(reloc->r_info)	= 
+
+
+R_X86_64_GLOB_DAT            calculation: S (symbol value)
+reloc->r_offset = 0x7f9530000000+0x00000020ef88=0x7f953020ef88
+attempting to look up symbol, index = 107
+looking up index 107 of table 3
+requested symbol name for index 107 is findyourself_path_separator
+symbol = 2159168 (0x00000020f240)
+0x7f953020ef88 = 0x7f953020f240
+i = 12,		ELF64_R_TYPE(reloc->r_info)	= 
+
+
+R_X86_64_GLOB_DAT            calculation: S (symbol value)
+reloc->r_offset = 0x7f9530000000+0x00000020ef90=0x7f953020ef90
+attempting to look up symbol, index = 111
+looking up index 111 of table 3
+requested symbol name for index 111 is libstring_env
+symbol = 2159208 (0x00000020f268)
+0x7f953020ef90 = 0x7f953020f268
+i = 13,		ELF64_R_TYPE(reloc->r_info)	= 
+
+
+R_X86_64_GLOB_DAT            calculation: S (symbol value)
+reloc->r_offset = 0x7f9530000000+0x00000020ef98=0x7f953020ef98
+attempting to look up symbol, index = 26
+looking up index 26 of table 3
+requested symbol name for index 26 is __gmon_start__
+symbol = 0 (         (nil))
+0x7f953020ef98 = 0x7f9530000000
+i = 14,		ELF64_R_TYPE(reloc->r_info)	= 
+
+
+R_X86_64_GLOB_DAT            calculation: S (symbol value)
+reloc->r_offset = 0x7f9530000000+0x00000020efa0=0x7f953020efa0
+attempting to look up symbol, index = 27
+looking up index 27 of table 3
+requested symbol name for index 27 is environ
+symbol = 0 (         (nil))
+0x7f953020efa0 = 0x7f9530000000
+i = 15,		ELF64_R_TYPE(reloc->r_info)	= 
+
+
+R_X86_64_GLOB_DAT            calculation: S (symbol value)
+reloc->r_offset = 0x7f9530000000+0x00000020efa8=0x7f953020efa8
+attempting to look up symbol, index = 72
+looking up index 72 of table 3
+requested symbol name for index 72 is findyourself_path_list_separator
+symbol = 2159176 (0x00000020f248)
+0x7f953020efa8 = 0x7f953020f248
+i = 16,		ELF64_R_TYPE(reloc->r_info)	= 
+
+
+R_X86_64_GLOB_DAT            calculation: S (symbol value)
+reloc->r_offset = 0x7f9530000000+0x00000020efb0=0x7f953020efb0
+attempting to look up symbol, index = 101
+looking up index 101 of table 3
+requested symbol name for index 101 is findyourself_initialized
+symbol = 2159216 (0x00000020f270)
+0x7f953020efb0 = 0x7f953020f270
+i = 17,		ELF64_R_TYPE(reloc->r_info)	= 
+
+
+R_X86_64_GLOB_DAT            calculation: S (symbol value)
+reloc->r_offset = 0x7f9530000000+0x00000020efb8=0x7f953020efb8
+attempting to look up symbol, index = 69
+looking up index 69 of table 3
+requested symbol name for index 69 is findyourself_verbose
+symbol = 2159185 (0x00000020f251)
+0x7f953020efb8 = 0x7f953020f251
+i = 18,		ELF64_R_TYPE(reloc->r_info)	= 
+
+
+R_X86_64_GLOB_DAT            calculation: S (symbol value)
+reloc->r_offset = 0x7f9530000000+0x00000020efc0=0x7f953020efc0
+attempting to look up symbol, index = 67
+looking up index 67 of table 3
+requested symbol name for index 67 is libstring_argv
+symbol = 2167432 (0x000000211288)
+0x7f953020efc0 = 0x7f9530211288
+i = 19,		ELF64_R_TYPE(reloc->r_info)	= 
+
+
+R_X86_64_GLOB_DAT            calculation: S (symbol value)
+reloc->r_offset = 0x7f9530000000+0x00000020efc8=0x7f953020efc8
+attempting to look up symbol, index = 57
+looking up index 57 of table 3
+requested symbol name for index 57 is findyourself_path_separator_as_string
+symbol = 2159169 (0x00000020f241)
+0x7f953020efc8 = 0x7f953020f241
+i = 20,		ELF64_R_TYPE(reloc->r_info)	= 
+
+
+R_X86_64_GLOB_DAT            calculation: S (symbol value)
+reloc->r_offset = 0x7f9530000000+0x00000020efd0=0x7f953020efd0
+attempting to look up symbol, index = 120
+looking up index 120 of table 3
+requested symbol name for index 120 is findyourself_save_argv0
+symbol = 2167456 (0x0000002112a0)
+0x7f953020efd0 = 0x7f95302112a0
+i = 21,		ELF64_R_TYPE(reloc->r_info)	= 
+
+
+R_X86_64_GLOB_DAT            calculation: S (symbol value)
+reloc->r_offset = 0x7f9530000000+0x00000020efd8=0x7f953020efd8
+attempting to look up symbol, index = 41
+looking up index 41 of table 3
+requested symbol name for index 41 is __environ
+symbol = 0 (         (nil))
+0x7f953020efd8 = 0x7f9530000000
+i = 22,		ELF64_R_TYPE(reloc->r_info)	= 
+
+
+R_X86_64_GLOB_DAT            calculation: S (symbol value)
+reloc->r_offset = 0x7f9530000000+0x00000020efe0=0x7f953020efe0
+attempting to look up symbol, index = 44
+looking up index 44 of table 3
+requested symbol name for index 44 is _ITM_registerTMCloneTable
+symbol = 0 (         (nil))
+0x7f953020efe0 = 0x7f9530000000
+i = 23,		ELF64_R_TYPE(reloc->r_info)	= 
+
+
+R_X86_64_GLOB_DAT            calculation: S (symbol value)
+reloc->r_offset = 0x7f9530000000+0x00000020efe8=0x7f953020efe8
+attempting to look up symbol, index = 47
+looking up index 47 of table 3
+requested symbol name for index 47 is __cxa_finalize
+symbol = 0 (         (nil))
+0x7f953020efe8 = 0x7f9530000000
+i = 24,		ELF64_R_TYPE(reloc->r_info)	= 
+
+
+R_X86_64_GLOB_DAT            calculation: S (symbol value)
+reloc->r_offset = 0x7f9530000000+0x00000020eff0=0x7f953020eff0
+attempting to look up symbol, index = 59
+looking up index 59 of table 3
+requested symbol name for index 59 is global_quiet
+symbol = 2159192 (0x00000020f258)
+0x7f953020eff0 = 0x7f953020f258
+i = 25,		ELF64_R_TYPE(reloc->r_info)	= 
+
+
+R_X86_64_GLOB_DAT            calculation: S (symbol value)
+reloc->r_offset = 0x7f9530000000+0x00000020eff8=0x7f953020eff8
+attempting to look up symbol, index = 49
+looking up index 49 of table 3
+requested symbol name for index 49 is stderr
+symbol = 0 (         (nil))
+0x7f953020eff8 = 0x7f9530000000
+
+
+
+called get_dynamic_entry
+testing if DT_NEEDED == DT_JMPREL
+testing if DT_INIT == DT_JMPREL
+testing if DT_FINI == DT_JMPREL
+testing if DT_INIT_ARRAY == DT_JMPREL
+testing if DT_INIT_ARRAYSZ == DT_JMPREL
+testing if DT_FINI_ARRAY == DT_JMPREL
+testing if DT_FINI_ARRAYSZ == DT_JMPREL
+testing if 1879047925 == DT_JMPREL
+testing if DT_STRTAB == DT_JMPREL
+testing if DT_SYMTAB == DT_JMPREL
+testing if DT_STRSZ == DT_JMPREL
+testing if DT_SYMENT == DT_JMPREL
+testing if DT_PLTGOT == DT_JMPREL
+testing if DT_PLTRELSZ == DT_JMPREL
+testing if DT_PLTREL == DT_JMPREL
+testing if DT_JMPREL == DT_JMPREL
+i = 0,		ELF64_R_TYPE(reloc->r_info)	= 
+
+
+R_X86_64_JUMP_SLOT           calculation: S (symbol value)
+library[library_index].mapping_start    = 0x7f9530000000
+reloc->r_offset = 0x7f9530000000+0x00000020f018=0x7f953020f018
+attempting to look up symbol, index = 1
+looking up index 1 of table 3
+requested symbol name for index 1 is getenv
+symbol = 0 (         (nil))
+0x7f953020f018 = 0x7f9530000000
+i = 1,		ELF64_R_TYPE(reloc->r_info)	= 
+
+
+R_X86_64_JUMP_SLOT           calculation: S (symbol value)
+library[library_index].mapping_start    = 0x7f9530000000
+reloc->r_offset = 0x7f9530000000+0x00000020f020=0x7f953020f020
+attempting to look up symbol, index = 75
+looking up index 75 of table 3
+requested symbol name for index 75 is getaux
+symbol = 14065 (0x0000000036f1)
+0x7f953020f020 = 0x7f95300036f1
+i = 2,		ELF64_R_TYPE(reloc->r_info)	= 
+
+
+R_X86_64_JUMP_SLOT           calculation: S (symbol value)
+library[library_index].mapping_start    = 0x7f9530000000
+reloc->r_offset = 0x7f9530000000+0x00000020f028=0x7f953020f028
+attempting to look up symbol, index = 2
+looking up index 2 of table 3
+requested symbol name for index 2 is free
+symbol = 0 (         (nil))
+0x7f953020f028 = 0x7f9530000000
+i = 3,		ELF64_R_TYPE(reloc->r_info)	= 
+
+
+R_X86_64_JUMP_SLOT           calculation: S (symbol value)
+library[library_index].mapping_start    = 0x7f9530000000
+reloc->r_offset = 0x7f9530000000+0x00000020f030=0x7f953020f030
+attempting to look up symbol, index = 102
+looking up index 102 of table 3
+requested symbol name for index 102 is bcmpcr_
+symbol = 12251 (0x000000002fdb)
+0x7f953020f030 = 0x7f9530002fdb
+i = 4,		ELF64_R_TYPE(reloc->r_info)	= 
+
+
+R_X86_64_JUMP_SLOT           calculation: S (symbol value)
+library[library_index].mapping_start    = 0x7f9530000000
+reloc->r_offset = 0x7f9530000000+0x00000020f038=0x7f953020f038
+attempting to look up symbol, index = 3
+looking up index 3 of table 3
+requested symbol name for index 3 is strncpy
+symbol = 0 (         (nil))
+0x7f953020f038 = 0x7f9530000000
+i = 5,		ELF64_R_TYPE(reloc->r_info)	= 
+
+
+R_X86_64_JUMP_SLOT           calculation: S (symbol value)
+library[library_index].mapping_start    = 0x7f9530000000
+reloc->r_offset = 0x7f9530000000+0x00000020f040=0x7f953020f040
+attempting to look up symbol, index = 5
+looking up index 5 of table 3
+requested symbol name for index 5 is _exit
+symbol = 0 (         (nil))
+0x7f953020f040 = 0x7f9530000000
+i = 6,		ELF64_R_TYPE(reloc->r_info)	= 
+
+
+R_X86_64_JUMP_SLOT           calculation: S (symbol value)
+library[library_index].mapping_start    = 0x7f9530000000
+reloc->r_offset = 0x7f9530000000+0x00000020f048=0x7f953020f048
+attempting to look up symbol, index = 70
+looking up index 70 of table 3
+requested symbol name for index 70 is bcmp_q
+symbol = 9898 (0x0000000026aa)
+0x7f953020f048 = 0x7f95300026aa
+i = 7,		ELF64_R_TYPE(reloc->r_info)	= 
+
+
+R_X86_64_JUMP_SLOT           calculation: S (symbol value)
+library[library_index].mapping_start    = 0x7f9530000000
+reloc->r_offset = 0x7f9530000000+0x00000020f050=0x7f953020f050
+attempting to look up symbol, index = 53
+looking up index 53 of table 3
+requested symbol name for index 53 is lseek_stringc
+symbol = 37663 (0x00000000931f)
+0x7f953020f050 = 0x7f953000931f
+i = 8,		ELF64_R_TYPE(reloc->r_info)	= 
+
+
+R_X86_64_JUMP_SLOT           calculation: S (symbol value)
+library[library_index].mapping_start    = 0x7f9530000000
+reloc->r_offset = 0x7f9530000000+0x00000020f058=0x7f953020f058
+attempting to look up symbol, index = 6
+looking up index 6 of table 3
+requested symbol name for index 6 is readlink
+symbol = 0 (         (nil))
+0x7f953020f058 = 0x7f9530000000
+i = 9,		ELF64_R_TYPE(reloc->r_info)	= 
+
+
+R_X86_64_JUMP_SLOT           calculation: S (symbol value)
+library[library_index].mapping_start    = 0x7f9530000000
+reloc->r_offset = 0x7f9530000000+0x00000020f060=0x7f953020f060
+attempting to look up symbol, index = 7
+looking up index 7 of table 3
+requested symbol name for index 7 is write
+symbol = 0 (         (nil))
+0x7f953020f060 = 0x7f9530000000
+i = 10,		ELF64_R_TYPE(reloc->r_info)	= 
+
+
+R_X86_64_JUMP_SLOT           calculation: S (symbol value)
+library[library_index].mapping_start    = 0x7f9530000000
+reloc->r_offset = 0x7f9530000000+0x00000020f068=0x7f953020f068
+attempting to look up symbol, index = 8
+looking up index 8 of table 3
+requested symbol name for index 8 is getpid
+symbol = 0 (         (nil))
+0x7f953020f068 = 0x7f9530000000
+i = 11,		ELF64_R_TYPE(reloc->r_info)	= 
+
+
+R_X86_64_JUMP_SLOT           calculation: S (symbol value)
+library[library_index].mapping_start    = 0x7f9530000000
+reloc->r_offset = 0x7f9530000000+0x00000020f070=0x7f953020f070
+attempting to look up symbol, index = 55
+looking up index 55 of table 3
+requested symbol name for index 55 is round_up
+symbol = 13368 (0x000000003438)
+0x7f953020f070 = 0x7f9530003438
+i = 12,		ELF64_R_TYPE(reloc->r_info)	= 
+
+
+R_X86_64_JUMP_SLOT           calculation: S (symbol value)
+library[library_index].mapping_start    = 0x7f9530000000
+reloc->r_offset = 0x7f9530000000+0x00000020f078=0x7f953020f078
+attempting to look up symbol, index = 73
+looking up index 73 of table 3
+requested symbol name for index 73 is init_argX
+symbol = 13792 (0x0000000035e0)
+0x7f953020f078 = 0x7f95300035e0
+i = 13,		ELF64_R_TYPE(reloc->r_info)	= 
+
+
+R_X86_64_JUMP_SLOT           calculation: S (symbol value)
+library[library_index].mapping_start    = 0x7f9530000000
+reloc->r_offset = 0x7f9530000000+0x00000020f080=0x7f953020f080
+attempting to look up symbol, index = 9
+looking up index 9 of table 3
+requested symbol name for index 9 is strlen
+symbol = 0 (         (nil))
+0x7f953020f080 = 0x7f9530000000
+i = 14,		ELF64_R_TYPE(reloc->r_info)	= 
+
+
+R_X86_64_JUMP_SLOT           calculation: S (symbol value)
+library[library_index].mapping_start    = 0x7f9530000000
+reloc->r_offset = 0x7f9530000000+0x00000020f088=0x7f953020f088
+attempting to look up symbol, index = 10
+looking up index 10 of table 3
+requested symbol name for index 10 is __lxstat
+symbol = 0 (         (nil))
+0x7f953020f088 = 0x7f9530000000
+i = 15,		ELF64_R_TYPE(reloc->r_info)	= 
+
+
+R_X86_64_JUMP_SLOT           calculation: S (symbol value)
+library[library_index].mapping_start    = 0x7f9530000000
+reloc->r_offset = 0x7f9530000000+0x00000020f090=0x7f953020f090
+attempting to look up symbol, index = 11
+looking up index 11 of table 3
+requested symbol name for index 11 is chdir
+symbol = 0 (         (nil))
+0x7f953020f090 = 0x7f9530000000
+i = 16,		ELF64_R_TYPE(reloc->r_info)	= 
+
+
+R_X86_64_JUMP_SLOT           calculation: S (symbol value)
+library[library_index].mapping_start    = 0x7f9530000000
+reloc->r_offset = 0x7f9530000000+0x00000020f098=0x7f953020f098
+attempting to look up symbol, index = 12
+looking up index 12 of table 3
+requested symbol name for index 12 is __stack_chk_fail
+symbol = 0 (         (nil))
+0x7f953020f098 = 0x7f9530000000
+i = 17,		ELF64_R_TYPE(reloc->r_info)	= 
+
+
+R_X86_64_JUMP_SLOT           calculation: S (symbol value)
+library[library_index].mapping_start    = 0x7f9530000000
+reloc->r_offset = 0x7f9530000000+0x00000020f0a0=0x7f953020f0a0
+attempting to look up symbol, index = 99
+looking up index 99 of table 3
+requested symbol name for index 99 is strchrb
+symbol = 21985 (0x0000000055e1)
+0x7f953020f0a0 = 0x7f95300055e1
+i = 18,		ELF64_R_TYPE(reloc->r_info)	= 
+
+
+R_X86_64_JUMP_SLOT           calculation: S (symbol value)
+library[library_index].mapping_start    = 0x7f9530000000
+reloc->r_offset = 0x7f9530000000+0x00000020f0a8=0x7f953020f0a8
+attempting to look up symbol, index = 13
+looking up index 13 of table 3
+requested symbol name for index 13 is strchr
+symbol = 0 (         (nil))
+0x7f953020f0a8 = 0x7f9530000000
+i = 19,		ELF64_R_TYPE(reloc->r_info)	= 
+
+
+R_X86_64_JUMP_SLOT           calculation: S (symbol value)
+library[library_index].mapping_start    = 0x7f9530000000
+reloc->r_offset = 0x7f9530000000+0x00000020f0b0=0x7f953020f0b0
+attempting to look up symbol, index = 14
+looking up index 14 of table 3
+requested symbol name for index 14 is printf
+symbol = 0 (         (nil))
+0x7f953020f0b0 = 0x7f9530000000
+i = 20,		ELF64_R_TYPE(reloc->r_info)	= 
+
+
+R_X86_64_JUMP_SLOT           calculation: S (symbol value)
+library[library_index].mapping_start    = 0x7f9530000000
+reloc->r_offset = 0x7f9530000000+0x00000020f0b8=0x7f953020f0b8
+attempting to look up symbol, index = 15
+looking up index 15 of table 3
+requested symbol name for index 15 is dirname
+symbol = 0 (         (nil))
+0x7f953020f0b8 = 0x7f9530000000
+i = 21,		ELF64_R_TYPE(reloc->r_info)	= 
+
+
+R_X86_64_JUMP_SLOT           calculation: S (symbol value)
+library[library_index].mapping_start    = 0x7f9530000000
+reloc->r_offset = 0x7f9530000000+0x00000020f0c0=0x7f953020f0c0
+attempting to look up symbol, index = 16
+looking up index 16 of table 3
+requested symbol name for index 16 is lseek
+symbol = 0 (         (nil))
+0x7f953020f0c0 = 0x7f9530000000
+i = 22,		ELF64_R_TYPE(reloc->r_info)	= 
+
+
+R_X86_64_JUMP_SLOT           calculation: S (symbol value)
+library[library_index].mapping_start    = 0x7f9530000000
+reloc->r_offset = 0x7f9530000000+0x00000020f0c8=0x7f953020f0c8
+attempting to look up symbol, index = 17
+looking up index 17 of table 3
+requested symbol name for index 17 is __assert_fail
+symbol = 0 (         (nil))
+0x7f953020f0c8 = 0x7f9530000000
+i = 23,		ELF64_R_TYPE(reloc->r_info)	= 
+
+
+R_X86_64_JUMP_SLOT           calculation: S (symbol value)
+library[library_index].mapping_start    = 0x7f9530000000
+reloc->r_offset = 0x7f9530000000+0x00000020f0d0=0x7f953020f0d0
+attempting to look up symbol, index = 103
+looking up index 103 of table 3
+requested symbol name for index 103 is strstrb
+symbol = 22785 (0x000000005901)
+0x7f953020f0d0 = 0x7f9530005901
+i = 24,		ELF64_R_TYPE(reloc->r_info)	= 
+
+
+R_X86_64_JUMP_SLOT           calculation: S (symbol value)
+library[library_index].mapping_start    = 0x7f9530000000
+reloc->r_offset = 0x7f9530000000+0x00000020f0d8=0x7f953020f0d8
+attempting to look up symbol, index = 18
+looking up index 18 of table 3
+requested symbol name for index 18 is getcwd
+symbol = 0 (         (nil))
+0x7f953020f0d8 = 0x7f9530000000
+i = 25,		ELF64_R_TYPE(reloc->r_info)	= 
+
+
+R_X86_64_JUMP_SLOT           calculation: S (symbol value)
+library[library_index].mapping_start    = 0x7f9530000000
+reloc->r_offset = 0x7f9530000000+0x00000020f0e0=0x7f953020f0e0
+attempting to look up symbol, index = 19
+looking up index 19 of table 3
+requested symbol name for index 19 is strncat
+symbol = 0 (         (nil))
+0x7f953020f0e0 = 0x7f9530000000
+i = 26,		ELF64_R_TYPE(reloc->r_info)	= 
+
+
+R_X86_64_JUMP_SLOT           calculation: S (symbol value)
+library[library_index].mapping_start    = 0x7f9530000000
+reloc->r_offset = 0x7f9530000000+0x00000020f0e8=0x7f953020f0e8
+attempting to look up symbol, index = 20
+looking up index 20 of table 3
+requested symbol name for index 20 is close
+symbol = 0 (         (nil))
+0x7f953020f0e8 = 0x7f9530000000
+i = 27,		ELF64_R_TYPE(reloc->r_info)	= 
+
+
+R_X86_64_JUMP_SLOT           calculation: S (symbol value)
+library[library_index].mapping_start    = 0x7f9530000000
+reloc->r_offset = 0x7f9530000000+0x00000020f0f0=0x7f953020f0f0
+attempting to look up symbol, index = 79
+looking up index 79 of table 3
+requested symbol name for index 79 is bcmp_qr
+symbol = 11430 (0x000000002ca6)
+0x7f953020f0f0 = 0x7f9530002ca6
+i = 28,		ELF64_R_TYPE(reloc->r_info)	= 
+
+
+R_X86_64_JUMP_SLOT           calculation: S (symbol value)
+library[library_index].mapping_start    = 0x7f9530000000
+reloc->r_offset = 0x7f9530000000+0x00000020f0f8=0x7f953020f0f8
+attempting to look up symbol, index = 21
+looking up index 21 of table 3
+requested symbol name for index 21 is fputc
+symbol = 0 (         (nil))
+0x7f953020f0f8 = 0x7f9530000000
+i = 29,		ELF64_R_TYPE(reloc->r_info)	= 
+
+
+R_X86_64_JUMP_SLOT           calculation: S (symbol value)
+library[library_index].mapping_start    = 0x7f9530000000
+reloc->r_offset = 0x7f9530000000+0x00000020f100=0x7f953020f100
+attempting to look up symbol, index = 22
+looking up index 22 of table 3
+requested symbol name for index 22 is strtok_r
+symbol = 0 (         (nil))
+0x7f953020f100 = 0x7f9530000000
+i = 30,		ELF64_R_TYPE(reloc->r_info)	= 
+
+
+R_X86_64_JUMP_SLOT           calculation: S (symbol value)
+library[library_index].mapping_start    = 0x7f9530000000
+reloc->r_offset = 0x7f9530000000+0x00000020f108=0x7f953020f108
+attempting to look up symbol, index = 23
+looking up index 23 of table 3
+requested symbol name for index 23 is read
+symbol = 0 (         (nil))
+0x7f953020f108 = 0x7f9530000000
+i = 31,		ELF64_R_TYPE(reloc->r_info)	= 
+
+
+R_X86_64_JUMP_SLOT           calculation: S (symbol value)
+library[library_index].mapping_start    = 0x7f9530000000
+reloc->r_offset = 0x7f9530000000+0x00000020f110=0x7f953020f110
+attempting to look up symbol, index = 117
+looking up index 117 of table 3
+requested symbol name for index 117 is strncpyb
+symbol = 22155 (0x00000000568b)
+0x7f953020f110 = 0x7f953000568b
+i = 32,		ELF64_R_TYPE(reloc->r_info)	= 
+
+
+R_X86_64_JUMP_SLOT           calculation: S (symbol value)
+library[library_index].mapping_start    = 0x7f9530000000
+reloc->r_offset = 0x7f9530000000+0x00000020f118=0x7f953020f118
+attempting to look up symbol, index = 104
+looking up index 104 of table 3
+requested symbol name for index 104 is init_env
+symbol = 13595 (0x00000000351b)
+0x7f953020f118 = 0x7f953000351b
+i = 33,		ELF64_R_TYPE(reloc->r_info)	= 
+
+
+R_X86_64_JUMP_SLOT           calculation: S (symbol value)
+library[library_index].mapping_start    = 0x7f9530000000
+reloc->r_offset = 0x7f9530000000+0x00000020f120=0x7f953020f120
+attempting to look up symbol, index = 95
+looking up index 95 of table 3
+requested symbol name for index 95 is strncatb
+symbol = 22370 (0x000000005762)
+0x7f953020f120 = 0x7f9530005762
+i = 34,		ELF64_R_TYPE(reloc->r_info)	= 
+
+
+R_X86_64_JUMP_SLOT           calculation: S (symbol value)
+library[library_index].mapping_start    = 0x7f9530000000
+reloc->r_offset = 0x7f9530000000+0x00000020f128=0x7f953020f128
+attempting to look up symbol, index = 25
+looking up index 25 of table 3
+requested symbol name for index 25 is fprintf
+symbol = 0 (         (nil))
+0x7f953020f128 = 0x7f9530000000
+i = 35,		ELF64_R_TYPE(reloc->r_info)	= 
+
+
+R_X86_64_JUMP_SLOT           calculation: S (symbol value)
+library[library_index].mapping_start    = 0x7f9530000000
+reloc->r_offset = 0x7f9530000000+0x00000020f130=0x7f953020f130
+attempting to look up symbol, index = 28
+looking up index 28 of table 3
+requested symbol name for index 28 is realpath
+symbol = 0 (         (nil))
+0x7f953020f130 = 0x7f9530000000
+i = 36,		ELF64_R_TYPE(reloc->r_info)	= 
+
+
+R_X86_64_JUMP_SLOT           calculation: S (symbol value)
+library[library_index].mapping_start    = 0x7f9530000000
+reloc->r_offset = 0x7f9530000000+0x00000020f138=0x7f953020f138
+attempting to look up symbol, index = 83
+looking up index 83 of table 3
+requested symbol name for index 83 is bcmpcqr_
+symbol = 12850 (0x000000003232)
+0x7f953020f138 = 0x7f9530003232
+i = 37,		ELF64_R_TYPE(reloc->r_info)	= 
+
+
+R_X86_64_JUMP_SLOT           calculation: S (symbol value)
+library[library_index].mapping_start    = 0x7f9530000000
+reloc->r_offset = 0x7f9530000000+0x00000020f140=0x7f953020f140
+attempting to look up symbol, index = 29
+looking up index 29 of table 3
+requested symbol name for index 29 is memcpy
+symbol = 0 (         (nil))
+0x7f953020f140 = 0x7f9530000000
+i = 38,		ELF64_R_TYPE(reloc->r_info)	= 
+
+
+R_X86_64_JUMP_SLOT           calculation: S (symbol value)
+library[library_index].mapping_start    = 0x7f9530000000
+reloc->r_offset = 0x7f9530000000+0x00000020f148=0x7f953020f148
+attempting to look up symbol, index = 30
+looking up index 30 of table 3
+requested symbol name for index 30 is __xpg_basename
+symbol = 0 (         (nil))
+0x7f953020f148 = 0x7f9530000000
+i = 39,		ELF64_R_TYPE(reloc->r_info)	= 
+
+
+R_X86_64_JUMP_SLOT           calculation: S (symbol value)
+library[library_index].mapping_start    = 0x7f9530000000
+reloc->r_offset = 0x7f9530000000+0x00000020f150=0x7f953020f150
+attempting to look up symbol, index = 31
+looking up index 31 of table 3
+requested symbol name for index 31 is __xstat
+symbol = 0 (         (nil))
+0x7f953020f150 = 0x7f9530000000
+i = 40,		ELF64_R_TYPE(reloc->r_info)	= 
+
+
+R_X86_64_JUMP_SLOT           calculation: S (symbol value)
+library[library_index].mapping_start    = 0x7f9530000000
+reloc->r_offset = 0x7f9530000000+0x00000020f158=0x7f953020f158
+attempting to look up symbol, index = 32
+looking up index 32 of table 3
+requested symbol name for index 32 is pause
+symbol = 0 (         (nil))
+0x7f953020f158 = 0x7f9530000000
+i = 41,		ELF64_R_TYPE(reloc->r_info)	= 
+
+
+R_X86_64_JUMP_SLOT           calculation: S (symbol value)
+library[library_index].mapping_start    = 0x7f9530000000
+reloc->r_offset = 0x7f9530000000+0x00000020f160=0x7f953020f160
+attempting to look up symbol, index = 96
+looking up index 96 of table 3
+requested symbol name for index 96 is findyourself_init_
+symbol = 40974 (0x00000000a00e)
+0x7f953020f160 = 0x7f953000a00e
+i = 42,		ELF64_R_TYPE(reloc->r_info)	= 
+
+
+R_X86_64_JUMP_SLOT           calculation: S (symbol value)
+library[library_index].mapping_start    = 0x7f9530000000
+reloc->r_offset = 0x7f9530000000+0x00000020f168=0x7f953020f168
+attempting to look up symbol, index = 33
+looking up index 33 of table 3
+requested symbol name for index 33 is malloc
+symbol = 0 (         (nil))
+0x7f953020f168 = 0x7f9530000000
+i = 43,		ELF64_R_TYPE(reloc->r_info)	= 
+
+
+R_X86_64_JUMP_SLOT           calculation: S (symbol value)
+library[library_index].mapping_start    = 0x7f9530000000
+reloc->r_offset = 0x7f9530000000+0x00000020f170=0x7f953020f170
+attempting to look up symbol, index = 97
+looking up index 97 of table 3
+requested symbol name for index 97 is resolve_debug
+symbol = 24081 (0x000000005e11)
+0x7f953020f170 = 0x7f9530005e11
+i = 44,		ELF64_R_TYPE(reloc->r_info)	= 
+
+
+R_X86_64_JUMP_SLOT           calculation: S (symbol value)
+library[library_index].mapping_start    = 0x7f9530000000
+reloc->r_offset = 0x7f9530000000+0x00000020f178=0x7f953020f178
+attempting to look up symbol, index = 129
+looking up index 129 of table 3
+requested symbol name for index 129 is bcmpc_
+symbol = 10722 (0x0000000029e2)
+0x7f953020f178 = 0x7f95300029e2
+i = 45,		ELF64_R_TYPE(reloc->r_info)	= 
+
+
+R_X86_64_JUMP_SLOT           calculation: S (symbol value)
+library[library_index].mapping_start    = 0x7f9530000000
+reloc->r_offset = 0x7f9530000000+0x00000020f180=0x7f953020f180
+attempting to look up symbol, index = 68
+looking up index 68 of table 3
+requested symbol name for index 68 is strlenb
+symbol = 21876 (0x000000005574)
+0x7f953020f180 = 0x7f9530005574
+i = 46,		ELF64_R_TYPE(reloc->r_info)	= 
+
+
+R_X86_64_JUMP_SLOT           calculation: S (symbol value)
+library[library_index].mapping_start    = 0x7f9530000000
+reloc->r_offset = 0x7f9530000000+0x00000020f188=0x7f953020f188
+attempting to look up symbol, index = 34
+looking up index 34 of table 3
+requested symbol name for index 34 is realloc
+symbol = 0 (         (nil))
+0x7f953020f188 = 0x7f9530000000
+i = 47,		ELF64_R_TYPE(reloc->r_info)	= 
+
+
+R_X86_64_JUMP_SLOT           calculation: S (symbol value)
+library[library_index].mapping_start    = 0x7f9530000000
+reloc->r_offset = 0x7f9530000000+0x00000020f190=0x7f953020f190
+attempting to look up symbol, index = 84
+looking up index 84 of table 3
+requested symbol name for index 84 is bytecmpq
+symbol = 10053 (0x000000002745)
+0x7f953020f190 = 0x7f9530002745
+i = 48,		ELF64_R_TYPE(reloc->r_info)	= 
+
+
+R_X86_64_JUMP_SLOT           calculation: S (symbol value)
+library[library_index].mapping_start    = 0x7f9530000000
+reloc->r_offset = 0x7f9530000000+0x00000020f198=0x7f953020f198
+attempting to look up symbol, index = 60
+looking up index 60 of table 3
+requested symbol name for index 60 is bcmpcq_
+symbol = 11223 (0x000000002bd7)
+0x7f953020f198 = 0x7f9530002bd7
+i = 49,		ELF64_R_TYPE(reloc->r_info)	= 
+
+
+R_X86_64_JUMP_SLOT           calculation: S (symbol value)
+library[library_index].mapping_start    = 0x7f9530000000
+reloc->r_offset = 0x7f9530000000+0x00000020f1a0=0x7f953020f1a0
+attempting to look up symbol, index = 35
+looking up index 35 of table 3
+requested symbol name for index 35 is getauxval
+symbol = 0 (         (nil))
+0x7f953020f1a0 = 0x7f9530000000
+i = 50,		ELF64_R_TYPE(reloc->r_info)	= 
+
+
+R_X86_64_JUMP_SLOT           calculation: S (symbol value)
+library[library_index].mapping_start    = 0x7f9530000000
+reloc->r_offset = 0x7f9530000000+0x00000020f1a8=0x7f953020f1a8
+attempting to look up symbol, index = 36
+looking up index 36 of table 3
+requested symbol name for index 36 is memmove
+symbol = 0 (         (nil))
+0x7f953020f1a8 = 0x7f9530000000
+i = 51,		ELF64_R_TYPE(reloc->r_info)	= 
+
+
+R_X86_64_JUMP_SLOT           calculation: S (symbol value)
+library[library_index].mapping_start    = 0x7f9530000000
+reloc->r_offset = 0x7f9530000000+0x00000020f1b0=0x7f953020f1b0
+attempting to look up symbol, index = 37
+looking up index 37 of table 3
+requested symbol name for index 37 is open
+symbol = 0 (         (nil))
+0x7f953020f1b0 = 0x7f9530000000
+i = 52,		ELF64_R_TYPE(reloc->r_info)	= 
+
+
+R_X86_64_JUMP_SLOT           calculation: S (symbol value)
+library[library_index].mapping_start    = 0x7f9530000000
+reloc->r_offset = 0x7f9530000000+0x00000020f1b8=0x7f953020f1b8
+attempting to look up symbol, index = 38
+looking up index 38 of table 3
+requested symbol name for index 38 is access
+symbol = 0 (         (nil))
+0x7f953020f1b8 = 0x7f9530000000
+i = 53,		ELF64_R_TYPE(reloc->r_info)	= 
+
+
+R_X86_64_JUMP_SLOT           calculation: S (symbol value)
+library[library_index].mapping_start    = 0x7f9530000000
+reloc->r_offset = 0x7f9530000000+0x00000020f1c0=0x7f953020f1c0
+attempting to look up symbol, index = 39
+looking up index 39 of table 3
+requested symbol name for index 39 is perror
+symbol = 0 (         (nil))
+0x7f953020f1c0 = 0x7f9530000000
+i = 54,		ELF64_R_TYPE(reloc->r_info)	= 
+
+
+R_X86_64_JUMP_SLOT           calculation: S (symbol value)
+library[library_index].mapping_start    = 0x7f9530000000
+reloc->r_offset = 0x7f9530000000+0x00000020f1c8=0x7f953020f1c8
+attempting to look up symbol, index = 40
+looking up index 40 of table 3
+requested symbol name for index 40 is strtok
+symbol = 0 (         (nil))
+0x7f953020f1c8 = 0x7f9530000000
+i = 55,		ELF64_R_TYPE(reloc->r_info)	= 
+
+
+R_X86_64_JUMP_SLOT           calculation: S (symbol value)
+library[library_index].mapping_start    = 0x7f9530000000
+reloc->r_offset = 0x7f9530000000+0x00000020f1d0=0x7f953020f1d0
+attempting to look up symbol, index = 132
+looking up index 132 of table 3
+requested symbol name for index 132 is bcmp_
+symbol = 10126 (0x00000000278e)
+0x7f953020f1d0 = 0x7f953000278e
+i = 56,		ELF64_R_TYPE(reloc->r_info)	= 
+
+
+R_X86_64_JUMP_SLOT           calculation: S (symbol value)
+library[library_index].mapping_start    = 0x7f9530000000
+reloc->r_offset = 0x7f9530000000+0x00000020f1d8=0x7f953020f1d8
+attempting to look up symbol, index = 80
+looking up index 80 of table 3
+requested symbol name for index 80 is getenv_debug
+symbol = 23037 (0x0000000059fd)
+0x7f953020f1d8 = 0x7f95300059fd
+i = 57,		ELF64_R_TYPE(reloc->r_info)	= 
+
+
+R_X86_64_JUMP_SLOT           calculation: S (symbol value)
+library[library_index].mapping_start    = 0x7f9530000000
+reloc->r_offset = 0x7f9530000000+0x00000020f1e0=0x7f953020f1e0
+attempting to look up symbol, index = 54
+looking up index 54 of table 3
+requested symbol name for index 54 is strcpyb
+symbol = 22074 (0x00000000563a)
+0x7f953020f1e0 = 0x7f953000563a
+i = 58,		ELF64_R_TYPE(reloc->r_info)	= 
+
+
+R_X86_64_JUMP_SLOT           calculation: S (symbol value)
+library[library_index].mapping_start    = 0x7f9530000000
+reloc->r_offset = 0x7f9530000000+0x00000020f1e8=0x7f953020f1e8
+attempting to look up symbol, index = 78
+looking up index 78 of table 3
+requested symbol name for index 78 is bcmpr_
+symbol = 11658 (0x000000002d8a)
+0x7f953020f1e8 = 0x7f9530002d8a
+i = 59,		ELF64_R_TYPE(reloc->r_info)	= 
+
+
+R_X86_64_JUMP_SLOT           calculation: S (symbol value)
+library[library_index].mapping_start    = 0x7f9530000000
+reloc->r_offset = 0x7f9530000000+0x00000020f1f0=0x7f953020f1f0
+attempting to look up symbol, index = 42
+looking up index 42 of table 3
+requested symbol name for index 42 is exit
+symbol = 0 (         (nil))
+0x7f953020f1f0 = 0x7f9530000000
+i = 60,		ELF64_R_TYPE(reloc->r_info)	= 
+
+
+R_X86_64_JUMP_SLOT           calculation: S (symbol value)
+library[library_index].mapping_start    = 0x7f9530000000
+reloc->r_offset = 0x7f9530000000+0x00000020f1f8=0x7f953020f1f8
+attempting to look up symbol, index = 43
+looking up index 43 of table 3
+requested symbol name for index 43 is fwrite
+symbol = 0 (         (nil))
+0x7f953020f1f8 = 0x7f9530000000
+i = 61,		ELF64_R_TYPE(reloc->r_info)	= 
+
+
+R_X86_64_JUMP_SLOT           calculation: S (symbol value)
+library[library_index].mapping_start    = 0x7f9530000000
+reloc->r_offset = 0x7f9530000000+0x00000020f200=0x7f953020f200
+attempting to look up symbol, index = 88
+looking up index 88 of table 3
+requested symbol name for index 88 is find_yourself_
+symbol = 41112 (0x00000000a098)
+0x7f953020f200 = 0x7f953000a098
+i = 62,		ELF64_R_TYPE(reloc->r_info)	= 
+
+
+R_X86_64_JUMP_SLOT           calculation: S (symbol value)
+library[library_index].mapping_start    = 0x7f9530000000
+reloc->r_offset = 0x7f9530000000+0x00000020f208=0x7f953020f208
+attempting to look up symbol, index = 121
+looking up index 121 of table 3
+requested symbol name for index 121 is strcmpb
+symbol = 22504 (0x0000000057e8)
+0x7f953020f208 = 0x7f95300057e8
+i = 63,		ELF64_R_TYPE(reloc->r_info)	= 
+
+
+R_X86_64_JUMP_SLOT           calculation: S (symbol value)
+library[library_index].mapping_start    = 0x7f9530000000
+reloc->r_offset = 0x7f9530000000+0x00000020f210=0x7f953020f210
+attempting to look up symbol, index = 61
+looking up index 61 of table 3
+requested symbol name for index 61 is string_quote_catraw
+symbol = 19542 (0x000000004c56)
+0x7f953020f210 = 0x7f9530004c56
+i = 64,		ELF64_R_TYPE(reloc->r_info)	= 
+
+
+R_X86_64_JUMP_SLOT           calculation: S (symbol value)
+library[library_index].mapping_start    = 0x7f9530000000
+reloc->r_offset = 0x7f9530000000+0x00000020f218=0x7f953020f218
+attempting to look up symbol, index = 45
+looking up index 45 of table 3
+requested symbol name for index 45 is strdup
+symbol = 0 (         (nil))
+0x7f953020f218 = 0x7f9530000000
+i = 65,		ELF64_R_TYPE(reloc->r_info)	= 
+
+
+R_X86_64_JUMP_SLOT           calculation: S (symbol value)
+library[library_index].mapping_start    = 0x7f9530000000
+reloc->r_offset = 0x7f9530000000+0x00000020f220=0x7f953020f220
+attempting to look up symbol, index = 46
+looking up index 46 of table 3
+requested symbol name for index 46 is sleep
+symbol = 0 (         (nil))
+0x7f953020f220 = 0x7f9530000000
+i = 66,		ELF64_R_TYPE(reloc->r_info)	= 
+
+
+R_X86_64_JUMP_SLOT           calculation: S (symbol value)
+library[library_index].mapping_start    = 0x7f9530000000
+reloc->r_offset = 0x7f9530000000+0x00000020f228=0x7f953020f228
+attempting to look up symbol, index = 48
+looking up index 48 of table 3
+requested symbol name for index 48 is execv
+symbol = 0 (         (nil))
+0x7f953020f228 = 0x7f9530000000
+i = 67,		ELF64_R_TYPE(reloc->r_info)	= 
+
+
+R_X86_64_JUMP_SLOT           calculation: S (symbol value)
+library[library_index].mapping_start    = 0x7f9530000000
+reloc->r_offset = 0x7f9530000000+0x00000020f230=0x7f953020f230
+attempting to look up symbol, index = 86
+looking up index 86 of table 3
+requested symbol name for index 86 is string_quote
+symbol = 49263 (0x00000000c06f)
+0x7f953020f230 = 0x7f953000c06f
+
+
+
+called get_dynamic_entry
+testing if DT_NEEDED == DT_BIND_NOW
+testing if DT_INIT == DT_BIND_NOW
+testing if DT_FINI == DT_BIND_NOW
+testing if DT_INIT_ARRAY == DT_BIND_NOW
+testing if DT_INIT_ARRAYSZ == DT_BIND_NOW
+testing if DT_FINI_ARRAY == DT_BIND_NOW
+testing if DT_FINI_ARRAYSZ == DT_BIND_NOW
+testing if 1879047925 == DT_BIND_NOW
+testing if DT_STRTAB == DT_BIND_NOW
+testing if DT_SYMTAB == DT_BIND_NOW
+testing if DT_STRSZ == DT_BIND_NOW
+testing if DT_SYMENT == DT_BIND_NOW
+testing if DT_PLTGOT == DT_BIND_NOW
+testing if DT_PLTRELSZ == DT_BIND_NOW
+testing if DT_PLTREL == DT_BIND_NOW
+testing if DT_JMPREL == DT_BIND_NOW
+testing if DT_RELA == DT_BIND_NOW
+testing if DT_RELASZ == DT_BIND_NOW
+testing if DT_RELAENT == DT_BIND_NOW
+testing if DT_VERNEED == DT_BIND_NOW
+testing if DT_VERNEEDNUM == DT_BIND_NOW
+testing if DT_VERSYM == DT_BIND_NOW
+testing if DT_RELACOUNT == DT_BIND_NOW
+returning 0
+
+
+
+called get_dynamic_entry
+testing if DT_NEEDED == DT_ENCODING (or DT_PREINIT_ARRAY)
+testing if DT_INIT == DT_ENCODING (or DT_PREINIT_ARRAY)
+testing if DT_FINI == DT_ENCODING (or DT_PREINIT_ARRAY)
+testing if DT_INIT_ARRAY == DT_ENCODING (or DT_PREINIT_ARRAY)
+testing if DT_INIT_ARRAYSZ == DT_ENCODING (or DT_PREINIT_ARRAY)
+testing if DT_FINI_ARRAY == DT_ENCODING (or DT_PREINIT_ARRAY)
+testing if DT_FINI_ARRAYSZ == DT_ENCODING (or DT_PREINIT_ARRAY)
+testing if 1879047925 == DT_ENCODING (or DT_PREINIT_ARRAY)
+testing if DT_STRTAB == DT_ENCODING (or DT_PREINIT_ARRAY)
+testing if DT_SYMTAB == DT_ENCODING (or DT_PREINIT_ARRAY)
+testing if DT_STRSZ == DT_ENCODING (or DT_PREINIT_ARRAY)
+testing if DT_SYMENT == DT_ENCODING (or DT_PREINIT_ARRAY)
+testing if DT_PLTGOT == DT_ENCODING (or DT_PREINIT_ARRAY)
+testing if DT_PLTRELSZ == DT_ENCODING (or DT_PREINIT_ARRAY)
+testing if DT_PLTREL == DT_ENCODING (or DT_PREINIT_ARRAY)
+testing if DT_JMPREL == DT_ENCODING (or DT_PREINIT_ARRAY)
+testing if DT_RELA == DT_ENCODING (or DT_PREINIT_ARRAY)
+testing if DT_RELASZ == DT_ENCODING (or DT_PREINIT_ARRAY)
+testing if DT_RELAENT == DT_ENCODING (or DT_PREINIT_ARRAY)
+testing if DT_VERNEED == DT_ENCODING (or DT_PREINIT_ARRAY)
+testing if DT_VERNEEDNUM == DT_ENCODING (or DT_PREINIT_ARRAY)
+testing if DT_VERSYM == DT_ENCODING (or DT_PREINIT_ARRAY)
+testing if DT_RELACOUNT == DT_ENCODING (or DT_PREINIT_ARRAY)
+returning 0
+called get_dynamic_entry
+testing if DT_NEEDED == DT_PREINIT_ARRAYSZ
+testing if DT_INIT == DT_PREINIT_ARRAYSZ
+testing if DT_FINI == DT_PREINIT_ARRAYSZ
+testing if DT_INIT_ARRAY == DT_PREINIT_ARRAYSZ
+testing if DT_INIT_ARRAYSZ == DT_PREINIT_ARRAYSZ
+testing if DT_FINI_ARRAY == DT_PREINIT_ARRAYSZ
+testing if DT_FINI_ARRAYSZ == DT_PREINIT_ARRAYSZ
+testing if 1879047925 == DT_PREINIT_ARRAYSZ
+testing if DT_STRTAB == DT_PREINIT_ARRAYSZ
+testing if DT_SYMTAB == DT_PREINIT_ARRAYSZ
+testing if DT_STRSZ == DT_PREINIT_ARRAYSZ
+testing if DT_SYMENT == DT_PREINIT_ARRAYSZ
+testing if DT_PLTGOT == DT_PREINIT_ARRAYSZ
+testing if DT_PLTRELSZ == DT_PREINIT_ARRAYSZ
+testing if DT_PLTREL == DT_PREINIT_ARRAYSZ
+testing if DT_JMPREL == DT_PREINIT_ARRAYSZ
+testing if DT_RELA == DT_PREINIT_ARRAYSZ
+testing if DT_RELASZ == DT_PREINIT_ARRAYSZ
+testing if DT_RELAENT == DT_PREINIT_ARRAYSZ
+testing if DT_VERNEED == DT_PREINIT_ARRAYSZ
+testing if DT_VERNEEDNUM == DT_PREINIT_ARRAYSZ
+testing if DT_VERSYM == DT_PREINIT_ARRAYSZ
+testing if DT_RELACOUNT == DT_PREINIT_ARRAYSZ
+returning 0
+called get_dynamic_entry
+testing if DT_NEEDED == DT_INIT
+testing if DT_INIT == DT_INIT
+calling round_up
+returning = 0x7f9530000000
+calling round_up
+returning = 0x7f9530000000
+calling round_down
+returning = 0x00000020e000
+calling round_down
+returning = 0x00000020e000
+calling round_nearest
+returning = 0x00000020f000
+calling round_up
+returning = 0x000000200000
+calling round_down
+returning =          (nil)
+calling round_up
+returning = 0x000000200000
+calling round_down
+returning =          (nil)
+calling round_up
+returning = 0x000000200000
+calling round_down
+returning = 0x000000200000
+calling round_up
+returning = 0x000000200000
+calling round_down
+returning = 0x000000200000
+calling round_up
+returning = 0x562a5aca1000
+((char**)((char*)library[library_index].base_address + reloc->r_offset)) = 0x7f953020ed88
+*((char**)((char*)library[library_index].base_address + reloc->r_offset)) = 0x26a0
+*((char**)((char*)library[library_index].base_address + reloc->r_offset)) = 0x1
+((char**)((char*)library[library_index].base_address + reloc->r_offset)) = 0x7f953020ed98
+*((char**)((char*)library[library_index].base_address + reloc->r_offset)) = 0x2660
+*((char**)((char*)library[library_index].base_address + reloc->r_offset)) = 0x1
+((char**)((char*)library[library_index].base_address + reloc->r_offset)) = 0x7f953020f238
+*((char**)((char*)library[library_index].base_address + reloc->r_offset)) = 0x20f238
+*((char**)((char*)library[library_index].base_address + reloc->r_offset)) = 0x1
+((char**)((char*)library[library_index].base_address + reloc->r_offset)) = 0x7f953020f258
+*((char**)((char*)library[library_index].base_address + reloc->r_offset)) = 0xc700
+*((char**)((char*)library[library_index].base_address + reloc->r_offset)) = 0x1
+relocation summary:
+     R_X86_64_NONE              = 0
+     R_X86_64_64                = 2
+     R_X86_64_PC32              = 0
+     R_X86_64_GOT32             = 0
+     R_X86_64_PLT32             = 0
+     R_X86_64_COPY              = 0
+     R_X86_64_GLOB_DAT          = 20
+     R_X86_64_JUMP_SLOT         = 68
+     R_X86_64_RELATIVE          = 4
+     R_X86_64_GOTPCREL          = 0
+     R_X86_64_32                = 0
+     R_X86_64_32S               = 0
+     R_X86_64_16                = 0
+     R_X86_64_PC16              = 0
+     R_X86_64_8                 = 0
+     R_X86_64_PC8               = 0
+     R_X86_64_DTPMOD64          = 0
+     R_X86_64_DTPOFF64          = 0
+     R_X86_64_TPOFF64           = 0
+     R_X86_64_TLSGD             = 0
+     R_X86_64_TLSLD             = 0
+     R_X86_64_DTPOFF32          = 0
+     R_X86_64_GOTTPOFF          = 0
+     R_X86_64_TPOFF32           = 0
+     R_X86_64_PC64              = 0
+     R_X86_64_GOTOFF64          = 0
+     R_X86_64_GOTPC32           = 0
+     R_X86_64_GOT64             = 0
+     R_X86_64_GOTPCREL64        = 0
+     R_X86_64_GOTPC64           = 0
+     Deprecated1                = 0
+     R_X86_64_PLTOFF64          = 0
+     R_X86_64_SIZE32            = 0
+     R_X86_64_SIZE64            = 0
+     R_X86_64_GOTPC32_TLSDESC   = 0
+     R_X86_64_TLSDESC_CALL      = 0
+     R_X86_64_TLSDESC           = 0
+     R_X86_64_IRELATIVE         = 0
+     R_X86_64_RELATIVE64        = 0
+     Deprecated2                = 0
+     Deprecated3                = 0
+     R_X86_64_GOTPLT64          = 0
+     R_X86_64_GOTPCRELX         = 0
+     R_X86_64_REX_GOTPCRELX     = 0
+     R_X86_64_NUM               = 0
+     R_X86_64_UNKNOWN           = 0
+     total                       = 94
+library[library_index].dynamic[DT_PREINIT_ARRAY] = (nil)
+NO DT_PREINIT_ARRAY
+preinit_array->d_un.d_ptr = 0
+preinit_array->d_un.d_val = 0
+library[library_index].dynamic[DT_INIT] = 0x3
+INIT = 0x562a5ac9f1b0
+attempting to call DT_INIT for ./files/libstring.so
+library[library_index].base_address = 30000000
+library[library_index].base_address = 0x7f9530000000
+library[library_index].mapping_start = 30000000
+library[library_index].mapping_start = 0x7f9530000000
+INIT->d_un.d_ptr = 2150
+INIT->d_un.d_ptr = 0x2150
+library[library_index].base_address + INIT->d_un.d_ptr = 30002150
+library[library_index].base_address + INIT->d_un.d_ptr = 0x7f9530002150
+library[library_index].mapping_start + INIT->d_un.d_ptr = 30002150
+library[library_ind0x7f9530002150 = 0x3d058b4808ec8348
+0x7f9530002150 = 0x3d058b4808ec8348
+                                                                                                                        received signal (11)
+NOTICE
+received SegFault (11)
+addr:   0x7f9530000000
+signo:  11
+errno:  0
+code:   2 (If this is less than or equal to 0, then the signal was generated by a process)
+0x7f9530002150 = INVALID
+called get_dynamic_entry
+testing if DT_NEEDED == DT_INIT_ARRAY
+testing if DT_INIT == DT_INIT_ARRAY
+testing if DT_FINI == DT_INIT_ARRAY
+testing if DT_INIT_ARRAY == DT_INIT_ARRAY
+called get_dynamic_entry
+testing if DT_NEEDED == DT_INIT_ARRAYSZ
+testing if DT_INIT == DT_INIT_ARRAYSZ
+testing if DT_FINI == DT_INIT_ARRAYSZ
+testing if DT_INIT_ARRAY == DT_INIT_ARRAYSZ
+testing if DT_INIT_ARRAYSZ == DT_INIT_ARRAYSZ
+called get_dynamic_entry
+testing if DT_NEEDED == DT_INIT_ARRAYSZ
+testing if DT_INIT == DT_INIT_ARRAYSZ
+testing if DT_FINI == DT_INIT_ARRAYSZ
+testing if DT_INIT_ARRAY == DT_INIT_ARRAYSZ
+testing if DT_INIT_ARRAYSZ == DT_INIT_ARRAYSZ
+                                                                                                                        received signal (11)
+NOTICE
+received SegFault (11)
+addr:   0x7f9550b29980
+signo:  -1122499008
+errno:  1
+code:   2 (If this is less than or equal to 0, then the signal was generated by a process)
+0x000000000660 = INVALID

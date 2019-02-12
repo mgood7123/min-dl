@@ -137,7 +137,7 @@ private:
     void shiftFile(unsigned int extraPages, Elf_Addr startPage);
 
     string getSectionName(const Elf_Shdr & shdr);
-
+	
     Elf_Shdr & findSection(const SectionName & sectionName);
 
     Elf_Shdr * findSection2(const SectionName & sectionName);
@@ -157,7 +157,7 @@ private:
     void rewriteSectionsExecutable();
 
 public:
-
+	
     void rewriteSections();
 
     string getInterpreter();
@@ -179,6 +179,7 @@ public:
     void replaceNeeded(map<string, string>& libs);
 
     void printNeededLibs(const char * lib, int depth, int mode);
+	void getdynsec();
 
     void noDefaultLib();
 
@@ -284,6 +285,7 @@ static void checkPointer(void * p, unsigned int size)
 template<ElfFileParams>
 void ElfFile<ElfFileParamNames>::parse()
 {
+	std::cerr << "called parse" << std::endl;
     isExecutable = false;
 
     /* Check the ELF header for basic validity. */
@@ -464,6 +466,7 @@ string ElfFile<ElfFileParamNames>::getSectionName(const Elf_Shdr & shdr)
 template<ElfFileParams>
 Elf_Shdr & ElfFile<ElfFileParamNames>::findSection(const SectionName & sectionName)
 {
+	std::cerr << "finding section: " << sectionName << std::endl;
     Elf_Shdr * shdr = findSection2(sectionName);
     if (!shdr) {
         if (sectionName != ".interp")
@@ -473,10 +476,10 @@ Elf_Shdr & ElfFile<ElfFileParamNames>::findSection(const SectionName & sectionNa
     return *shdr;
 }
 
-
 template<ElfFileParams>
 Elf_Shdr * ElfFile<ElfFileParamNames>::findSection2(const SectionName & sectionName)
 {
+	std::cerr << "finding section: " << sectionName << std::endl;
     unsigned int i = findSection3(sectionName);
     return i ? &shdrs[i] : 0;
 }
@@ -485,6 +488,7 @@ Elf_Shdr * ElfFile<ElfFileParamNames>::findSection2(const SectionName & sectionN
 template<ElfFileParams>
 unsigned int ElfFile<ElfFileParamNames>::findSection3(const SectionName & sectionName)
 {
+	std::cerr << "finding section: " << sectionName << std::endl;
     for (unsigned int i = 1; i < rdi(hdr->e_shnum); ++i)
         if (getSectionName(shdrs[i]) == sectionName) return i;
     return 0;
@@ -1510,6 +1514,28 @@ void ElfFile<ElfFileParamNames>::printNeededLibs(const char * lib, int depth, in
     library[library_index].NEEDED_COUNT = i;
 }
 
+template<ElfFileParams>
+void ElfFile<ElfFileParamNames>::getdynsec()
+{
+	std::cerr << "called getdynsec" << std::endl;
+	std::cerr << "finding section: " << ".dynamic" << std::endl;
+    Elf_Shdr & shdrDynamic = findSection(".dynamic");
+	std::cerr << "finding section: " << ".dynstr" << std::endl;
+    Elf_Shdr & shdrDynStr = findSection(".dynstr");
+    char *strTab = (char *)contents + rdi(shdrDynStr.sh_offset);
+
+    Elf_Dyn *dyn = (Elf_Dyn *) (contents + rdi(shdrDynamic.sh_offset));
+	std::cerr << "tag = " << rdi(dyn->d_tag) << std::endl;
+    for (; rdi(dyn->d_tag) != DT_NULL; dyn++) {
+		std::cerr << "tag = " << rdi(dyn->d_tag) << std::endl;
+        if (rdi(dyn->d_tag) == DT_NEEDED) {
+            char * name = strTab + rdi(dyn->d_un.d_val);
+			std::cerr << "name of needed = " << name << std::endl;
+		}
+	}
+// 	return dyn;	
+}
+
 
 template<ElfFileParams>
 void ElfFile<ElfFileParamNames>::noDefaultLib()
@@ -1565,6 +1591,7 @@ static set<string> neededLibsToRemove;
 static map<string, string> neededLibsToReplace;
 static set<string> neededLibsToAdd;
 static bool printNeeded = false;
+static bool returndyn = false;
 static bool noDefaultLib = false;
 
 template<class ElfFile>
@@ -1613,9 +1640,8 @@ static void patchElf2(ElfFile & elfFile)
 static void patchElf()
 {
     if (!printInterpreter && !printRPath && !printSoname && !printNeeded)
-        debug("patching ELF file %s", fileName.c_str());
+        debug("patching ELF file %s\n", fileName.c_str());
 //     debug("Kernel page size is %u bytes\n", getPageSize());
-    if (!printNeeded) std::cerr << fileName << "\n";
     readFile(fileName);
 
 
@@ -1645,7 +1671,10 @@ static void patchElf()
 template<class ElfFile>
 static void patchElf4(ElfFile & elfFile, const char * lib, int depth, int mode)
 {
+	std::cerr << "called patchElf4" << std::endl;
     elfFile.parse();
+	std::cerr << "back to patchElf4" << std::endl;
+
 
     if (printInterpreter)
         printf("%s\n", elfFile.getInterpreter().c_str());
@@ -1670,6 +1699,8 @@ static void patchElf4(ElfFile & elfFile, const char * lib, int depth, int mode)
         elfFile.modifyRPath(elfFile.rpSet, newRPath);
 
     if (printNeeded) elfFile.printNeededLibs(lib, depth, mode);
+	std::cerr << "returndyn = " << returndyn << std::endl;
+	if (returndyn) elfFile.getdynsec();
 
     elfFile.removeNeeded(neededLibsToRemove);
     elfFile.replaceNeeded(neededLibsToReplace);
@@ -1687,9 +1718,8 @@ static void patchElf4(ElfFile & elfFile, const char * lib, int depth, int mode)
 static void patchElf3(const char * lib, int depth, int mode)
 {
     if (!printInterpreter && !printRPath && !printSoname && !printNeeded)
-        debug("patching ELF file %s", lib);
+        debug("patching ELF file %s\n", lib);
 //     debug("Kernel page size is %u bytes\n", getPageSize());
-    if (!printNeeded) std::cerr << lib << "\n";
     readFile(lib);
 
 
@@ -1748,6 +1778,18 @@ int print_interp(const char * lib) {
     printNeeded = false;
     printSoname = false;
     patchElf();
+}
+
+#ifndef M
+extern "C"
+#endif
+int get_dep(const char * lib) {
+    fileName=lib;
+    printInterpreter = false;
+    printNeeded = false;
+    printSoname = false;
+	returndyn = true;
+    patchElf3(lib, 0, 0);
 }
 
 #ifndef M

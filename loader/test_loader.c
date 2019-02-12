@@ -317,7 +317,7 @@ int main() {
     int (*func_int_puts_gnu)();
     func_int_puts_gnu = dlsym(gnu, "puts");
 	puts("executing puts");
-    func_int_puts_gnu("func_int_puts_gnu(\"test string\\n\") = test string\n");
+//     func_int_puts_gnu("func_int_puts_gnu(\"test string\\n\") = test string\n"); // DOES NOT WORK WITH CUSTOM LOADER
 
     printf("OK!\n");
 

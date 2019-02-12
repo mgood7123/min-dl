@@ -624,6 +624,8 @@ int prot_from_phdr(const int p_flags)
     return prot;
 }
 
+#define truncate_to_nearest_multiple(x, n) x - (x % n)
+
 void map() {
     if (library[library_index].is_mapped == 0) {
         library[library_index]._elf_header = (Elf64_Ehdr *) library[library_index].array;
@@ -702,18 +704,22 @@ the difference between the truncated memory address and the truncated p_vaddr va
                     break;
             }
         }
-        size_t pagesize = 0x1000;
+        size_t pagesize = getpagesize();
 		if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "library[library_index]._elf_program_header[lowest_idx].p_paddr = %014p\nlibrary[library_index]._elf_program_header[lowest_idx].p_vaddr = %014p\n",library[library_index]._elf_program_header[lowest_idx].p_paddr, library[library_index]._elf_program_header[lowest_idx].p_vaddr);
-        Elf64_Addr truncated_physical_address = round_down(library[library_index]._elf_program_header[lowest_idx].p_paddr, pagesize);
-        Elf64_Addr truncated_virtual_address = round_down(library[library_index]._elf_program_header[lowest_idx].p_vaddr, pagesize);
+        Elf64_Addr truncated_physical_address = truncate_to_nearest_multiple(library[library_index]._elf_program_header[lowest_idx].p_paddr, pagesize);
+        Elf64_Addr truncated_virtual_address = truncate_to_nearest_multiple(library[library_index]._elf_program_header[lowest_idx].p_vaddr, pagesize);
+		ppx(truncated_physical_address)
+		ppx(truncated_virtual_address)
 		library[library_index].base_address = truncated_physical_address - truncated_virtual_address;
+// 		library[library_index].base_address = library[library_index].mapping_start;
 
         library[library_index].align = round_nearest(library[library_index]._elf_program_header[library[library_index].Last_Load_Header_index].p_vaddr, pagesize);
+// 		library[library_index].base_address = library[library_index].mapping_start - library[library_index].align;
         library[library_index].mapping_end = library[library_index].mapping_start+span;
 
 		if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "base address range = %014p - %014p\nmapping = %014p\nbase address = %014p\n", library[library_index].mapping_start, library[library_index].mapping_end, library[library_index].mapping_start, library[library_index].base_address);
 
-// 		abort_();
+		abort_();
 		// base address aquired, map all PT_LOAD segments adjusting by base address then continue with the rest
         if (bytecmpq(global_quiet, "no") == 0) fprintf(stderr, "\n\n\nfind %014p, %014p, (int) 1239\n\n\n\n", library[library_index].mapping_start, library[library_index].mapping_end);
 
@@ -3146,28 +3152,9 @@ typedef void (*init_t) (int, char **, char **);
 
 void call_init_(int library_index) {
 	Elf64_Dyn * INIT = get_dynamic_entry(library[library_index].dynamic, DT_INIT);
-	pp(library[library_index].dynamic[DT_INIT])
-	pp(INIT)
 	if (DYN_IS_NULL(INIT)) {
 		printf("attempting to call DT_INIT for %s\n", library[library_index].current_lib);
-		px(library[library_index].base_address)
-		pp(library[library_index].base_address)
-		px(library[library_index].mapping_start)
-		pp(library[library_index].mapping_start)
-		px(INIT->d_un.d_ptr)
-		pp(INIT->d_un.d_ptr)
-		px(library[library_index].base_address + INIT->d_un.d_ptr)
 		pp(library[library_index].base_address + INIT->d_un.d_ptr)
-		px(library[library_index].mapping_start + INIT->d_un.d_ptr)
-		pp(library[library_index].mapping_start + INIT->d_un.d_ptr)
-		pi(libstring_argc)
-		pp(libstring_argv)
-		pp(libstring_env)
-		pb(is_readelf);
-		puts("testing library[library_index].base_address + INIT->d_un.d_ptr");
-		test_address(library[library_index].base_address + INIT->d_un.d_ptr);
-		puts("testing library[library_index].mapping_start + INIT->d_un.d_ptr");
-		test_address(library[library_index].mapping_start + INIT->d_un.d_ptr);
 		DL_CALL_DT_INIT(library[library_index].base_address + INIT->d_un.d_ptr, libstring_argc, libstring_argv, libstring_env);
 		puts("DT_INIT CALLED");
 	}
@@ -3200,9 +3187,11 @@ void call_init_(int library_index) {
 			printf("executing ((init_t) addrs[%d]) (libstring_argc, libstring_argv, libstring_env)\n", j);
 			// gdb ./files/loader -ex "handle SIGSEGV nostop pass noprint" -ex "r" -ex "break readelf_.c:3158"
 			((init_t) addrs[j]) (libstring_argc, libstring_argv, libstring_env);
+			printf("successfully executed ((init_t) addrs[%d]) (libstring_argc, libstring_argv, libstring_env)\n", j);
 		}
 		
 // 		for (j = 0; j < get_dynamic_entry(library[library_index].dynamic, DT_INIT_ARRAYSZ)->d_un.d_val / sizeof (Elf64_Addr); ++j) ((init_t) ((Elf64_Addr *) (library[library_index].base_address + get_dynamic_entry(library[library_index].dynamic, DT_INIT_ARRAY)->d_un.d_ptr))[j]) (libstring_argc, libstring_argv, libstring_env);
+// 		abort();
 	}
 }
 
@@ -3843,6 +3832,7 @@ dlopen(const char * cc) {
     get_needed(cc);
     return dlopen_(cc);
 }
+
 void *
 dlsym(const char * cc1, const char * cc2)
 {
