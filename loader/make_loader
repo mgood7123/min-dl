@@ -1,3 +1,5 @@
 . ./LOADER_FLAGS.sh
 . ./LOADER_SETUP.sh
+if [[ $a == 0 ]] ; then
 . ./LOADER_MAIN.sh
+fi
