@@ -44,16 +44,16 @@ if [[ $a == 0 ]] ; then
 gcc $share test_lib.c test_lib2.c -o files/test_lib.so
 a=$? ; else a=1 ; fi
 if [[ $a == 0 ]] ; then
-g++ $share test++_lib.cpp test++_lib2.cpp -o files/test++_lib.so
+g++ $share test++_lib.cpp test++_lib2.cpp -o files/test++_lib.so -std=c++11
 a=$? ; else a=1 ; fi
 if [[ $a == 0 ]] ; then
-g++ $share patchelf.cc -o files/patchelf.so
+g++ $share patchelf.cc -o files/patchelf.so -std=c++11
 a=$? ; else a=1 ; fi
 if [[ $a == 0 ]] ; then
 gcc $link ${RE} -o files/readelf_ files/readelf_.so files/patchelf.so files/libstring.so files/backtrace.so
 a=$? ; else a=1 ; fi
 if [[ $a == 0 ]] ; then
-g++ $link patchelf.cc -o files/patchelf ./files/libstring.a ./files/backtrace.a -DM
+g++ $link patchelf.cc -o files/patchelf ./files/libstring.a ./files/backtrace.a -DM -std=c++11
 a=$? ; else a=1 ; fi
 if [[ $a == 0 ]] ; then
 gcc $link test_loader.c -o files/loader files/readelf_.so files/patchelf.so files/libstring.so files/backtrace.so
