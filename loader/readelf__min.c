@@ -2328,6 +2328,7 @@ R_386_GOTPC         This relocation type resembles R_386_PC32, except it uses th
                     _R_X86_64_RELATIVE64++;
                     break;
                 }
+#ifdef R_X86_64_GOTPCRELX
                 case R_X86_64_GOTPCRELX:
                 {
                     if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) printf("\n\n\nR_X86_64_GOTPCRELX           calculation: (_GOTPC: GOT + A - P (address of global offset table + r_addend - (P: This means the place (section offset or address) of the storage unit being relocated (computed using r_offset ).)))\n");
@@ -2335,6 +2336,8 @@ R_386_GOTPC         This relocation type resembles R_386_PC32, except it uses th
                     _R_X86_64_GOTPCRELX++;
                     break;
                 }
+#endif
+#ifdef R_X86_64_REX_GOTPCRELX
                 case R_X86_64_REX_GOTPCRELX:
                 {
                     if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) printf("\n\n\nR_X86_64_REX_GOTPCRELX       calculation: (_GOTPC: GOT + A - P (address of global offset table + r_addend - (P: This means the place (section offset or address) of the storage unit being relocated (computed using r_offset ).)))\n");
@@ -2342,6 +2345,7 @@ R_386_GOTPC         This relocation type resembles R_386_PC32, except it uses th
                     _R_X86_64_REX_GOTPCRELX++;
                     break;
                 }
+#endif
                 case R_X86_64_NUM:
                 {
                     if (bytecmpq(global_quiet, "no") == 0) if (bytecmpq(am_i_quiet, "no") == 0) printf("\n\n\nR_X86_64_NUM\n");
