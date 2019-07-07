@@ -66,8 +66,14 @@ cp -rv supplied examples/example1
 a=$? ; else a=1 ; fi
 if [[ $a == 0 ]] ; then
 cd examples/example1
+a=$? ; else a=1 ; fi
+if [[ $a == 0 ]] ; then
 rm example1 hello.so
+fi # ignore example1 and hello.so if it does not exist
+if [[ $a == 0 ]] ; then
 make
+a=$? ; else a=1 ; fi
+if [[ $a == 0 ]] ; then
 # LD_PRELOAD=../../files/backtrace.so:../../files/libstring.so:../../files/patchelf.so:../../files/readelf_.so ./example1
 # ./example1
 # gdb ./example1 -ex "handle SIGSEGV nostop pass noprint" -ex "set environment LD_PRELOAD=../../files/backtrace.so:../../files/libstring.so:../../files/patchelf.so:../../files/readelf_.so"
@@ -76,7 +82,9 @@ a=$? ; else a=1 ; fi
 if [[ $a == 0 ]] ; then
 ./files/patchelf ldd examples/example1/hello.so
 a=$? ; else a=1 ; fi
+if [[ $a == 0 ]] ; then
 ./files/loader
+fi
 set +v
 
 # gdb files/loader_min - ex "break 90" -ex "r"
