@@ -54,8 +54,8 @@ extern int errno;
 #include <fcntl.h>
 #include <assert.h>
 #include <sys/mman.h>
-#include "../../CCR/Scripts/Shell/builtins/env.h"
-#include "../../CCR/Scripts/Shell/builtins/printfmacro.h"
+#include "builtins/env.h"
+#include "builtins/printfmacro.h"
 
 // need to add every needed declaration into this struct
 
